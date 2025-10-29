@@ -69,6 +69,7 @@ async function loadUnitsByParent(parentId) {
 
   // Normaliza status para UI (reemplaza guion bajo por espacio)
   const units = (data.data || []).map(u => ({
+    dbId: u.id || '',                 // Database ID para el botón de editar
     sku: u.sku || '',
     id: u.item_id || '',
     numeroSerie: u.serial || '',
@@ -2014,12 +2015,12 @@ class InventoryCatalog {
 
     // loading…
     tbody.innerHTML = `
-        <tr><td colspan="6" class="text-center text-muted">Cargando unidades…</td></tr>
+        <tr><td colspan="8" class="text-center text-muted">Cargando unidades…</td></tr>
     `;
 
     const parentId = this.parseParentIdFromItem_(item);
     if (!parentId) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Sin padre asociado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Sin padre asociado.</td></tr>`;
         return;
     }
 
@@ -2027,7 +2028,7 @@ class InventoryCatalog {
         const units = await loadUnitsByParent(parentId);
 
         if (!units.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Sin unidades registradas.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Sin unidades registradas.</td></tr>`;
         return;
         }
 
@@ -2040,13 +2041,20 @@ class InventoryCatalog {
             <td>${u.numeroSerie || '-'}</td>
             <td><span class="badge bg-secondary">${u.statusText}</span></td>
             <td>${u.locationText}</td>
+            <td>-</td>
             <td><span class="badge badge-${(u.condicion || 'BUENO').toLowerCase()}">${u.condicion || 'BUENO'}</span></td>
+            <td class="text-center">
+                <a href="/inventory/unidad/${u.dbId}" class="btn btn-sm btn-primary" title="Editar unidad completa">
+                    <i class="mdi mdi-pencil me-1"></i>
+                    Editar
+                </a>
+            </td>
         `;
         tbody.appendChild(tr);
         }
     } catch (e) {
         console.error(e);
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar unidades.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar unidades.</td></tr>`;
     }
     }
 

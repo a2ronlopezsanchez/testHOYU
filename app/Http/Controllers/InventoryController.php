@@ -702,6 +702,7 @@ class InventoryController extends Controller
             ->get()
             ->map(function ($i) {
                 return [
+                    'id'          => $i->id,                     // Database ID (agregado)
                     'sku'         => $i->sku,
                     'item_id'     => $i->item_id,
                     'serial'      => $i->serial_number,
@@ -932,6 +933,27 @@ class InventoryController extends Controller
         }
 
         return view('inventory.formulario', compact('itemParent', 'mode'));
+    }
+
+    /**
+     * Vista detallada de una unidad individual (InventoryItem)
+     */
+    public function detalleUnidad($id)
+    {
+        // Obtener el InventoryItem con sus relaciones
+        $inventoryItem = InventoryItem::with([
+            'parent.category',
+            'parent.brand',
+            'location'
+        ])->findOrFail($id);
+
+        // Usar el parent del item
+        $itemParent = $inventoryItem->parent;
+
+        // Calcular disponibilidad actual del parent
+        $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
+
+        return view('inventory.detalle', compact('itemParent', 'availability', 'inventoryItem'));
     }
 
     /**

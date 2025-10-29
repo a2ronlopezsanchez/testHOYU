@@ -300,7 +300,7 @@
             
             <!-- Tabla de unidades individuales -->
             <div class="table-responsive">
-              <table class="table table-striped">
+              <table class="table table-striped" id="units-table">
                 <thead>
                   <tr>
                     <th>SKU</th>
@@ -310,6 +310,7 @@
                     <th>Evento/Ubicación</th>
                     <th>Duración</th>
                     <th>Condición</th>
+                    <th width="150px" class="text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="modalUnitsTableBody">
