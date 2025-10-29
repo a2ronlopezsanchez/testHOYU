@@ -272,6 +272,11 @@ class InventoryCatalog {
                 <td>${u.locationText}</td>
                 <td>-</td>
                 <td><span class="badge badge-${(u.condicion || 'BUENO').toLowerCase()}">${u.condicion || 'BUENO'}</span></td>
+                <td class="text-center">
+                    <a href="/inventory/unidad/${u.dbId}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
+                        <i class="mdi mdi-pencil me-1"></i>
+                    </a>
+                </td>
             `;
             tbody.appendChild(row);
             }
