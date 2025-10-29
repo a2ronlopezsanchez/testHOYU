@@ -96,6 +96,13 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/catalogo', [App\Http\Controllers\ItemController::class,  'index'])->name('catalogo');
 
+        // Vistas de Inventario
+        Route::prefix('inventory')->name('inventory.')->group(function () {
+            Route::get('/disponibilidad', [App\Http\Controllers\InventoryController::class, 'disponibilidad'])->name('disponibilidad');
+            Route::get('/item/{id}', [App\Http\Controllers\InventoryController::class, 'detalle'])->name('detalle');
+            Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
+        });
+
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

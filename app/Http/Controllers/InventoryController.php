@@ -579,8 +579,41 @@ class InventoryController extends Controller
         do {
             $sku = 'BP' . str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
         } while (InventoryItem::where('sku', $sku)->exists());
-        
+
         return $sku;
+    }
+
+    /**
+     * Generate unique Item ID from parent
+     */
+    private function generateUniqueItemIdFromParent($parent)
+    {
+        $catName = strtoupper((string)($parent->category?->name ?? ''));
+        $brName  = strtoupper((string)($parent->brand?->name ?? ''));
+
+        // Iniciales (primer carácter alfabético)
+        $catInitial = $this->firstAlpha($catName) ?: 'X';
+        $brInitial  = $this->firstAlpha($brName)  ?: 'X';
+
+        $prefix = $catInitial . $brInitial; // "MS", "PL", etc.
+
+        // Buscar el mayor correlativo existente para ese prefijo
+        $ids = InventoryItem::where('item_id', 'like', $prefix . '%')->pluck('item_id');
+
+        $max = 0;
+        $regex = '/^'.preg_quote($prefix, '/').'(\d+)$/i';
+        foreach ($ids as $id) {
+            if (preg_match($regex, $id, $m)) {
+                $n = (int)$m[1];
+                if ($n > $max) $max = $n;
+            }
+        }
+        $next = $max + 1;
+
+        // Formatear: 001..999 y de ahí 1000, 1001, ...
+        $suffix = $next <= 999 ? str_pad((string)$next, 3, '0', STR_PAD_LEFT) : (string)$next;
+
+        return $prefix . $suffix;
     }
 
 
@@ -846,6 +879,59 @@ class InventoryController extends Controller
             'totalUnits' => $totalUnits,
             'date' => $dateToCheck->format('Y-m-d')
         ];
+    }
+
+    /**
+     * VISTAS BLADE - Métodos para renderizar las vistas
+     */
+
+    /**
+     * Vista de disponibilidad e inventario
+     */
+    public function disponibilidad()
+    {
+        return view('inventory.disponibilidad');
+    }
+
+    /**
+     * Vista detallada de un item
+     */
+    public function detalle($id)
+    {
+        // Obtener el item con sus relaciones
+        $itemParent = ItemParent::with([
+            'category',
+            'brand',
+            'items.location',
+            'items' => function ($query) {
+                $query->where('is_active', true);
+            }
+        ])->findOrFail($id);
+
+        // Calcular disponibilidad actual
+        $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
+
+        return view('inventory.detalle', compact('itemParent', 'availability'));
+    }
+
+    /**
+     * Vista de formulario para crear o editar item
+     */
+    public function formulario($id = null)
+    {
+        $itemParent = null;
+        $mode = 'new';
+
+        if ($id) {
+            $itemParent = ItemParent::with([
+                'category',
+                'brand',
+                'items.location'
+            ])->findOrFail($id);
+            $mode = 'edit';
+        }
+
+        return view('inventory.formulario', compact('itemParent', 'mode'));
     }
 
     /**
