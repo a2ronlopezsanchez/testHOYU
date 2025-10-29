@@ -1966,7 +1966,7 @@ class InventoryCatalog {
         tbody.innerHTML = '';
         
         if (units.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Sin unidades registradas.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Sin unidades registradas.</td></tr>';
             return;
         }
         
@@ -2007,7 +2007,13 @@ class InventoryCatalog {
                 <td>${unit.serial_number || '-'}</td>
                 <td>${statusBadge}</td>
                 <td>${unit.location}</td>
-                <td><span class="badge badge-${(unit.condition || 'BUENO').toLowerCase()}">${unit.condition || 'BUENO'}</span></td>
+                <td>-</td>
+                <td><span class="badge badge-${(unit.condicion || 'BUENO').toLowerCase()}">${unit.condicion || 'BUENO'}</span></td>
+                <td class="text-center">
+                    <a href="/inventory/unidad/${unit.id}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
+                        <i class="mdi mdi-pencil me-1"></i>
+                    </a>
+                </td>
             `;
             
             tbody.appendChild(tr);
