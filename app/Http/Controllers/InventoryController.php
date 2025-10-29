@@ -1014,6 +1014,7 @@ class InventoryController extends Controller
                 }
                 
                 $units[] = [
+                    'db_id' => $item->id,  // Database ID para el botón de editar
                     'id' => $item->item_id ?: $item->id,
                     'sku' => $item->sku,
                     'serial_number' => $item->serial_number,

@@ -1962,17 +1962,17 @@ class InventoryCatalog {
     populateModalUnitsTableWithRealData(units) {
         const tbody = document.getElementById('modalUnitsTableBody');
         if (!tbody || !units) return;
-        
+
         tbody.innerHTML = '';
-        
+
         if (units.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Sin unidades registradas.</td></tr>';
             return;
         }
-        
+
         units.forEach(unit => {
             const tr = document.createElement('tr');
-            
+
             // Determinar badge de estado
             let statusBadge = '';
             switch (unit.status) {
@@ -1991,7 +1991,7 @@ class InventoryCatalog {
                 default:
                     statusBadge = '<span class="badge bg-secondary">Desconocido</span>';
             }
-            
+
             // Información del evento si existe
             let eventInfo = '-';
             if (unit.event) {
@@ -2000,22 +2000,23 @@ class InventoryCatalog {
                     <span class="text-muted">${unit.event.venue || 'Sin venue'}</span>
                 </small>`;
             }
-            
+
             tr.innerHTML = `
                 <td><code class="text-primary">${unit.sku || '-'}</code></td>
                 <td><span class="badge bg-label-dark">${unit.id}</span></td>
                 <td>${unit.serial_number || '-'}</td>
                 <td>${statusBadge}</td>
-                <td>${unit.location}</td>
+                <td>${eventInfo}</td>
                 <td>-</td>
-                <td><span class="badge badge-${(unit.condicion || 'BUENO').toLowerCase()}">${unit.condicion || 'BUENO'}</span></td>
+                <td><span class="badge badge-${(unit.condition || 'BUENO').toLowerCase()}">${unit.condition || 'BUENO'}</span></td>
                 <td class="text-center">
-                    <a href="/inventory/unidad/${unit.id}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
+                    <a href="/inventory/unidad/${unit.db_id}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
                         <i class="mdi mdi-pencil me-1"></i>
+                        Editar
                     </a>
                 </td>
             `;
-            
+
             tbody.appendChild(tr);
         });
     }
