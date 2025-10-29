@@ -1,0 +1,952 @@
+<!doctype html>
+
+<html
+  lang="es"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../../assets/"
+  data-template="vertical-menu-template-no-customizer">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Formulario Completo de Item | Black Production</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
+      rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="../../assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="../../assets/vendor/fonts/flag-icons.css" />
+
+    <!-- Menu waves for no-customizer fix -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" />
+    <link rel="stylesheet" href="../../assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/tagify/tagify.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/dropzone/dropzone.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/cards-statistics.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/black-production-css/formulario-item-completo.css" />
+
+    <!-- Helpers -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/js/config.js"></script>
+
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="index.html" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <span style="color: var(--bs-primary)">
+                </span>
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">BLCK</span>
+            </a>
+
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z"
+                  fill="currentColor"
+                  fill-opacity="0.6" />
+                <path
+                  d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z"
+                  fill="currentColor"
+                  fill-opacity="0.38" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="menu-inner-shadow"></div>
+
+<ul class="menu-inner py-1">
+            <!-- Inventario -->
+            <li class="menu-item active">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-package-variant-closed"></i>
+                <div data-i18n="Inventario">Inventario</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/catalogo-inventario.html" class="menu-link">
+                    <div data-i18n="Disponibilidad">Disponibilidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/formulario-item-completo.html?mode=new" class="menu-link">
+                    <div data-i18n="Registro Completo">Registro Completo</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/vista-detalle-item.html" class="menu-link">
+                    <div data-i18n="Detalle Item">Detalle Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos-inventario" class="menu-link">
+                    <div data-i18n="Eventos">Eventos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/reportes-inventario" class="menu-link">
+                    <div data-i18n="Reportes">Reportes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </aside>
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav
+            class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="mdi mdi-menu mdi-24px"></i>
+              </a>
+            </div>
+
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <!-- Search -->
+              <div class="navbar-nav align-items-center">
+                <div class="nav-item navbar-search-wrapper mb-0">
+                  <a class="nav-item nav-link search-toggler fw-normal px-0" href="javascript:void(0);">
+                    <i class="mdi mdi-magnify mdi-24px scaleX-n1-rtl"></i>
+                    <span class="d-none d-md-inline-block text-muted">Buscar (Ctrl+f)</span>
+                  </a>
+                </div>
+              </div>
+              <!-- /Search -->
+
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-account.html">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="../../assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">Nach Díaz</span>
+                            <small class="text-muted">Super Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-profile-user.html">
+                        <i class="mdi mdi-account-outline me-2"></i>
+                        <span class="align-middle">Mi Perfil</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-account.html">
+                        <i class="mdi mdi-cog-outline me-2"></i>
+                        <span class="align-middle">Configuración</span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="auth-login-cover.html" target="_blank">
+                        <i class="mdi mdi-logout me-2"></i>
+                        <span class="align-middle">Log Out</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <!--/ User -->
+              </ul>
+            </div>
+
+            <!-- Search Small Screens -->
+            <div class="navbar-search-wrapper search-input-wrapper d-none">
+              <input
+                type="text"
+                class="form-control search-input container-xxl border-0"
+                placeholder="Search..."
+                aria-label="Search..." />
+              <i class="mdi mdi-close search-toggler cursor-pointer"></i>
+            </div>
+          </nav>
+
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+              <!-- Header Principal -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h4 class="fw-bold mb-1">
+                            <span class="text-muted fw-light">Inventario /</span> 
+                            <span id="formTitle">Registrar Nuevo Item</span>
+                          </h4>
+                          <p class="mb-0 text-muted">Complete todos los campos requeridos para registrar el item en el sistema</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                          <button type="button" class="btn btn-outline-secondary" onclick="handleBack()">
+                            <i class="mdi mdi-arrow-left me-1"></i>
+                            Volver al Catálogo
+                          </button>
+                          <button type="button" class="btn btn-primary" id="saveFormBtn">
+                            <i class="mdi mdi-content-save me-1"></i>
+                            <span id="saveButtonText">Guardar Item</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Indicador de progreso -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-body py-2">
+                      <div class="progress-wrapper">
+                        <div class="progress" style="height: 6px;">
+                          <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="formProgress"></div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                          <span id="progressText">0% completado</span> - 
+                          <span id="fieldsCompleted">0</span> de <span id="totalFields">0</span> campos completados
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Formulario principal -->
+              <form id="itemCompleteForm">
+                <div class="row">
+                  <!-- Navegación por tabs -->
+                  <div class="col-12 mb-2">
+                    <ul class="nav nav-pills flex-column flex-sm-row" id="formTabs" role="tablist">
+                      <li class="nav-item flex-fill">
+                        <a class="nav-link active" id="basic-tab" data-bs-toggle="tab" href="#basic" role="tab">
+                          <i class="mdi mdi-information me-1"></i>
+                          <span class="d-none d-sm-inline">Información Básica</span>
+                          <span class="d-sm-none">Básica</span>
+                        </a>
+                      </li>
+                      <li class="nav-item flex-fill">
+                        <a class="nav-link" id="technical-tab" data-bs-toggle="tab" href="#technical" role="tab">
+                          <i class="mdi mdi-cog me-1"></i>
+                          <span class="d-none d-sm-inline">Especificaciones</span>
+                          <span class="d-sm-none">Técnica</span>
+                        </a>
+                      </li>
+                      <li class="nav-item flex-fill">
+                        <a class="nav-link" id="financial-tab" data-bs-toggle="tab" href="#financial" role="tab">
+                          <i class="mdi mdi-currency-usd me-1"></i>
+                          <span class="d-none d-sm-inline">Precios y Valores</span>
+                          <span class="d-sm-none">Precios</span>
+                        </a>
+                      </li>
+                      <li class="nav-item flex-fill">
+                        <a class="nav-link" id="location-tab" data-bs-toggle="tab" href="#location" role="tab">
+                          <i class="mdi mdi-map-marker me-1"></i>
+                          <span class="d-none d-sm-inline">Ubicación y Estado</span>
+                          <span class="d-sm-none">Ubicación</span>
+                        </a>
+                      </li>
+                      <li class="nav-item flex-fill">
+                        <a class="nav-link" id="multimedia-tab" data-bs-toggle="tab" href="#multimedia" role="tab">
+                          <i class="mdi mdi-image me-1"></i>
+                          <span class="d-none d-sm-inline">Multimedia</span>
+                          <span class="d-sm-none">Fotos</span>
+                        </a>
+                      </li>
+                      <li class="nav-item flex-fill">
+                        <a class="nav-link" id="rfid-tab" data-bs-toggle="tab" href="#rfid" role="tab">
+                          <i class="mdi mdi-tag-rfid me-1"></i>
+                          <span class="d-none d-sm-inline">RFID</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- Contenido de tabs -->
+                  <div class="col-12">
+                    <div class="tab-content">
+                      <!-- Tab 1: Información Básica -->
+                      <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                        <div class="row g-4">
+                          <div class="col-lg-8">
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Datos Principales del Item</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="row g-3">
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemSku" placeholder="BP000000" readonly>
+                                      <label for="itemSku">SKU *</label>
+                                      <div class="form-text">Generado automáticamente por el sistema</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemId" placeholder="XX00" readonly>
+                                      <label for="itemId">ID del Item *</label>
+                                      <div class="form-text">Generado según categoría y marca</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemName" placeholder="Ingrese el nombre completo" required>
+                                      <label for="itemName">Nombre del Producto *</label>
+                                      <div class="form-text">Formato: TIPO | MARCA | MODELO | CARACTERÍSTICAS</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemPublicName" placeholder="Nombre para mostrar al cliente">
+                                      <label for="itemPublicName">Nombre Público</label>
+                                      <div class="form-text">Cómo se mostrará en cotizaciones y documentos</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemCategory" name="itemCategory" class="form-control h-auto" placeholder="Seleccionar categoría">
+                                      <label for="itemCategory">Categoría *</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemFamily" name="itemFamily" class="form-control h-auto" placeholder="Familia del producto">
+                                      <label for="itemFamily">Familia</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemSubFamily" name="itemSubFamily" class="form-control h-auto" placeholder="Sub-familia">
+                                      <label for="itemSubFamily">Sub-Familia</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemBrand" name="itemBrand" class="form-control h-auto" placeholder="Marca del producto">
+                                      <label for="itemBrand">Marca *</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemModel" name="itemModel" class="form-control h-auto" placeholder="Modelo">
+                                      <label for="itemModel">Modelo *</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-12">
+                                    <div class="form-floating form-floating-outline">
+                                      <textarea class="form-control h-px-100" id="itemDescription" placeholder="Descripción detallada"></textarea>
+                                      <label for="itemDescription">Descripción</label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-lg-4">
+                            <!-- Vista previa -->
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Vista Previa</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="item-preview">
+                                  <div class="preview-image mb-3">
+                                    <img src="../../assets/img/products/card-weekly-sales-watch.png" 
+                                         alt="Preview" 
+                                         class="img-fluid rounded"
+                                         id="previewMainImage">
+                                  </div>
+                                  <h6 id="previewName" class="mb-1">Nombre del Producto</h6>
+                                  <p class="text-muted small mb-2" id="previewPublicName">Nombre Público</p>
+                                  <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-label-primary" id="previewCategory">Categoría</span>
+                                    <span class="fw-medium" id="previewBrand">Marca</span>
+                                  </div>
+                                  <hr>
+                                  <div class="row text-center">
+                                    <div class="col-4">
+                                      <div class="fw-medium" id="previewUnits">0</div>
+                                      <small class="text-muted">Unidades</small>
+                                    </div>
+                                    <div class="col-4">
+                                      <div class="fw-medium text-success" id="previewAvailable">0</div>
+                                      <small class="text-muted">Disponibles</small>
+                                    </div>
+                                    <div class="col-4">
+                                      <div class="fw-medium" id="previewPrice">$0</div>
+                                      <small class="text-muted">Renta</small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Guardado automático -->
+                            <div class="card mt-3">
+                              <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                  <div>
+                                    <h6 class="mb-1">Guardado Automático</h6>
+                                    <small class="text-muted" id="autoSaveStatus">No guardado</small>
+                                  </div>
+                                  <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="autoSaveToggle" checked>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab 2: Especificaciones Técnicas -->
+                      <div class="tab-pane fade" id="technical" role="tabpanel">
+                        <div class="row g-4">
+                          <div class="col-lg-8">
+                            <div class="card">
+                              <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Especificaciones Técnicas</h5>
+                                <button type="button" class="btn btn-sm btn-primary" id="addSpecBtn">
+                                  <i class="mdi mdi-plus me-1"></i>Agregar Especificación
+                                </button>
+                              </div>
+                              <div class="card-body">
+                                <div id="specificationsContainer">
+                                  <!-- Se generarán dinámicamente -->
+                                  <div class="alert alert-info">
+                                    <i class="mdi mdi-information me-2"></i>
+                                    Agregue las especificaciones técnicas del producto. Por ejemplo: Potencia, Dimensiones, Peso, etc.
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Identificadores -->
+                            <div class="card mt-4">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Identificadores y Códigos</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="row g-3">
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemSerialNumber" placeholder="Número de serie">
+                                      <label for="itemSerialNumber">Número de Serie</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <div class="input-group">
+                                        <input type="text" class="form-control" id="itemRfidTag" placeholder="Etiqueta RFID">
+                                        <button class="btn btn-outline-primary" type="button" id="scanRfidBtn">
+                                          <i class="mdi mdi-qrcode-scan"></i>
+                                        </button>
+                                      </div>
+                                      <label for="itemRfidTag">Etiqueta RFID</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemColor" name="itemColor" class="form-control h-auto" placeholder="Color del producto">
+                                      <label for="itemColor">Color</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <select class="form-select" id="itemUnitSet">
+                                        <option value="UNIT">Individual (UNIT)</option>
+                                        <option value="SET">Conjunto (SET)</option>
+                                      </select>
+                                      <label for="itemUnitSet">Tipo de Unidad</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="number" class="form-control" id="itemTotalUnits" min="1" value="1">
+                                      <label for="itemTotalUnits">Total de Unidades</label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-lg-4">
+                            <!-- Plantillas de especificaciones -->
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Plantillas Rápidas</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="d-grid gap-2" id="specTemplates">
+                                  <!-- Se generarán según la categoría seleccionada -->
+                                  <p class="text-muted mb-0">Seleccione una categoría para ver las plantillas disponibles</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Tab 3: Precios y Valores -->
+                      <div class="tab-pane fade" id="financial" role="tabpanel">
+                        <div class="row g-4">
+                          <div class="col-lg-8">
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Información Financiera</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="row g-3">
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="date" class="form-control" id="itemPurchaseDate">
+                                      <label for="itemPurchaseDate">Fecha de Compra</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <select class="form-select" id="itemWarranty">
+                                        <option value="SI">Sí</option>
+                                        <option value="NO" selected>No</option>
+                                      </select>
+                                      <label for="itemWarranty">Garantía Vigente</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="number" class="form-control" id="itemOriginalPrice" step="0.01" min="0">
+                                      <label for="itemOriginalPrice">Precio Original ($)</label>
+                                      <div class="form-text">Precio de compra del equipo</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="number" class="form-control" id="itemIdealRentPrice" step="0.01" min="0">
+                                      <label for="itemIdealRentPrice">Precio Renta Ideal ($)</label>
+                                      <div class="form-text">Precio objetivo de renta</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="number" class="form-control" id="itemMinRentPrice" step="0.01" min="0">
+                                      <label for="itemMinRentPrice">Precio Renta Mínimo ($)</label>
+                                      <div class="form-text">Precio mínimo aceptable</div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Calculadora de rentabilidad -->
+                                <div class="mt-4 p-3 bg-light rounded">
+                                  <h6 class="mb-3">Análisis de Rentabilidad</h6>
+                                  <div class="row g-3">
+                                    <div class="col-md-4">
+                                      <small class="text-muted d-block">ROI Estimado</small>
+                                      <h5 class="mb-0" id="roiEstimate">0%</h5>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <small class="text-muted d-block">Recuperación en</small>
+                                      <h5 class="mb-0" id="recoveryTime">0 rentas</h5>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <small class="text-muted d-block">Margen de Ganancia</small>
+                                      <h5 class="mb-0" id="profitMargin">0%</h5>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-lg-4">
+                            <!-- Historial de precios -->
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Historial de Precios</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="timeline timeline-vertical">
+                                  <div class="timeline-item">
+                                    <span class="timeline-indicator timeline-indicator-primary">
+                                      <i class="mdi mdi-currency-usd"></i>
+                                    </span>
+                                    <div class="timeline-event">
+                                      <div class="timeline-header">
+                                        <small class="text-muted">Precio Actual</small>
+                                      </div>
+                                      <div class="timeline-body">
+                                        <p class="mb-0 fw-medium" id="currentPriceDisplay">$0.00</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab 4: Ubicación y Estado -->
+                      <div class="tab-pane fade" id="location" role="tabpanel">
+                        <div class="row g-4">
+                          <div class="col-lg-8">
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Ubicación Física</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="row g-3">
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemLocation" name="itemLocation" class="form-control h-auto" placeholder="Ubicación principal">
+                                      <label for="itemLocation">Ubicación *</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input id="itemStatus" name="itemStatus" class="form-control h-auto" placeholder="Estado del item">
+                                      <label for="itemStatus">Estado *</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemRack" placeholder="Ej: A1-5">
+                                      <label for="itemRack">Posición en Rack</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline">
+                                      <input type="text" class="form-control" id="itemPanel" placeholder="Ej: P1-3">
+                                      <label for="itemPanel">Panel</label>
+                                    </div>
+                                  </div>
+                                  <div class="col-12">
+                                    <label class="form-label">Mapa de Ubicación</label>
+                                    <div class="warehouse-map bg-light rounded p-3 text-center" style="min-height: 200px;">
+                                      <i class="mdi mdi-warehouse mdi-48px text-muted"></i>
+                                      <p class="text-muted mt-2">Vista del mapa del almacén</p>
+                                      <button type="button" class="btn btn-sm btn-primary">Seleccionar Ubicación</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-lg-4">
+                            <!-- Estado y condición -->
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Condición del Equipo</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="mb-3">
+                                  <label class="form-label">Condición Física</label>
+                                  <div class="btn-group d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="itemCondition" id="condExcelente" value="EXCELENTE">
+                                    <label class="btn btn-outline-success" for="condExcelente">Excelente</label>
+                                    
+                                    <input type="radio" class="btn-check" name="itemCondition" id="condBueno" value="BUENO" checked>
+                                    <label class="btn btn-outline-primary" for="condBueno">Bueno</label>
+                                    
+                                    <input type="radio" class="btn-check" name="itemCondition" id="condRegular" value="REGULAR">
+                                    <label class="btn btn-outline-warning" for="condRegular">Regular</label>
+                                    
+                                    <input type="radio" class="btn-check" name="itemCondition" id="condMalo" value="MALO">
+                                    <label class="btn btn-outline-danger" for="condMalo">Malo</label>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <label class="form-label" for="itemNotes">Notas sobre el Estado</label>
+                                  <textarea class="form-control" id="itemNotes" rows="4" placeholder="Observaciones sobre el estado actual del equipo..."></textarea>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab 5: Multimedia -->
+                      <div class="tab-pane fade" id="multimedia" role="tabpanel">
+                        <div class="card">
+                          <div class="card-header">
+                            <h5 class="card-title mb-0">Imágenes del Producto</h5>
+                          </div>
+                          <div class="card-body">
+                            <div class="dropzone needsclick" id="dropzone-multi">
+                              <div class="dz-message needsclick">
+                                <i class="mdi mdi-cloud-upload mdi-48px text-muted mb-2"></i>
+                                <h5>Arrastra las imágenes aquí o haz clic para seleccionar</h5>
+                                <p class="text-muted mb-0">Formatos permitidos: JPG, PNG, GIF (máx. 5MB por archivo)</p>
+                              </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                              <label class="form-label">Galería de Imágenes</label>
+                              <div class="row g-3" id="imageGallery">
+                                <!-- Las imágenes se mostrarán aquí -->
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab 6: RFID -->
+                      <div class="tab-pane fade" id="rfid" role="tabpanel">
+                        <div class="row g-4">
+                          <div class="col-lg-8">
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Configuración RFID</h5>
+                              </div>
+                              <div class="card-body">
+                                <div class="alert alert-info d-flex align-items-center mb-4">
+                                  <i class="mdi mdi-information-outline me-2"></i>
+                                  <div>
+                                    <h6 class="alert-heading mb-1">Sistema RFID</h6>
+                                    <p class="mb-0">Configure los metadatos que se almacenarán en la etiqueta RFID del producto.</p>
+                                  </div>
+                                </div>
+
+                                <div class="mb-4">
+                                  <h6 class="mb-3">Datos a incluir en la etiqueta:</h6>
+                                  <div class="row g-3">
+                                    <div class="col-md-6">
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rfidName" checked>
+                                        <label class="form-check-label" for="rfidName">
+                                          Nombre del ítem
+                                        </label>
+                                      </div>
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rfidCategory" checked>
+                                        <label class="form-check-label" for="rfidCategory">
+                                          Categoría
+                                        </label>
+                                      </div>
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rfidBrand" checked>
+                                        <label class="form-check-label" for="rfidBrand">
+                                          Marca y Modelo
+                                        </label>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rfidSerial">
+                                        <label class="form-check-label" for="rfidSerial">
+                                          Número de serie
+                                        </label>
+                                      </div>
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rfidPurchase">
+                                        <label class="form-check-label" for="rfidPurchase">
+                                          Fecha de compra
+                                        </label>
+                                      </div>
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rfidCondition" checked>
+                                        <label class="form-check-label" for="rfidCondition">
+                                          Condición actual
+                                        </label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <button type="button" class="btn btn-primary" id="programRfidBtn">
+                                  <i class="mdi mdi-tag-rfid me-2"></i>
+                                  Programar Etiqueta RFID
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-lg-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h5 class="card-title mb-0">Estado RFID</h5>
+                              </div>
+                              <div class="card-body text-center">
+                                <div class="mb-3">
+                                  <i class="mdi mdi-tag-rfid mdi-48px text-primary"></i>
+                                </div>
+                                <h6 id="rfidStatusText">Sin Etiqueta Asignada</h6>
+                                <p class="text-muted small mb-3">Escanee o ingrese manualmente el código RFID</p>
+                                <div class="d-grid gap-2">
+                                  <button type="button" class="btn btn-outline-primary" id="scanNewRfidBtn">
+                                    <i class="mdi mdi-qrcode-scan me-2"></i>
+                                    Escanear Nueva Etiqueta
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+
+            </div>
+            <!-- / Content -->
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div
+                  class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                  <div class="mb-2 mb-md-0">
+                    ©
+                    <script>
+                      document.write(new Date().getFullYear());
+                    </script>
+                    , hecho con <span class="text-danger"><i class="tf-icons mdi mdi-heart"></i></span> por
+                    <a href="https://pixinvent.com" target="_blank" class="footer-link fw-medium">Happening</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <!-- / Footer -->
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- / Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+
+      <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+      <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+
+    <!-- Vendors JS -->
+    <script src="../../assets/vendor/libs/tagify/tagify.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/vendor/libs/dropzone/dropzone.js"></script>
+
+    <!-- Main JS -->
+    <script src="../../assets/js/main.js"></script>
+
+        <script>
+    // Función para volver según el contexto
+    function handleBack() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const itemId = urlParams.get('id');
+        
+        // Si viene de edición, volver al detalle
+        if (mode === 'edit' && itemId) {
+            window.location.href = `vista-detalle-item.html?id=${itemId}`;
+        } else {
+            // Si es nuevo, volver al catálogo
+            window.location.href = 'catalogo-inventario.html';
+        }
+    }
+    
+    // Cambiar el texto del título según el modo
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const itemId = urlParams.get('id');
+        
+        const formTitle = document.getElementById('formTitle');
+        const saveButtonText = document.getElementById('saveButtonText');
+        const backButton = document.querySelector('.btn-outline-secondary');
+        
+        if (mode === 'edit' && itemId) {
+            formTitle.textContent = 'Editar Item';
+            saveButtonText.textContent = 'Guardar Cambios';
+            if (backButton) {
+                backButton.innerHTML = '<i class="mdi mdi-arrow-left me-1"></i>Volver al Detalle';
+            }
+        } else {
+            formTitle.textContent = 'Registrar Nuevo Item';
+            saveButtonText.textContent = 'Guardar Item';
+        }
+    });
+    </script>
+
+    <!-- Page JS -->
+    <script src="../../assets/js/modules/bp-modules/formulario-item-completo.js"></script>
+
+  </body>
+</html>

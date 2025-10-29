@@ -1,0 +1,661 @@
+/**
+ * FORMULARIO COMPLETO DE ITEM - ESTILOS CSS
+ * Estilos específicos para el formulario completo de items
+ * Autor: Grupo Tangamanga
+ */
+
+/* ===== VARIABLES PERSONALIZADAS ===== */
+:root {
+    --form-section-spacing: 1.5rem;
+    --form-field-spacing: 1rem;
+    --preview-bg: #f8f9fa;
+    --progress-height: 6px;
+    --spec-item-bg: #f1f3f5;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-wrapper {
+    position: relative;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+    background: linear-gradient(90deg, var(--bs-primary) 0%, var(--bs-primary-dark) 100%);
+}
+
+/* ===== TABS DE NAVEGACIÓN ===== */
+#formTabs {
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.1rem;
+}
+
+#formTabs .nav-link {
+    color: #697a8d;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    margin: 0 0.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#formTabs .nav-link:hover {
+    background-color: rgba(105, 108, 255, 0.08);
+    color: var(--bs-primary);
+}
+
+#formTabs .nav-link.active {
+    background-color: var(--bs-primary);
+    color: white;
+    box-shadow: 0 0.125rem 0.25rem rgba(105, 108, 255, 0.4);
+}
+
+#formTabs .nav-link i {
+    font-size: 1.125rem;
+    vertical-align: middle;
+}
+
+/* Indicador de completado en tabs */
+#formTabs .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--bs-success);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+#formTabs .nav-link.completed::after {
+    transform: scaleX(1);
+}
+
+/* ===== CARDS Y SECCIONES ===== */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(165, 163, 174, 0.3);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(165, 163, 174, 0.3);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #566a7f;
+}
+
+/* ===== PREVIEW DEL ITEM ===== */
+.item-preview {
+    background-color: var(--preview-bg);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.preview-image {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.preview-image img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* ===== ESPECIFICACIONES ===== */
+.specification-item {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.specification-item .input-group {
+    background-color: var(--spec-item-bg);
+    border-radius: 0.375rem;
+    padding: 0.25rem;
+}
+
+.specification-item input {
+    background-color: transparent;
+    border: none;
+}
+
+.specification-item input:focus {
+    background-color: #fff;
+    border: 1px solid var(--bs-primary);
+}
+
+/* ===== BOTONES DE PLANTILLA ===== */
+#specTemplates .btn {
+    margin: 0.25rem;
+    font-size: 0.875rem;
+}
+
+/* ===== GALERÍA DE IMÁGENES ===== */
+#imageGallery .card {
+    height: 100%;
+    overflow: hidden;
+}
+
+#imageGallery .card-img-top {
+    height: 150px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+#imageGallery .card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* ===== DROPZONE PERSONALIZADO ===== */
+.dropzone {
+    min-height: 200px;
+    padding: 20px;
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+    border-color: var(--bs-primary);
+    background-color: rgba(105, 108, 255, 0.04);
+}
+
+.dropzone.dz-drag-hover {
+    border-color: var(--bs-primary);
+    background-color: rgba(105, 108, 255, 0.08);
+}
+
+.dz-message {
+    text-align: center;
+    margin: 2rem 0;
+    color: #697a8d;
+}
+
+/* ===== RFID SECTION ===== */
+.rfid-status-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* ===== TIMELINE ===== */
+.timeline {
+    position: relative;
+    padding-left: 3rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 2rem;
+    bottom: 0;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-indicator {
+    position: absolute;
+    left: -2.25rem;
+    top: 0;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border: 2px solid var(--bs-primary);
+    border-radius: 50%;
+}
+
+.timeline-indicator i {
+    color: var(--bs-primary);
+    font-size: 1.25rem;
+}
+
+/* ===== MAPA DE ALMACÉN ===== */
+.warehouse-map {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.warehouse-map:hover {
+    background-color: rgba(105, 108, 255, 0.08) !important;
+}
+
+/* ===== BOTONES DE CONDICIÓN ===== */
+.btn-group[role="group"] {
+    width: 100%;
+}
+
+.btn-group .btn {
+    flex: 1;
+    font-size: 0.875rem;
+}
+
+/* ===== VALIDACIÓN DE FORMULARIO ===== */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.tagify--invalid {
+    border-color: #dc3545 !important;
+}
+
+/* ===== ANIMACIONES DE GUARDADO ===== */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.saving {
+    animation: pulse 1s infinite;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    #formTabs {
+        padding: 0.25rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #formTabs .nav-link {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+    }
+    
+    .preview-image {
+        height: 150px;
+    }
+    
+    .timeline {
+        padding-left: 2rem;
+    }
+    
+    .timeline-indicator {
+        left: -1.5rem;
+        width: 2rem;
+        height: 2rem;
+    }
+    
+    .timeline-indicator i {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    #formTabs .nav-link span {
+        display: none !important;
+    }
+    
+    #formTabs .nav-link i {
+        margin: 0 !important;
+    }
+}
+
+/* ===== UTILIDADES ===== */
+.text-truncate-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.hover-shadow {
+    transition: box-shadow 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===== ESTADO DE AUTO-GUARDADO ===== */
+#autoSaveStatus {
+    transition: color 0.3s ease;
+}
+
+#autoSaveStatus.text-success::before {
+    content: '✓ ';
+}
+
+#autoSaveStatus.text-warning::before {
+    content: '⟳ ';
+}
+
+/* ===== MEJORAS EN TAGIFY ===== */
+.tagify {
+    border: 1px solid #d9dee3;
+    min-height: calc(2.7rem + 2px);
+}
+
+.tagify--focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0.25rem rgba(105, 108, 255, 0.25);
+}
+
+.tagify__tag {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.tagify__tag:hover {
+    background-color: var(--bs-primary-dark);
+}
+
+.tagify__tag__removeBtn {
+    color: white;
+    margin-left: 0.5rem;
+}
+
+.tagify__tag__removeBtn:hover {
+    color: #ffcccc;
+}
+
+.form-floating-outline .form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(105, 108, 255, 0.25);
+}
+
+/* ===== ANÁLISIS DE RENTABILIDAD ===== */
+.bg-light.rounded {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
+}
+
+.bg-light.rounded h6 {
+    color: #566a7f;
+    font-weight: 600;
+}
+
+.bg-light.rounded h5 {
+    color: var(--bs-primary);
+    font-weight: 700;
+}
+
+/* ===== BOTÓN DE ESCANEO RFID ===== */
+.input-group .btn-outline-primary {
+    border-left: 0;
+    border-color: #d9dee3;
+}
+
+.input-group .form-control:focus + .btn-outline-primary {
+    border-color: var(--bs-primary);
+}
+
+/* ===== ALERTAS PERSONALIZADAS ===== */
+.alert-info {
+    background-color: rgba(105, 108, 255, 0.1);
+    border-color: rgba(105, 108, 255, 0.2);
+    color: #4c5caf;
+}
+
+.alert-info .alert-heading {
+    color: #4c5caf;
+}
+
+/* ===== SPINNER DE CARGA ===== */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+/* ===== CHECKBOX PERSONALIZADO ===== */
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(105, 108, 255, 0.25);
+}
+
+/* ===== SWITCH PERSONALIZADO ===== */
+.form-switch .form-check-input {
+    width: 2.5rem;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--bs-primary);
+}
+
+/* ===== MEJORAS EN DROPZONE ===== */
+.dz-preview {
+    margin: 0.5rem;
+}
+
+.dz-image {
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.dz-progress {
+    height: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.dz-upload {
+    background-color: var(--bs-success);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.dz-error-message {
+    background-color: var(--bs-danger);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+}
+
+/* ===== EFECTOS HOVER ===== */
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(105, 108, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(105, 108, 255, 0.4);
+}
+
+/* ===== MEJORAS EN LA NAVEGACIÓN ===== */
+.nav-pills .nav-link {
+    font-weight: 500;
+}
+
+/* ===== ESTADO DE CAMPOS ===== */
+.form-control:disabled,
+.form-select:disabled {
+    background-color: #f5f5f9;
+    opacity: 1;
+}
+
+/* ===== TOOLTIP PERSONALIZADO ===== */
+.tooltip-inner {
+    background-color: #2c3e50;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #2c3e50;
+}
+
+/* ===== MEJORAS EN TABLAS ===== */
+.table-responsive {
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+/* ===== SOMBRAS PERSONALIZADAS ===== */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(165, 163, 174, 0.3) !important;
+}
+
+.shadow {
+    box-shadow: 0 0.5rem 1rem rgba(165, 163, 174, 0.3) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgba(165, 163, 174, 0.3) !important;
+}
+
+/* ===== TRANSICIONES GLOBALES ===== */
+.btn,
+.form-control,
+.form-select,
+.card,
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+/* ===== SCROLLBAR PERSONALIZADA ===== */
+.ps__rail-y {
+    width: 8px !important;
+    right: 2px !important;
+}
+
+.ps__thumb-y {
+    width: 6px !important;
+    background-color: #d9dee3 !important;
+    border-radius: 3px !important;
+}
+
+.ps__rail-y:hover .ps__thumb-y {
+    width: 8px !important;
+    background-color: #b8c1cc !important;
+}
+
+/* ===== IMPRESIÓN ===== */
+@media print {
+    .btn,
+    .nav,
+    .navbar,
+    .sidebar,
+    .footer,
+    .alert,
+    .progress,
+    #autoSaveStatus {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    .tab-content > .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+    }
+}
+
+/* ===== ANIMACIONES ADICIONALES ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Transición suave del botón */
+#saveFormBtn {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Animación de pulso cuando se guarda */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+#saveFormBtn.btn-success {
+    animation: pulse 0.5s ease-in-out;
+}
+
+/* ===== FIN DEL ARCHIVO CSS ===== */

@@ -1,0 +1,1721 @@
+/* ===== CATALOGO INVENTARIO STYLES - REESCRITO ===== */
+
+/* ===== RESET Y BASE ===== */
+/* Override completo del template */
+.layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl.flex-grow-1.container-p-y {
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+
+/* ===== CARDS PRINCIPALES ===== */
+/* Forzar que todas las cards tengan el mismo ancho */
+.layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  flex: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Card body uniforme */
+.layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .card-body {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 1.5rem !important;
+}
+
+/* Card header uniforme */
+.layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .card-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 1rem 1.5rem !important;
+}
+
+/* Elementos internos de las cards */
+.layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .card-body .d-flex {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  flex-wrap: wrap !important;
+}
+
+/* Filas y columnas dentro de cards */
+.layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .row {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* ===== CALENDARIO GRID ===== */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 16px;
+  box-sizing: border-box;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.calendar-header-day {
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--bs-secondary);
+  padding: 8px 4px;
+}
+
+/* ===== CALENDARIO DAYS ===== */
+.calendar-day {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  font-size: 11px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.calendar-day:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.calendar-day.selected {
+  box-shadow: 0 0 0 2px var(--bs-primary);
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  font-size: 11px;
+  margin: 0;
+}
+
+.calendar-day-percent {
+  font-weight: 700;
+  font-size: 9px;
+  margin: 0;
+}
+
+/* ===== COLORES DE DISPONIBILIDAD ===== */
+.calendar-day.availability-100 {
+  background-color: #22c55e;
+  color: white;
+}
+
+.calendar-day.availability-high {
+  background-color: #84cc16;
+  color: white;
+}
+
+.calendar-day.availability-medium {
+  background-color: #eab308;
+  color: white;
+}
+
+.calendar-day.availability-low {
+  background-color: #f97316;
+  color: white;
+}
+
+.calendar-day.availability-none {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* ===== FILAS EXPANDIBLES ===== */
+.table-expandable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.table-expandable-row:hover {
+  background-color: var(--bs-light) !important;
+}
+
+.table-expandable-row.expanded {
+  background-color: var(--bs-primary-bg-subtle) !important;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.expand-icon.rotated {
+  transform: rotate(90deg);
+}
+
+.expanded-content {
+  display: none;
+  background-color: transparent !important;
+}
+
+.expanded-content.show {
+  display: table-row;
+}
+
+.expanded-content td {
+  padding: 0 !important;
+  border-top: none !important;
+}
+
+.expanded-inner {
+  padding: 20px;
+  border: 2px solid var(--bs-primary);
+  margin: 0 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  width: calc(100% - 32px);
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* ===== TABLA DE UNIDADES ===== */
+.units-table {
+  font-size: 13px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.units-table th {
+  background-color: var(--bs-light);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.units-table td {
+  padding: 8px 12px;
+  vertical-align: middle;
+  font-size: 12px;
+}
+/* ===== BADGES Y ESTADOS ===== */
+.status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Badges de disponibilidad */
+.badge-disponible {
+  background-color: #22c55e;
+  color: white;
+}
+
+.badge-asignado {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.badge-mantenimiento {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.badge-inactivo {
+  background-color: #6b7280;
+  color: white;
+}
+
+.badge-descompuesto {
+  background-color: #ef4444;
+  color: white;
+}
+
+.badge-extraviado {
+  background-color: #dc2626;
+  color: white;
+}
+
+/* Badges de ubicación */
+.badge-almacen {
+  background-color: #10b981;
+  color: white;
+}
+
+.badge-picking {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.badge-traslado {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.badge-evento {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Badges de condición */
+.badge-excelente {
+  background-color: #22c55e;
+  color: white;
+}
+
+.badge-bueno {
+  background-color: #84cc16;
+  color: white;
+}
+
+.badge-regular {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.badge-malo {
+  background-color: #f97316;
+  color: white;
+}
+
+.badge-pesimo {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* ===== THUMBNAILS E ICONOS ===== */
+.item-thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: var(--bs-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--bs-secondary);
+  flex-shrink: 0;
+}
+
+/* ===== FILTROS Y BOTONES ===== */
+.filter-active {
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.category-buttons .btn {
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  margin: 2px;
+}
+
+.category-buttons .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ===== BÚSQUEDA Y HIGHLIGHTING ===== */
+.search-highlight {
+  background-color: #fef3c7;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* ===== ESTADOS DE CARGA ===== */
+.table-loading {
+  position: relative;
+  opacity: 0.7;
+}
+
+.table-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bs-light);
+  border-top: 3px solid var(--bs-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== SELECTOR DE FECHA ===== */
+.date-picker-wrapper {
+  position: relative;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-display {
+  font-weight: 600;
+  color: var(--bs-primary);
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table tbody tr {
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+/* ===== INVENTORY TABLE CONTAINER MEJORADO ===== */
+.inventory-table-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--bs-primary) var(--bs-light) !important;
+}
+
+.inventory-table-container .table {
+  width: 100% !important;
+  min-width: 1000px !important; /* Ancho mínimo reducido para nueva estructura */
+  max-width: none !important;
+  margin-bottom: 0 !important;
+  table-layout: auto !important;
+}
+
+.inventory-table-container .table th,
+.inventory-table-container .table td {
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  padding: 0.75rem 0.5rem !important;
+  vertical-align: middle !important;
+}
+
+/* Nuevos anchos para tabla simplificada */
+.inventory-table-container .table th:nth-child(1) { min-width: 50px !important; max-width: 50px !important; } /* Expand */
+.inventory-table-container .table th:nth-child(2) { min-width: 300px !important; } /* Item */
+.inventory-table-container .table th:nth-child(3) { min-width: 150px !important; } /* Categoría */
+.inventory-table-container .table th:nth-child(4) { min-width: 80px !important; text-align: center !important; } /* Total */
+.inventory-table-container .table th:nth-child(5) { min-width: 90px !important; text-align: center !important; } /* Disponibles */
+.inventory-table-container .table th:nth-child(6) { min-width: 90px !important; text-align: center !important; } /* Asignados */
+.inventory-table-container .table th:nth-child(7) { min-width: 90px !important; text-align: center !important; } /* Mantenimiento */
+.inventory-table-container .table th:nth-child(8) { min-width: 100px !important; text-align: center !important; } /* Acciones */
+
+/* Aplicar los mismos anchos a las celdas */
+.inventory-table-container .table td:nth-child(1) { max-width: 50px !important; }
+.inventory-table-container .table td:nth-child(4),
+.inventory-table-container .table td:nth-child(5),
+.inventory-table-container .table td:nth-child(6),
+.inventory-table-container .table td:nth-child(7),
+.inventory-table-container .table td:nth-child(8) {
+  text-align: center !important;
+}
+
+/* ===== MODAL STYLES MEJORADOS ===== */
+
+/* Modal principal */
+.modal-dialog {
+  max-width: 90vw;
+  margin: 1rem auto;
+}
+
+.modal-xl {
+  max-width: 95vw;
+}
+
+.modal-lg {
+  max-width: 80vw;
+}
+
+/* Modal body scrollable con Perfect Scrollbar */
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bs-primary) var(--bs-light);
+  position: relative;
+}
+
+.modal-body.ps {
+  overflow: hidden !important;
+}
+
+.modal-body .ps__rail-y {
+  right: 8px !important;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bs-light);
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--bs-secondary);
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-dark);
+}
+
+/* Formulario del modal */
+.modal-body form .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.modal-body form .col-md-3,
+.modal-body form .col-md-4,
+.modal-body form .col-md-6,
+.modal-body form .col-12 {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  margin-bottom: 1rem;
+}
+
+/* Preview de imagen en modal */
+#imagePreview {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+#previewImg {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  object-fit: cover;
+}
+
+/* ===== HEADER Y LEYENDA MEJORADOS ===== */
+.availability-legend {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  margin-top: 0 !important;
+  flex-wrap: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.availability-legend .legend-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.availability-legend .legend-badge {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+}
+
+.availability-legend .legend-text {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--bs-secondary) !important;
+  margin: 0 !important;
+}
+
+.inventory-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 1rem 1.5rem !important;
+  flex-wrap: wrap !important;
+  gap: 1rem !important;
+}
+
+.inventory-card-header .header-info {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.inventory-card-header .header-controls {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  flex-wrap: nowrap !important;
+}
+
+.view-toggle-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  white-space: nowrap !important;
+}
+
+
+/* ===== BOTONES DE NAVEGACIÓN DE FECHA ===== */
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.btn-group .btn:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.btn-group .btn:hover {
+  z-index: 2;
+}
+
+/* ===== UTILIDADES Y HELPERS ===== */
+
+/* Accessibilidad */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Focus states mejorados */
+.calendar-day:focus,
+.table-expandable-row:focus,
+.btn:focus {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Estados hover mejorados */
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+/* ===== TABLA EXPANDIBLE CON PERFECT SCROLLBAR ===== */
+.expanded-content.show {
+  display: table-row !important;
+}
+
+.expanded-content td {
+  padding: 0 !important;
+  border: none !important;
+}
+
+.expanded-inner {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Perfect Scrollbar específico para expanded content */
+.expanded-inner.ps .ps__rail-y {
+  right: 12px !important;
+  width: 8px !important;
+  background-color: rgba(0,0,0,0.05) !important;
+  border-radius: 4px !important;
+}
+
+.expanded-inner.ps .ps__thumb-y {
+  background-color: var(--bs-primary) !important;
+  width: 6px !important;
+  border-radius: 3px !important;
+  right: 1px !important;
+}
+
+/* ===== SMOOTH SCROLLING ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+.inventory-table-container {
+  scroll-behavior: smooth;
+}
+
+.dropdown-menu.loading {
+  pointer-events: none;
+}
+
+.dropdown-menu.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--bs-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet */
+@media (max-width: 768px) {
+  /* Container más estrecho en tablets */
+  .layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl.flex-grow-1.container-p-y {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Cards con menos padding */
+  .layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .card-body {
+    padding: 1rem !important;
+  }
+  
+  /* Calendario más compacto */
+  .calendar-grid {
+    gap: 2px;
+  }
+  
+  .calendar-day {
+    height: 20px;
+    padding: 0 6px;
+    font-size: 10px;
+  }
+  
+  .calendar-day-number {
+    font-size: 10px;
+  }
+  
+  .calendar-day-percent {
+    font-size: 8px;
+  }
+  
+  /* Expanded content más compacto */
+  .expanded-inner {
+    margin: 0 8px;
+    padding: 12px;
+    width: calc(100% - 16px);
+  }
+  
+  /* Tabla de unidades más pequeña */
+  .units-table {
+    font-size: 11px;
+  }
+  
+  .units-table th,
+  .units-table td {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  
+  /* Botones de categoría más pequeños */
+  .category-buttons .btn {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+  
+  /* Thumbnails más pequeños */
+  .item-thumbnail {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  /* Tabla responsiva ajustada */
+  .inventory-table-container .table {
+    min-width: 900px !important;
+  }
+  
+  /* Perfect Scrollbar más visible en tablet */
+  .inventory-table-container .ps__rail-x {
+    height: 14px !important;
+  }
+  
+  .inventory-table-container .ps__thumb-x {
+    height: 10px !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+  /* Container mínimo en móvil */
+  .layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl.flex-grow-1.container-p-y {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  
+  /* Cards con padding mínimo */
+  .layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .card-body {
+    padding: 0.75rem !important;
+  }
+  
+  .layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl .card .card-header {
+    padding: 0.75rem !important;
+  }
+  
+  /* Dropdown de fecha en móvil */
+  .dropdown-menu {
+    min-width: 260px !important;
+    max-width: 90vw !important;
+  }
+  
+  /* Calendario súper compacto */
+  .calendar-day {
+    height: 18px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+  
+  .calendar-day-number {
+    font-size: 9px;
+  }
+  
+  .calendar-day-percent {
+    font-size: 8px;
+  }
+  
+  /* Navegación de fecha vertical en móvil */
+  .date-navigation {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  /* Header del inventario para móvil */
+  .inventory-card-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  
+  .inventory-card-header .header-controls {
+    justify-content: center !important;
+  }
+  
+  /* Filtros de categoría en columna */
+  .category-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+  }
+  
+  .category-buttons .btn {
+    font-size: 11px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+  
+  /* Tabla responsive en móvil */
+  .table-responsive {
+    font-size: 12px;
+  }
+  
+  .table th,
+  .table td {
+    padding: 8px 4px !important;
+    font-size: 11px;
+  }
+  
+  .inventory-table-container .table {
+    min-width: 800px !important;
+  }
+  
+  /* Botones más pequeños */
+  .btn-group-sm .btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  /* Expanded content para móvil */
+  .expanded-inner {
+    margin: 0 4px;
+    padding: 8px;
+    width: calc(100% - 8px);
+  }
+  
+  /* Thumbnails mínimos */
+  .item-thumbnail {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  /* Modal para móvil */
+  .modal-dialog {
+    max-width: 95vw !important;
+    margin: 0.5rem auto !important;
+  }
+  
+  .modal-body {
+    max-height: 60vh !important;
+    padding: 1rem !important;
+  }
+  
+  /* Perfect Scrollbar muy visible en móvil */
+  .inventory-table-container .ps__rail-x {
+    height: 16px !important;
+    background-color: rgba(0,0,0,0.1) !important;
+  }
+  
+  .inventory-table-container .ps__thumb-x {
+    height: 12px !important;
+    background-color: var(--bs-primary) !important;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 400px) {
+  .layout-wrapper .layout-container .layout-page .content-wrapper .container-xxl.flex-grow-1.container-p-y {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  .calendar-day {
+    height: 16px;
+    padding: 0 2px;
+    font-size: 8px;
+  }
+  
+  .calendar-day-number,
+  .calendar-day-percent {
+    font-size: 7px;
+  }
+  
+  .inventory-table-container .table {
+    min-width: 700px !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  /* Ocultar elementos no necesarios */
+  .btn, 
+  .dropdown, 
+  .modal,
+  .navbar,
+  .sidebar,
+  .layout-menu,
+  .expand-btn,
+  .ps__rail-x,
+  .ps__rail-y {
+    display: none !important;
+  }
+  
+  /* Ajustar cards para impresión */
+  .card {
+    border: 1px solid #dee2e6 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Tabla para impresión */
+  .table th,
+  .table td {
+    border: 1px solid #dee2e6 !important;
+    padding: 8px !important;
+    font-size: 12px !important;
+  }
+  
+  /* No romper elementos expandidos */
+  .expanded-content {
+    display: table-row !important;
+    break-inside: avoid;
+  }
+  
+  .expanded-inner {
+    margin: 0 !important;
+    padding: 12px !important;
+    width: 100% !important;
+  }
+  
+  /* Colores en escala de grises para impresión */
+  .badge,
+  .calendar-day {
+    color: black !important;
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Optimizar scrolling */
+.modal-body,
+.table-responsive,
+.inventory-table-container,
+.expanded-inner {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hardware acceleration para smooth scrolling */
+.ps {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* ===== FIXED OVERRIDES FINALES ===== */
+
+/* Override final para asegurar anchos correctos */
+.container-xxl * {
+  box-sizing: border-box !important;
+}
+
+.container-xxl > .card {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
+}
+
+/* Eliminar cualquier margin/padding que cause overflow */
+.container-xxl .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.container-xxl .col-md-6,
+.container-xxl .col-md-12,
+.container-xxl .col-12 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Override de Bootstrap Grid específico */
+.container-xxl .d-flex {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Final safety net */
+* {
+  max-width: 100%;
+}
+
+.container-xxl,
+.container-xxl * {
+  overflow-x: visible !important;
+}
+
+/* ===== PERFECT SCROLLBAR THEME INTEGRATION ===== */
+.ps__rail-x,
+.ps__rail-y {
+  border-radius: 6px !important;
+}
+
+.ps__thumb-x,
+.ps__thumb-y {
+  border-radius: 6px !important;
+  opacity: 0.8 !important;
+}
+
+.ps__thumb-x:hover,
+.ps__thumb-y:hover {
+  opacity: 1 !important;
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+.calendar-day:focus {
+  outline: 2px solid var(--bs-primary) !important;
+  outline-offset: 2px !important;
+}
+
+.expand-btn:focus {
+  outline: 2px solid var(--bs-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  
+  .search-highlight {
+    background-color: yellow !important;
+    color: black !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .calendar-day,
+  .btn,
+  .expand-icon,
+  
+  .table tbody tr {
+    animation: none !important;
+  }
+}
+
+/* ===== FINAL INTEGRATION STYLES ===== */
+
+/* Fix para modal con Perfect Scrollbar */
+.modal.show .modal-body.ps {
+  overflow: hidden !important;
+}
+
+/* Fix para expanded content con Perfect Scrollbar */
+.expanded-content.show .expanded-inner.ps {
+  overflow: hidden !important;
+  height: auto !important;
+  max-height: 400px !important;
+}
+
+/* Botón circular para limpiar filtros */
+.btn-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d9dee3;
+    background: #fff;
+    color: #697a8d;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-circle:hover {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #fff;
+    transform: rotate(180deg);
+}
+
+.btn-circle:active {
+    transform: rotate(180deg) scale(0.95);
+}
+
+/* Botón de limpiar búsqueda */
+#clearSearchBtn {
+    border-left: 0;
+    border-radius: 0 0 0 0;
+}
+
+/* Input group con botón de limpiar */
+.input-group #clearSearchBtn {
+    border-color: #d9dee3;
+}
+
+.input-group #searchInput:focus + #clearSearchBtn {
+    border-color: #8592a3;
+}
+
+/* Hacer toda la fila clickeable */
+.table-expandable-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.table-expandable-row:hover {
+    background-color: rgba(67, 89, 113, 0.05);
+}
+
+.table-expandable-row.expanded {
+    background-color: rgba(67, 89, 113, 0.08);
+}
+
+/* Evitar que los dropdowns y botones cambien el cursor */
+.table-expandable-row .dropdown,
+.table-expandable-row .dropdown-toggle,
+.table-expandable-row .expand-btn {
+    cursor: pointer;
+}
+
+/* Solución definitiva para z-index de dropdowns en tablas */
+.card .table-responsive .table .dropdown-menu.show,
+.inventory-table-container .table .dropdown-menu.show {
+    z-index: 9999 !important;
+    position: absolute !important;
+}
+
+/* Prevenir que otros elementos interfieran */
+.table-expandable-row {
+    position: relative;
+    z-index: auto;
+}
+
+.expanded-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Vista de Grid */
+.inventory-grid-container {
+    padding: 1.5rem 0; /* Aumentado de 1rem */
+}
+
+.inventory-item-card {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #d9dee3;
+    border-radius: 0.75rem; /* Aumentado de 0.5rem */
+    overflow: hidden;
+    cursor: pointer;
+    height: 100%; /* Para tarjetas de igual altura */
+}
+
+.inventory-item-card:hover {
+    box-shadow: 0 6px 20px rgba(67, 89, 113, 0.12); /* Sombra más suave */
+    transform: translateY(-3px); /* Más elevación */
+    border-color: var(--bs-primary);
+}
+
+.inventory-item-card.expanded {
+    border-color: var(--bs-primary);
+    box-shadow: 0 6px 20px rgba(67, 89, 113, 0.15);
+}
+
+.item-card-header {
+    padding: 1.5rem 1.25rem; /* Aumentado el padding */
+    border-bottom: 1px solid #f0f2f8;
+}
+
+.item-card-body {
+    padding: 1.5rem 1.25rem; /* Aumentado el padding */
+}
+
+.item-card-footer {
+    padding: 1rem 1.25rem; /* Aumentado el padding */
+    border-top: 1px solid #f0f2f8;
+    margin-top: auto; /* Para empujar al fondo */
+}
+
+.item-thumbnail-large {
+    width: 60px; /* Aumentado de 50px */
+    height: 60px; /* Aumentado de 50px */
+    background: linear-gradient(135deg, #3b3949 0%, #46445b 100%); /* Gradiente sutil */
+    border-radius: 0.75rem; /* Más redondeado */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem; /* Aumentado de 1.25rem */
+    color: var(--bs-primary);
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra sutil */
+}
+
+.availability-badges {
+    display: flex;
+    gap: 1rem; /* Aumentado de 0.5rem */
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.availability-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 70px; /* Aumentado de 60px */
+}
+
+.availability-number {
+    font-size: 1.5rem; /* Aumentado de 1.25rem */
+    font-weight: 700; /* Más bold */
+    line-height: 1.2;
+    margin-bottom: 0.25rem; /* Espaciado entre número y label */
+}
+
+.availability-label {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    font-weight: 500;
+}
+
+.item-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Aumentado de 120px */
+    gap: 1rem; /* Aumentado de 0.75rem */
+    margin-top: 1.5rem; /* Aumentado de 1rem */
+}
+
+.item-detail-item {
+    text-align: center;
+    padding: 0.75rem; /* Aumentado de 0.5rem */
+    background: #f8f9fa;
+    border-radius: 0.5rem; /* Aumentado de 0.375rem */
+    border: 1px solid #e7e9ed;
+}
+
+.item-detail-label {
+    font-size: 0.75rem;
+    color: #697a8d;
+    margin-bottom: 0.5rem; /* Aumentado de 0.25rem */
+    font-weight: 500; /* Añadido peso */
+}
+
+.item-detail-value {
+    font-weight: 600; /* Aumentado de 500 */
+    font-size: 0.875rem;
+}
+
+/* Asegurar que el thumbnail mantenga su centrado */
+.item-card-header .d-flex .item-thumbnail-large {
+    align-self: center !important; /* Fuerza el centrado del thumbnail específicamente */
+}
+
+/* O si prefieres una solución más limpia sin !important */
+.item-card-header .d-flex.align-items-start .item-thumbnail-large {
+    align-self: center;
+}
+
+/* También puedes ser más específico con el contenedor del thumbnail */
+.item-card-header .d-flex > div:first-child {
+    display: flex;
+    align-items: center; /* Centra el contenido del primer div */
+    padding-right: 1rem;
+}
+
+/* Mejoras adicionales para espaciado */
+.inventory-item-card .card-title {
+    margin-bottom: 0.75rem; /* Más espacio después del título */
+}
+
+.inventory-item-card .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem; /* Badges más grandes */
+}
+
+/* Espaciado entre elementos del header */
+.item-card-header .d-flex > div:first-child {
+    padding-right: 1rem;
+    align-self: center;
+}
+
+/* Espaciado en números de disponibilidad */
+.item-card-body .row {
+    margin-bottom: 0.5rem;
+}
+
+/* Espaciado para badge de mantenimiento */
+.item-card-body .text-center.mt-2 {
+    margin-top: 1rem !important; /* Más espacio arriba del badge */
+}
+
+/* Hacer las tarjetas de igual altura */
+.inventory-grid-container .col-xl-3,
+.inventory-grid-container .col-lg-4,
+.inventory-grid-container .col-md-6 {
+    display: flex;
+    margin-bottom: 2rem; /* Más espacio entre filas */
+}
+
+.inventory-grid-container .inventory-item-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Espaciado adicional para elementos específicos */
+.item-card-header h6 {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.item-card-header small {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.item-card-header .d-flex {
+    align-items: center !important; /* Cambiar de center a flex-start */
+}
+
+.item-card-header .d-flex .flex-grow-1 {
+    align-self: flex-start !important;
+}
+
+/* Mejorar el espaciado del dropdown */
+.item-card-header .dropdown {
+    align-items: center;
+    margin-top: 0.25rem; /* Pequeño ajuste vertical */
+    flex-shrink: 0; /* Evitar que se comprima */
+}
+
+.item-card-header .dropdown .btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border-color: #d9dee3;
+}
+
+.item-card-header .dropdown .btn:hover {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+}
+
+/* Espaciado más generoso en elementos expandidos */
+.inventory-item-card .border-top {
+    border-top: 1px solid #f0f2f8 !important;
+}
+
+.inventory-item-card .border-top .item-card-body {
+    padding-top: 1.5rem;
+    border-top: none;
+}
+
+/* Botón "Más info" con mejor espaciado */
+.item-card-footer .btn-sm {
+    padding: 0.5rem 1rem;
+}
+
+/* Distribución de 3 tarjetas por fila */
+.inventory-grid-container .row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.inventory-grid-container .row > [class*='col-'] {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+/* Asegurar 3 columnas exactas en pantallas grandes */
+@media (min-width: 992px) {
+    .inventory-grid-container .col-lg-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+/* En tablets mantener 2 columnas */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .inventory-grid-container .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* En móviles 1 columna */
+@media (max-width: 767.98px) {
+    .inventory-grid-container .col-sm-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Espaciado más generoso entre tarjetas */
+.inventory-grid-container {
+    padding: 2rem 0;
+}
+
+/* Hacer las tarjetas aún más anchas y cómodas */
+.inventory-item-card {
+    min-height: 300px; /* Altura mínima consistente */
+    max-width: 100%;
+}
+
+/* Ajustar el contenido interno para aprovechar el espacio extra */
+.item-card-header {
+    padding: 2rem 1.5rem 1.5rem 1.5rem; /* Más padding arriba */
+}
+
+.item-card-body {
+    padding: 1.5rem;
+}
+
+.availability-badges {
+    gap: 1.5rem; /* Más espacio entre badges */
+}
+
+.availability-badge {
+    min-width: 80px; /* Badges más anchos */
+}
+
+.availability-number {
+    font-size: 1.75rem; /* Números más grandes */
+    font-weight: 700;
+}
+
+/* Grid personalizado para exactamente 3 columnas */
+.inventory-grid-col {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1200px) {
+    .inventory-grid-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 768px) {
+    .inventory-grid-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Combobox personalizado estilo Select2 */
+.custom-combobox-wrapper {
+  position: relative;
+}
+
+.custom-combobox-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-combobox-selection {
+  display: flex;
+  align-items: center;
+  min-height: calc(1.5em + 0.75rem + 2px);
+  padding: 0;
+  background-color: #fff;
+  border: 1px solid #d9dee3;
+  border-radius: 0.375rem;
+  cursor: text;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.custom-combobox-selection:focus-within {
+  border-color: #8592a3;
+  box-shadow: 0 0 0 0.2rem rgba(133, 146, 163, 0.25);
+}
+
+.custom-combobox-rendered {
+  flex: 1;
+  overflow: hidden;
+}
+
+.custom-combobox-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #697a8d;
+}
+
+.custom-combobox-input::placeholder {
+  color: #b4bdc6;
+}
+
+.custom-combobox-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  color: #697a8d;
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.custom-combobox-selection[aria-expanded="true"] .custom-combobox-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.custom-combobox-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: #fff;
+  border: 1px solid #d9dee3;
+  border-top: none;
+  border-radius: 0 0 0.375rem 0.375rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+
+.custom-combobox-dropdown.show {
+  display: block;
+}
+
+.custom-combobox-results {
+  padding: 0;
+  margin: 0;
+}
+
+.custom-combobox-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f1f1;
+  transition: background-color 0.15s ease;
+}
+
+.custom-combobox-option:hover,
+.custom-combobox-option.highlighted {
+  background-color: #f8f9fa;
+}
+
+.custom-combobox-option.selected {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+.custom-combobox-option:last-child {
+  border-bottom: none;
+}
+
+.custom-combobox-option.new-option {
+  color: var(--bs-primary);
+  font-style: italic;
+}
+
+.custom-combobox-option.new-option::before {
+  content: "+ ";
+  font-weight: bold;
+}
+
+/* Estados */
+.custom-combobox-selection.disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.custom-combobox-selection.disabled .custom-combobox-input {
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
+/* ===== FIX DEFINITIVO PARA DROPDOWNS EN TABLA ===== */
+.table .dropdown {
+    position: relative;
+}
+
+.table .dropdown-menu {
+    position: fixed !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.table .dropdown-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Asegurar que el botón esté clickeable */
+.table .dropdown-toggle {
+    position: relative;
+    z-index: 1000;
+}
+
+/* La fila expandida debe estar debajo */
+.expanded-content {
+    z-index: 1 !important;
+}
+
+.expanded-inner {
+    z-index: 1 !important;
+}
+
+/* Hover state para el dropdown */
+.table tbody tr:hover {
+    z-index: 10;
+}
+
+/* Cuando el dropdown está abierto */
+.table .dropdown.show {
+    z-index: 100000 !important;
+}
+
+/* Backdrop del dropdown */
+.dropdown-backdrop {
+    display: none !important;
+}
+
+/* Items del menú más espaciados */
+.dropdown-menu .dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background-color: rgba(67, 89, 113, 0.08);
+}
+
+/* Separador más sutil */
+.dropdown-menu .dropdown-divider {
+    margin: 0.25rem 0;
+    border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ===== END OF CSS ===== */

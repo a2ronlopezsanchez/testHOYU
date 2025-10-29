@@ -8,17 +8,23 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
+     *
+     * @return void
      */
-    public function register(): void
+    public function register()
     {
         //
     }
 
     /**
      * Bootstrap any application services.
+     *
+     * @return void
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        if (request()->ip() !== '127.0.0.1') {
+            $this->app['request']->server->set('HTTPS','on');
+        }
     }
 }
