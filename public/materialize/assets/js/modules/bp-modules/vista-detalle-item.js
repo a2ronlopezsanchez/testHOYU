@@ -60,6 +60,7 @@ class ItemDetailManager {
         // Convertir datos de Blade al formato que espera el JS
         currentItemData = {
             id: itemParent.id,
+            item_id: itemParent.item_id,
             sku: item.sku || 'N/A',
             name: itemParent.public_name || itemParent.name,
             category: itemParent.category?.name || 'Sin categoría',
@@ -150,7 +151,8 @@ class ItemDetailManager {
             }
         // Simulación de datos del item
         currentItemData = {
-            id: 'EQ-AUD-001',
+            id: 1,
+            item_id: 'EQ-AUD-001',
             sku: 'BP000123',
             name: 'Altavoz JBL EON615',
             category: 'Audio',
@@ -287,7 +289,7 @@ class ItemDetailManager {
 
         // Información del header
         document.getElementById('itemName').textContent = currentItemData.name;
-        document.getElementById('itemId').textContent = currentItemData.id;
+        document.getElementById('itemId').textContent = currentItemData.item_id;
         
         // Badges de estado
         this.updateStatusBadge('itemStatusBadge', currentItemData.status);
@@ -847,7 +849,7 @@ class ItemDetailManager {
                 <p class="text-muted mb-3">Estás a punto de dar de baja el siguiente item:</p>
                 <div class="alert alert-warning text-start">
                     <strong>${currentItemData.name}</strong><br>
-                    <small>ID: ${currentItemData.id}</small>
+                    <small>ID: ${currentItemData.item_id}</small>
                 </div>
                 <div class="text-start">
                     <label class="form-label">Motivo de la baja</label>
