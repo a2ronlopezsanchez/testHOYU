@@ -95,15 +95,109 @@ class ItemFormManager {
 
     // ===== VERIFICAR MODO DE EDICIÓN =====
     checkEditMode() {
+        // Primero verificar si hay datos de Blade
+        if (window.bladeFormData && window.bladeFormData.mode === 'edit' && window.bladeFormData.itemParent) {
+            isEditing = true;
+            editingItemId = window.bladeFormData.itemParent.id;
+            this.loadItemDataFromBlade(window.bladeFormData);
+            // El título ya está configurado en Blade, no es necesario cambiarlo aquí
+            return;
+        }
+
+        // Si no, verificar el modo antiguo con parámetro URL
         const urlParams = new URLSearchParams(window.location.search);
         const itemId = urlParams.get('edit');
-        
+
         if (itemId) {
             isEditing = true;
             editingItemId = itemId;
             this.loadItemData(itemId);
             document.getElementById('formTitle').textContent = 'Editar Item';
             document.getElementById('saveButtonText').textContent = 'Actualizar Item';
+        }
+    }
+
+    // ===== CARGAR DATOS DESDE BLADE =====
+    loadItemDataFromBlade(bladeData) {
+        console.log('Cargando datos desde Blade:', bladeData);
+
+        const { itemParent, inventoryItem } = bladeData;
+
+        // Convertir datos de Blade al formato esperado por populateForm()
+        const formattedData = {
+            // Información básica
+            sku: inventoryItem?.sku || '',
+            nombreProducto: itemParent.name || '',
+            id: inventoryItem?.item_id || '',
+            categoria: itemParent.category?.name || '',
+            familia: itemParent.family || '',
+            subFamilia: itemParent.sub_family || '',
+            marca: itemParent.brand?.name || '',
+            modelo: itemParent.model || '',
+            nombrePublico: itemParent.public_name || '',
+            descripcion: itemParent.description || inventoryItem?.description || '',
+
+            // Identificadores
+            numeroSerie: inventoryItem?.serial_number || '',
+            identificadorRfid: inventoryItem?.rfid_tag || '',
+            color: itemParent.color || '',
+            unitSet: inventoryItem?.unit_set || 'UNIT',
+            totalUnits: inventoryItem?.total_units || 1,
+
+            // Información financiera
+            fechaCompra: inventoryItem?.purchase_date || '',
+            garantiaVigente: inventoryItem?.warranty_valid ? 'SI' : 'NO',
+            precioOriginal: inventoryItem?.original_price || 0,
+            precioRentaIdeal: inventoryItem?.ideal_rental_price || 0,
+            precioRentaMinimo: inventoryItem?.minimum_rental_price || 0,
+
+            // Ubicación y estado
+            ubicacion: inventoryItem?.location?.name || '',
+            status: inventoryItem?.status || '',
+            rack: inventoryItem?.rack_position || '',
+            panel: inventoryItem?.panel_position || '',
+            condicion: inventoryItem?.condition || 'BUENO',
+            notas: inventoryItem?.notes || '',
+
+            // Especificaciones
+            especificaciones: this.parseSpecifications(itemParent.specifications)
+        };
+
+        // Poblar el formulario con los datos
+        this.populateForm(formattedData);
+    }
+
+    // ===== PARSEAR ESPECIFICACIONES =====
+    parseSpecifications(specs) {
+        if (!specs) return [];
+
+        try {
+            // Si ya es un array
+            if (Array.isArray(specs)) {
+                // Convertir strings a objetos {name, value}
+                return specs.map(spec => {
+                    if (typeof spec === 'string') {
+                        // Tratar de separar por ":"
+                        const parts = spec.split(':');
+                        return {
+                            name: parts[0]?.trim() || spec,
+                            value: parts[1]?.trim() || ''
+                        };
+                    }
+                    return spec;
+                });
+            }
+
+            // Si es un string JSON
+            if (typeof specs === 'string') {
+                const parsed = JSON.parse(specs);
+                return this.parseSpecifications(parsed);
+            }
+
+            return [];
+        } catch (e) {
+            console.error('Error parseando especificaciones:', e);
+            return [];
         }
     }
 

@@ -22,9 +22,21 @@
             <div>
               <h4 class="fw-bold mb-1">
                 <span class="text-muted fw-light">Inventario /</span>
-                <span id="formTitle">Registrar Nuevo Item</span>
+                <span id="formTitle">
+                  @if($mode === 'edit')
+                    Editar Item
+                  @else
+                    Registrar Nuevo Item
+                  @endif
+                </span>
               </h4>
-              <p class="mb-0 text-muted">Complete todos los campos requeridos para registrar el item en el sistema</p>
+              <p class="mb-0 text-muted">
+                @if($mode === 'edit')
+                  Modifique los campos necesarios y guarde los cambios
+                @else
+                  Complete todos los campos requeridos para registrar el item en el sistema
+                @endif
+              </p>
             </div>
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
@@ -33,7 +45,13 @@
               </button>
               <button type="button" class="btn btn-primary" id="saveFormBtn">
                 <i class="mdi mdi-content-save me-1"></i>
-                <span id="saveButtonText">Guardar Item</span>
+                <span id="saveButtonText">
+                  @if($mode === 'edit')
+                    Actualizar Item
+                  @else
+                    Guardar Item
+                  @endif
+                </span>
               </button>
             </div>
           </div>
@@ -140,14 +158,16 @@
                       </div>
                       <div class="col-12">
                         <div class="form-floating form-floating-outline">
-                          <input type="text" class="form-control" id="itemName" placeholder="Ingrese el nombre completo" required>
+                          <input type="text" class="form-control" id="itemName" placeholder="Ingrese el nombre completo"
+                                 value="{{ old('itemName', $itemParent->name ?? '') }}" required>
                           <label for="itemName">Nombre del Producto *</label>
                           <div class="form-text">Formato: TIPO | MARCA | MODELO | CARACTERÍSTICAS</div>
                         </div>
                       </div>
                       <div class="col-12">
                         <div class="form-floating form-floating-outline">
-                          <input type="text" class="form-control" id="itemPublicName" placeholder="Nombre para mostrar al cliente">
+                          <input type="text" class="form-control" id="itemPublicName" placeholder="Nombre para mostrar al cliente"
+                                 value="{{ old('itemPublicName', $itemParent->public_name ?? '') }}">
                           <label for="itemPublicName">Nombre Público</label>
                           <div class="form-text">Cómo se mostrará en cotizaciones y documentos</div>
                         </div>
@@ -648,6 +668,17 @@
 <!-- Vendors JS -->
 <script src="{{ asset('/materialize/assets/vendor/libs/dropzone/dropzone.js') }}"></script>
 
+<!-- Pasar datos de Blade a JavaScript -->
+<script>
+window.bladeFormData = {
+    mode: '{{ $mode }}',
+    itemParent: @json($itemParent),
+    // Si es edición y hay items, tomar el primero como referencia
+    inventoryItem: @json($itemParent && $itemParent->items->first() ? $itemParent->items->first() : null)
+};
+console.log('Blade Form Data:', window.bladeFormData);
+</script>
+
 <!-- Page JS -->
-<script src="{{ asset('/materialize/assets/js/modules/bp-modules/formulario-item-completo.js') }}"></script>
+<script src="{{ asset('/materialize/assets/js/modules/bp-modules/formulario-item-completo.js') }}?v={{ time() }}"></script>
 @endsection
