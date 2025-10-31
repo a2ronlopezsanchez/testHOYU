@@ -43,7 +43,7 @@ class ItemDetailManager {
         } else {
             // Obtener ID del item de la URL
             const urlParams = new URLSearchParams(window.location.search);
-            const itemId = urlParams.get('id') || 'EQ-AUD-001';
+            const itemId = urlParams.get('item_id') || 'EQ-AUD-001';
 
             // En producción, esto sería una llamada AJAX
             this.mockLoadItemData(itemId);

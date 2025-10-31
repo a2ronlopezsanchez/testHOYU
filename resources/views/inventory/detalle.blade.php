@@ -618,5 +618,5 @@ window.bladeItemData = {
 </script>
 
 <!-- Page JS -->
-<script src="{{ asset('/materialize/assets/js/modules/bp-modules/vista-detalle-item.js') }}"></script>
+<script src="{{ asset('/materialize/assets/js/modules/bp-modules/vista-detalle-item.js') }}?v={{ time() }}"></script>
 @endsection
