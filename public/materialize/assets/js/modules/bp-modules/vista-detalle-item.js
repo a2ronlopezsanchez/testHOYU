@@ -94,8 +94,11 @@ class ItemDetailManager {
         maintenanceHistoryData = [];
         upcomingEventsData = [];
 
-        // Actualizar la UI con los datos
-        this.updateUI();
+        // NO llamar updateUI() porque los datos ya están en el HTML desde Blade
+        // Solo actualizar las tablas dinámicas que no están pobladas desde Blade
+        this.updateUpcomingEventsTable();
+        this.updateUsageHistoryTable();
+        this.updateMaintenanceHistoryTable();
     }
 
     // ===== TRADUCIR ESTADO DE BD A FORMATO UI =====
