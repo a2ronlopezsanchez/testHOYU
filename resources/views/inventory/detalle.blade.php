@@ -603,6 +603,20 @@
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+<!-- Pasar datos de Blade a JavaScript -->
+<script>
+window.bladeItemData = {
+    itemParent: @json($itemParent),
+    availability: @json($availability),
+    @if(isset($inventoryItem))
+    inventoryItem: @json($inventoryItem)
+    @else
+    inventoryItem: null
+    @endif
+};
+</script>
+
 <!-- Page JS -->
 <script src="{{ asset('/materialize/assets/js/modules/bp-modules/vista-detalle-item.js') }}"></script>
 @endsection

@@ -36,12 +36,99 @@ class ItemDetailManager {
 
     // ===== CARGAR DATOS DEL ITEM =====
     loadItemData() {
-        // Obtener ID del item de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const itemId = urlParams.get('id') || 'EQ-AUD-001';
-        
-        // En producción, esto sería una llamada AJAX
-        this.mockLoadItemData(itemId);
+        // Verificar si hay datos de Blade disponibles
+        if (window.bladeItemData) {
+            console.log('Usando datos de Blade:', window.bladeItemData);
+            this.loadFromBladeData(window.bladeItemData);
+        } else {
+            // Obtener ID del item de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = urlParams.get('id') || 'EQ-AUD-001';
+
+            // En producción, esto sería una llamada AJAX
+            this.mockLoadItemData(itemId);
+        }
+    }
+
+    // ===== CARGAR DATOS DESDE BLADE =====
+    loadFromBladeData(bladeData) {
+        const { itemParent, availability, inventoryItem } = bladeData;
+
+        // Si es una unidad individual, usar sus datos; sino usar el parent
+        const item = inventoryItem || itemParent.items?.[0] || {};
+
+        // Convertir datos de Blade al formato que espera el JS
+        currentItemData = {
+            id: itemParent.id,
+            sku: item.sku || 'N/A',
+            name: itemParent.public_name || itemParent.name,
+            category: itemParent.category?.name || 'Sin categoría',
+            subcategory: itemParent.sub_family || itemParent.family || '',
+            brand: itemParent.brand?.name || 'Sin marca',
+            model: itemParent.model || 'Sin modelo',
+            purchaseDate: item.purchase_date || 'N/A',
+            purchasePrice: item.purchase_price || 0,
+            status: this.translateStatus(item.status) || 'Operativo',
+            condition: item.condition || 'Bueno',
+            currentLocation: item.location?.name || 'Sin ubicación',
+            rfidTag: item.rfid_tag || 'N/A',
+            serialNumber: item.serial_number || 'N/A',
+            lastInspection: item.last_maintenance || 'N/A',
+            nextInspection: item.next_maintenance || 'N/A',
+            warranty: {
+                provider: item.warranty_provider || 'N/A',
+                expiration: item.warranty_expiration || 'N/A',
+                expired: true // Por ahora asumimos expirada
+            },
+            usageCount: 0, // TODO: Obtener de la BD
+            totalHours: 0, // TODO: Obtener de la BD
+            description: itemParent.description || item.description || 'Sin descripción',
+            specifications: this.parseSpecifications(itemParent.specifications),
+            notes: item.notes || '',
+            images: []
+        };
+
+        // Datos de historial (por ahora vacíos, se pueden cargar con AJAX)
+        usageHistoryData = [];
+        maintenanceHistoryData = [];
+        upcomingEventsData = [];
+
+        // Actualizar la UI con los datos
+        this.updateUI();
+    }
+
+    // ===== TRADUCIR ESTADO DE BD A FORMATO UI =====
+    translateStatus(status) {
+        const statusMap = {
+            'DISPONIBLE': 'Operativo',
+            'EN_EVENTO': 'En Uso',
+            'MANTENIMIENTO': 'En Mantenimiento',
+            'EN_REPARACION': 'En Mantenimiento',
+            'EXTRAVIADO': 'Fuera de Servicio',
+            'DESCOMPUESTO': 'Fuera de Servicio',
+            'BAJA': 'Fuera de Servicio'
+        };
+        return statusMap[status] || 'Operativo';
+    }
+
+    // ===== PARSEAR ESPECIFICACIONES SEGURO =====
+    parseSpecifications(specs) {
+        if (!specs) return [];
+
+        try {
+            // Si ya es un array, devolverlo
+            if (Array.isArray(specs)) return specs;
+
+            // Si es un string JSON, parsearlo
+            if (typeof specs === 'string') {
+                return JSON.parse(specs);
+            }
+
+            return [];
+        } catch (e) {
+            console.error('Error parseando especificaciones:', e);
+            return [];
+        }
     }
 
     // ===== DATOS DE PRUEBA =====
@@ -600,9 +687,9 @@ class ItemDetailManager {
     // ===== MANEJAR EDICIÓN =====
     handleEdit() {
         if (!currentItemData) return;
-        
-        // Redirigir a la página de edición
-        window.location.href = `formulario-item-completo.html?id=${currentItemData.id}&mode=edit`;
+
+        // Redirigir a la página de edición usando rutas de Laravel
+        window.location.href = `/inventory/formulario/${currentItemData.id}`;
     }
 
     // ===== MANEJAR COMPARTIR =====
@@ -819,8 +906,8 @@ class ItemDetailManager {
             },
             buttonsStyling: false
         }).then(() => {
-            // Redirigir al catálogo
-            window.location.href = 'catalogo-inventario.html';
+            // Redirigir al catálogo usando ruta de Laravel
+            window.location.href = '/inventory/disponibilidad';
         });
     }
 
