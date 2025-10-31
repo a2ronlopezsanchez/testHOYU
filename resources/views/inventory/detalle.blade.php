@@ -22,11 +22,37 @@
             <i class="mdi mdi-arrow-left"></i>
           </button>
           <div>
-            <h4 class="mb-1" id="itemName">Altavoz JBL EON615</h4>
+            <h4 class="mb-1" id="itemName">{{ $itemParent->public_name ?? $itemParent->name }}</h4>
             <div class="d-flex align-items-center gap-3">
-              <span class="text-muted">ID: <span id="itemId">EQ-AUD-001</span></span>
-              <span class="badge bg-label-success" id="itemStatusBadge">Operativo</span>
-              <span class="badge bg-label-primary" id="itemConditionBadge">Bueno</span>
+              <span class="text-muted">ID:
+                <span id="itemId">
+                  @if(isset($inventoryItem))
+                    {{ $inventoryItem->item_id }}
+                  @elseif($itemParent->items->first())
+                    {{ $itemParent->items->first()->item_id }}
+                  @else
+                    N/A
+                  @endif
+                </span>
+              </span>
+              <span class="badge bg-label-success" id="itemStatusBadge">
+                @if(isset($inventoryItem))
+                  {{ $inventoryItem->status }}
+                @elseif($itemParent->items->first())
+                  {{ $itemParent->items->first()->status }}
+                @else
+                  N/A
+                @endif
+              </span>
+              <span class="badge bg-label-primary" id="itemConditionBadge">
+                @if(isset($inventoryItem))
+                  {{ $inventoryItem->condition ?? 'Bueno' }}
+                @elseif($itemParent->items->first())
+                  {{ $itemParent->items->first()->condition ?? 'Bueno' }}
+                @else
+                  Bueno
+                @endif
+              </span>
             </div>
           </div>
         </div>
@@ -89,48 +115,73 @@
               <h5 class="card-title mb-0">Información General</h5>
             </div>
             <div class="card-body">
+              @php
+                $currentItem = $inventoryItem ?? $itemParent->items->first();
+              @endphp
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Categoría</span>
-                    <div class="info-value" id="itemCategory">Audio / Altavoces</div>
+                    <div class="info-value" id="itemCategory">
+                      {{ $itemParent->category->name ?? 'Sin categoría' }}
+                      @if($itemParent->sub_family)
+                        / {{ $itemParent->sub_family }}
+                      @elseif($itemParent->family)
+                        / {{ $itemParent->family }}
+                      @endif
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Marca / Modelo</span>
-                    <div class="info-value" id="itemBrandModel">JBL / EON615</div>
+                    <div class="info-value" id="itemBrandModel">
+                      {{ $itemParent->brand->name ?? 'Sin marca' }} / {{ $itemParent->model ?? 'Sin modelo' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Fecha de Compra</span>
-                    <div class="info-value" id="itemPurchaseDate">15/06/2022</div>
+                    <div class="info-value" id="itemPurchaseDate">
+                      {{ $currentItem->purchase_date ?? 'N/A' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Precio de Compra</span>
-                    <div class="info-value" id="itemPurchasePrice">$499.99</div>
+                    <div class="info-value" id="itemPurchasePrice">
+                      ${{ $currentItem->purchase_price ?? '0.00' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Número de Serie</span>
-                    <div class="info-value" id="itemSerialNumber">EON615-2204-8743</div>
+                    <div class="info-value" id="itemSerialNumber">
+                      {{ $currentItem->serial_number ?? 'N/A' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Etiqueta RFID</span>
-                    <div class="info-value" id="itemRfidTag">RF-A-12345</div>
+                    <div class="info-value" id="itemRfidTag">
+                      {{ $currentItem->rfid_tag ?? 'N/A' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Garantía</span>
                     <div class="info-value">
-                      <span id="itemWarranty">Audio Pro (15/06/2024)</span>
+                      <span id="itemWarranty">
+                        {{ $currentItem->warranty_provider ?? 'N/A' }}
+                        @if($currentItem->warranty_expiration)
+                          ({{ $currentItem->warranty_expiration }})
+                        @endif
+                      </span>
                       <span class="badge bg-label-danger ms-2" id="warrantyStatus">Expirada</span>
                     </div>
                   </div>
@@ -138,7 +189,9 @@
                 <div class="col-md-6">
                   <div class="info-item">
                     <span class="info-label">Condición Actual</span>
-                    <div class="info-value" id="itemCondition">Bueno</div>
+                    <div class="info-value" id="itemCondition">
+                      {{ $currentItem->condition ?? 'Bueno' }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -146,31 +199,42 @@
               <div class="mt-4">
                 <h6 class="mb-2">Descripción</h6>
                 <p class="text-muted" id="itemDescription">
-                  Altavoz activo de 15 pulgadas con 1000W de potencia. Incluye mezclador de 2 canales y Bluetooth.
+                  {{ $itemParent->description ?? $currentItem->description ?? 'Sin descripción disponible' }}
                 </p>
               </div>
 
               <div class="mt-4">
                 <h6 class="mb-2">Especificaciones</h6>
                 <ul class="list-unstyled mb-0" id="itemSpecifications">
-                  <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Potencia: 1000W</li>
-                  <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Respuesta de frecuencia: 50Hz - 20kHz</li>
-                  <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>SPL Máximo: 127 dB</li>
-                  <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Peso: 17,69 kg</li>
-                  <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Dimensiones: 375 x 654 x 363 mm</li>
+                  @if($itemParent->specifications)
+                    @php
+                      $specs = is_string($itemParent->specifications) ? json_decode($itemParent->specifications, true) : $itemParent->specifications;
+                    @endphp
+                    @if(is_array($specs) && count($specs) > 0)
+                      @foreach($specs as $spec)
+                        <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>{{ $spec }}</li>
+                      @endforeach
+                    @else
+                      <li class="mb-1 text-muted">Sin especificaciones disponibles</li>
+                    @endif
+                  @else
+                    <li class="mb-1 text-muted">Sin especificaciones disponibles</li>
+                  @endif
                 </ul>
               </div>
 
+              @if($currentItem && $currentItem->notes)
               <div class="alert alert-warning d-flex align-items-start mt-4" id="itemNotes">
                 <i class="mdi mdi-alert me-2"></i>
                 <div class="flex-grow-1">
                   <h6 class="alert-heading mb-1">Notas Importantes</h6>
-                  <p class="mb-0" id="itemNotesText">El altavoz presenta un leve zumbido...</p>
+                  <p class="mb-0" id="itemNotesText">{{ $currentItem->notes }}</p>
                 </div>
                 <button class="btn btn-sm btn-icon btn-warning ms-2" id="editNotesBtn" title="Editar notas">
                   <i class="mdi mdi-pencil"></i>
                 </button>
               </div>
+              @endif
             </div>
           </div>
 
@@ -263,7 +327,9 @@
                 </div>
                 <div>
                   <small class="text-muted d-block">Ubicación Actual</small>
-                  <div class="fw-medium" id="currentLocation">Almacén Principal</div>
+                  <div class="fw-medium" id="currentLocation">
+                    {{ $currentItem->location->name ?? 'Sin ubicación' }}
+                  </div>
                 </div>
               </div>
 
