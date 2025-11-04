@@ -929,7 +929,14 @@ class InventoryController extends Controller
                 'brand',
                 'items.location'
             ])->findOrFail($id);
-            $mode = 'edit';
+
+            // Detectar modo: edit (editar parent) o new-from-parent (crear nueva unidad)
+            $queryMode = request()->query('mode');
+            if ($queryMode === 'new-from-parent') {
+                $mode = 'new-from-parent';
+            } else {
+                $mode = 'edit';
+            }
         }
 
         return view('inventory.formulario', compact('itemParent', 'mode'));

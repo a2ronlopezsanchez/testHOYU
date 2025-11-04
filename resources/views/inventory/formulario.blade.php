@@ -25,6 +25,8 @@
                 <span id="formTitle">
                   @if($mode === 'edit')
                     Editar Item
+                  @elseif($mode === 'new-from-parent')
+                    Añadir Nueva Unidad
                   @else
                     Registrar Nuevo Item
                   @endif
@@ -33,6 +35,8 @@
               <p class="mb-0 text-muted">
                 @if($mode === 'edit')
                   Modifique los campos necesarios y guarde los cambios
+                @elseif($mode === 'new-from-parent')
+                  Complete los campos para añadir una nueva unidad a este producto
                 @else
                   Complete todos los campos requeridos para registrar el item en el sistema
                 @endif
@@ -48,6 +52,8 @@
                 <span id="saveButtonText">
                   @if($mode === 'edit')
                     Actualizar Item
+                  @elseif($mode === 'new-from-parent')
+                    Guardar Nueva Unidad
                   @else
                     Guardar Item
                   @endif
@@ -674,7 +680,8 @@ window.bladeFormData = {
     mode: '{{ $mode }}',
     itemParent: @json($itemParent),
     // Si es edición y hay items, tomar el primero como referencia
-    inventoryItem: @json($itemParent && $itemParent->items->first() ? $itemParent->items->first() : null)
+    // En modo new-from-parent, NO cargar ningún item existente
+    inventoryItem: @json($mode === 'edit' && $itemParent && $itemParent->items->first() ? $itemParent->items->first() : null)
 };
 console.log('Blade Form Data:', window.bladeFormData);
 </script>

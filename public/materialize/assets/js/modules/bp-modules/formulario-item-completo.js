@@ -201,19 +201,134 @@ class ItemFormManager {
         }
     }
 
-    checkNewUnitMode() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
-    const parentItem = urlParams.get('parentItem');
-    
-    if (mode === 'newUnit' && parentItem) {
-        // Cargar datos del item padre
-        document.getElementById('formTitle').textContent = 'Agregar Nueva Unidad';
-        document.getElementById('saveButtonText').textContent = 'Guardar Unidad';
-        
-        // Aquí cargarías los datos del item padre
-        console.log('Agregando nueva unidad al item:', parentItem);
+    // ===== CARGAR DATOS DESDE PARENT (MODO NEW-FROM-PARENT) =====
+    loadNewFromParentData(bladeData) {
+        console.log('Cargando datos desde parent para nueva unidad:', bladeData);
+
+        const { itemParent } = bladeData;
+
+        // Cargar datos del parent en los campos correspondientes
+        const formData = {
+            // Datos del parent - READONLY
+            categoria: itemParent.category?.name || '',
+            familia: itemParent.family || '',
+            subFamilia: itemParent.sub_family || '',
+            marca: itemParent.brand?.name || '',
+            modelo: itemParent.model || '',
+
+            // Datos editables - prellenados desde parent
+            nombreProducto: itemParent.name || '',
+            nombrePublico: itemParent.public_name || '',
+            descripcion: itemParent.description || '',
+            color: itemParent.color || '',
+
+            // Especificaciones del parent (si existen)
+            especificaciones: this.parseSpecifications(itemParent.specifications),
+
+            // Campos de unidad nueva - dejar vacíos para que el usuario o sistema los genere
+            sku: '', // Se generará automáticamente
+            id: '',  // Se generará automáticamente
+            numeroSerie: '',
+            identificadorRfid: '',
+            unitSet: 'UNIT',
+            totalUnits: 1
+        };
+
+        // Poblar el formulario
+        this.populateForm(formData);
+
+        // Hacer campos readonly: categoria, familia, subfamilia, marca, modelo
+        this.makeFieldsReadonly([
+            'itemCategory',
+            'itemFamily',
+            'itemSubFamily',
+            'itemBrand',
+            'itemModel'
+        ]);
+
+        // Auto-generar SKU (será generado por el servidor al guardar, mostrar placeholder)
+        const skuInput = document.getElementById('itemSku');
+        if (skuInput) {
+            skuInput.value = 'Se generará automáticamente';
+            skuInput.disabled = true;
+        }
+
+        // Generar siguiente ID para este parent
+        this.generateNextIdForParent(itemParent.id);
     }
+
+    // ===== HACER CAMPOS READONLY =====
+    makeFieldsReadonly(fieldIds) {
+        fieldIds.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                // Si es un Tagify input
+                if (tagifyInstances[fieldId]) {
+                    tagifyInstances[fieldId].setReadonly(true);
+                    // Añadir clase visual para indicar readonly
+                    field.closest('.form-floating')?.classList.add('readonly-field');
+                } else {
+                    // Input normal
+                    field.readOnly = true;
+                    field.disabled = true;
+                    field.classList.add('readonly-field');
+                }
+            }
+        });
+    }
+
+    // ===== GENERAR SIGUIENTE ID PARA PARENT =====
+    async generateNextIdForParent(parentId) {
+        try {
+            const response = await fetch(`/inventory/item-parents/${parentId}/next-id`, {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener siguiente ID');
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.id) {
+                const idInput = document.getElementById('itemId');
+                if (idInput) {
+                    idInput.value = data.id;
+                    idInput.disabled = true;
+                }
+            }
+        } catch (error) {
+            console.error('Error generando siguiente ID:', error);
+            // Mostrar placeholder en caso de error
+            const idInput = document.getElementById('itemId');
+            if (idInput) {
+                idInput.value = 'Se generará automáticamente';
+                idInput.disabled = true;
+            }
+        }
+    }
+
+    checkNewUnitMode() {
+        // Verificar si estamos en modo "new-from-parent" desde Blade
+        if (window.bladeFormData && window.bladeFormData.mode === 'new-from-parent' && window.bladeFormData.itemParent) {
+            console.log('Modo new-from-parent detectado:', window.bladeFormData);
+            this.loadNewFromParentData(window.bladeFormData);
+            // El título ya está configurado en Blade
+            return;
+        }
+
+        // Fallback: verificar URL params (modo antiguo)
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const parentItem = urlParams.get('parentItem');
+
+        if (mode === 'newUnit' && parentItem) {
+            // Cargar datos del item padre
+            document.getElementById('formTitle').textContent = 'Agregar Nueva Unidad';
+            document.getElementById('saveButtonText').textContent = 'Guardar Unidad';
+
+            console.log('Agregando nueva unidad al item:', parentItem);
+        }
     }
 
     // ===== CARGAR DATOS DEL ITEM (MODO EDICIÓN) =====

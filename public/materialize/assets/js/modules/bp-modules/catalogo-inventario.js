@@ -2962,66 +2962,8 @@ class InventoryCatalog {
             return;
         }
 
-        const modal = new bootstrap.Modal(document.getElementById('addItemModal'));
-
-        if (!this.tagifyInitialized) {
-            await this.initializeTagifyFields?.();
-            this.tagifyInitialized = true;
-        }
-
-        // Limpiar formulario
-        document.getElementById('addItemForm').reset();
-        document.getElementById('imagePreview').style.display = 'none';
-
-        if (this.itemStatusTagify) this.itemStatusTagify.removeAllTags();
-        if (this.itemLocationTagify) this.itemLocationTagify.removeAllTags();
-
-        document.querySelectorAll('.is-invalid, .tagify--invalid').forEach(el => {
-            el.classList.remove('is-invalid', 'tagify--invalid');
-        });
-
-        // *** NUEVO: Ocultar el select de Producto Padre ***
-        const parentSelectContainer = document.querySelector('label[for="itemParent"]')?.closest('.col-md-12');
-        if (parentSelectContainer) {
-            parentSelectContainer.style.display = 'none';
-        }
-
-        // *** NUEVO: Guardar el padre seleccionado en una variable global o dataset ***
-        window.selectedParentId = parentId;
-        window.selectedParentItem = parentItem;
-
-        // Autorellenar campos basados en el padre
-        const nameInput = document.getElementById('itemName');
-        const publicNameInput = document.getElementById('itemPublicName');
-        
-        if (nameInput && !nameInput.value) {
-            nameInput.value = parentItem.nombreProducto || '';
-        }
-        if (publicNameInput && !publicNameInput.value) {
-            publicNameInput.value = parentItem.nombrePublico || '';
-        }
-
-        // Generar SKU automáticamente
-        this.ensureSkuOnly_(false);
-
-        // Obtener el siguiente ID para este padre
-        try {
-            const res = await fetch(`/inventory/item-parents/${parentId}/next-id`, { 
-                headers: { 'Accept': 'application/json' } 
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                const idInput = document.getElementById('itemId');
-                if (idInput) idInput.value = data.id;
-            }
-        } catch (err) {
-            console.error('Error obteniendo siguiente ID:', err);
-        }
-
-        // Mostrar información del padre en el modal
-        this.showParentInfoInModal(parentItem);
-
-        modal.show();
+        // Redirigir al formulario con el ID del padre en modo "new-from-parent"
+        window.location.href = `/inventory/formulario/${parentId}?mode=new-from-parent`;
     }
 
     // Función auxiliar para mostrar información del padre en el modal
