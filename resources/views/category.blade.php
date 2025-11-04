@@ -110,13 +110,13 @@
                         <label>Nombre *</label>
                     </div>
                 </div>
-            
 
-                <div class="col-md-6 mb-3">
+                <!-- Campo code oculto: se genera automáticamente en el servidor -->
+                <div class="col-md-6 mb-3" style="display: none;">
                     <div class="form-floating form-floating-outline">
-                        <input type="text" class="form-control" id="code" 
-                                placeholder="Código" required>
-                        <label>Código</label>
+                        <input type="text" class="form-control" id="code"
+                                placeholder="Código" readonly>
+                        <label>Código (Auto-generado)</label>
                     </div>
                 </div>
             </div>
