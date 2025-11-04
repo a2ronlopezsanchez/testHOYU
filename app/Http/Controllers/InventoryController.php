@@ -652,14 +652,12 @@ class InventoryController extends Controller
 
     public function nextIdForParent(ItemParent $parent): JsonResponse
     {
-        $catName = strtoupper((string)($parent->category?->name ?? ''));
-        $brName  = strtoupper((string)($parent->brand?->name ?? ''));
+        // Usar los codes de category y brand directamente
+        $categoryCode = strtoupper((string)($parent->category?->code ?? 'X'));
+        $brandCode    = strtoupper((string)($parent->brand?->code ?? 'X'));
 
-        // Iniciales (primer carácter alfabético)
-        $catInitial = $this->firstAlpha($catName) ?: 'X';
-        $brInitial  = $this->firstAlpha($brName)  ?: 'X';
-
-        $prefix = $catInitial . $brInitial; // "MS", "PL", etc.
+        // Prefijo combinado: ej. "AUSH" (Audio + Shure), "VIAL" (Video + Alfa)
+        $prefix = $categoryCode . $brandCode;
 
         // Buscar el mayor correlativo existente para ese prefijo
         $ids = InventoryItem::where('item_id', 'like', $prefix . '%')->pluck('item_id');
@@ -681,18 +679,11 @@ class InventoryController extends Controller
         return response()->json([
             'success' => true,
             'prefix'  => $prefix,
+            'category_code' => $categoryCode,
+            'brand_code' => $brandCode,
             'next'    => $next,
             'id'      => $nextId,
         ]);
-    }
-
-    // Helper: primera letra alfabética (A..Z/Ñ)
-    private function firstAlpha(string $text): ?string
-    {
-        if (preg_match('/[A-ZÑ]/u', $text, $m)) {
-            return $m[0];
-        }
-        return null;
     }
     public function itemsByParent(ItemParent $parent): JsonResponse
     {

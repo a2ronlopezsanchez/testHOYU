@@ -92,6 +92,11 @@ class BrandController extends Controller
             'is_active'      => ['required','boolean'],
         ]);
 
+        // Auto-generar code si no viene en el request
+        if (empty($data['code'])) {
+            $data['code'] = $this->generateUniqueCode($data['name'], 'brands');
+        }
+
         // Normaliza website (agrega https:// si no trae esquema)
         if (!empty($data['website']) && !preg_match('~^https?://~i', $data['website'])) {
             $data['website'] = 'https://' . $data['website'];
@@ -100,6 +105,64 @@ class BrandController extends Controller
         $brand = Brand::create($data);
 
         return response()->json(['message' => 'Marca creada', 'id' => $brand->id], 201);
+    }
+
+    /**
+     * Genera un code único basado en el nombre
+     * Intenta con 1 letra, luego 2, luego 3, etc.
+     *
+     * @param string $name Nombre de la marca
+     * @param string $table Nombre de la tabla para verificar unicidad
+     * @return string Code único generado
+     */
+    private function generateUniqueCode(string $name, string $table): string
+    {
+        // Limpiar el nombre: solo letras y espacios, en mayúsculas
+        $cleanName = strtoupper(preg_replace('/[^A-Za-zÑñ\s]/', '', $name));
+        $cleanName = trim($cleanName);
+
+        if (empty($cleanName)) {
+            // Fallback si el nombre no tiene letras
+            return 'X' . rand(1000, 9999);
+        }
+
+        // Intentar con longitudes incrementales: 1, 2, 3...
+        $maxLength = min(strlen($cleanName), 10); // máximo 10 caracteres
+
+        for ($length = 1; $length <= $maxLength; $length++) {
+            $candidate = substr($cleanName, 0, $length);
+
+            // Verificar si este code ya existe
+            $exists = \DB::table($table)
+                ->where('code', $candidate)
+                ->whereNull('deleted_at') // ignorar soft deleted
+                ->exists();
+
+            if (!$exists) {
+                return $candidate;
+            }
+        }
+
+        // Si llegamos aquí, incluso el nombre completo está ocupado
+        // Agregar un número al final
+        $baseName = substr($cleanName, 0, $maxLength);
+        $counter = 1;
+
+        while ($counter < 1000) {
+            $candidate = $baseName . $counter;
+            $exists = \DB::table($table)
+                ->where('code', $candidate)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if (!$exists) {
+                return $candidate;
+            }
+            $counter++;
+        }
+
+        // Último recurso: timestamp
+        return $baseName . time();
     }
 
     public function update(Request $request, Brand $brand)
