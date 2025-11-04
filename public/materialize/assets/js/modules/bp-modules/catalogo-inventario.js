@@ -1628,18 +1628,115 @@ class InventoryCatalog {
         const totalPages = Math.ceil(filteredData.length / CONFIG.itemsPerPage);
         const startIndex = (currentPage - 1) * CONFIG.itemsPerPage;
         const endIndex = Math.min(startIndex + CONFIG.itemsPerPage, filteredData.length);
-        
+
         // Actualizar información de paginación
         document.getElementById('showingFrom').textContent = filteredData.length > 0 ? startIndex + 1 : 0;
         document.getElementById('showingTo').textContent = endIndex;
         document.getElementById('totalItems').textContent = filteredData.length;
-        
+
         // Actualizar controles de paginación
         const prevBtn = document.getElementById('prevPage');
         const nextBtn = document.getElementById('nextPage');
-        
+        const paginationControls = document.getElementById('paginationControls');
+
         prevBtn.parentElement.classList.toggle('disabled', currentPage <= 1);
         nextBtn.parentElement.classList.toggle('disabled', currentPage >= totalPages);
+
+        // Generar números de página dinámicamente
+        if (paginationControls) {
+            // Limpiar números de página existentes (mantener solo prev/next)
+            const prevLi = prevBtn.closest('li');
+            const nextLi = nextBtn.closest('li');
+
+            // Guardar referencias
+            const prevLiHTML = prevLi.cloneNode(true);
+            const nextLiHTML = nextLi.cloneNode(true);
+
+            // Limpiar todo
+            paginationControls.innerHTML = '';
+
+            // Agregar botón anterior
+            paginationControls.appendChild(prevLiHTML);
+
+            // Volver a enlazar evento prev (después de clonar)
+            prevLiHTML.querySelector('#prevPage').addEventListener('click', (e) => {
+                e.preventDefault();
+                this.changePage(currentPage - 1);
+            });
+
+            // Generar números de página
+            const maxVisiblePages = 5; // Mostrar máximo 5 números de página
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Ajustar si estamos cerca del final
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            // Agregar primera página y puntos suspensivos si es necesario
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
+                firstLi.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.changePage(1);
+                });
+                paginationControls.appendChild(firstLi);
+
+                if (startPage > 2) {
+                    const dotsLi = document.createElement('li');
+                    dotsLi.className = 'page-item disabled';
+                    dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                    paginationControls.appendChild(dotsLi);
+                }
+            }
+
+            // Agregar números de página visibles
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = i === currentPage ? 'page-item active' : 'page-item';
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+
+                if (i !== currentPage) {
+                    li.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.changePage(i);
+                    });
+                }
+
+                paginationControls.appendChild(li);
+            }
+
+            // Agregar puntos suspensivos y última página si es necesario
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dotsLi = document.createElement('li');
+                    dotsLi.className = 'page-item disabled';
+                    dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                    paginationControls.appendChild(dotsLi);
+                }
+
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+                lastLi.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.changePage(totalPages);
+                });
+                paginationControls.appendChild(lastLi);
+            }
+
+            // Agregar botón siguiente
+            paginationControls.appendChild(nextLiHTML);
+
+            // Volver a enlazar evento next (después de clonar)
+            nextLiHTML.querySelector('#nextPage').addEventListener('click', (e) => {
+                e.preventDefault();
+                this.changePage(currentPage + 1);
+            });
+        }
     }
 
     changePage(newPage) {
@@ -2884,7 +2981,7 @@ class InventoryCatalog {
         whitelist,
         maxTags,
         enforceWhitelist,
-        dropdown: { maxItems: 20, classname: 'tags-inline', enabled: 0, closeOnSelect: false }
+        dropdown: { maxItems: 100, classname: 'tags-inline', enabled: 0, closeOnSelect: false }
     });
 
     // ====== ITEM (UNIDAD) ======
