@@ -180,7 +180,8 @@
                       </div>
                       <div class="col-md-4">
                         <div class="form-floating form-floating-outline">
-                          <input id="itemCategory" name="itemCategory" class="form-control h-auto" placeholder="Seleccionar categoría">
+                          <input id="itemCategory" name="itemCategory" class="form-control h-auto" placeholder="Seleccionar categoría"
+                                value="{{ old('itemCategory', $itemParent->category->name ?? '') }}">
                           <label for="itemCategory">Categoría *</label>
                         </div>
                       </div>
@@ -198,7 +199,8 @@
                       </div>
                       <div class="col-md-6">
                         <div class="form-floating form-floating-outline">
-                          <input id="itemBrand" name="itemBrand" class="form-control h-auto" placeholder="Marca del producto">
+                          <input id="itemBrand" name="itemBrand" class="form-control h-auto" placeholder="Marca del producto"
+                                value="{{ old('itemBrand', $itemParent->brand->name ?? '') }}">
                           <label for="itemBrand">Marca *</label>
                         </div>
                       </div>
