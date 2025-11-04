@@ -246,12 +246,8 @@ class ItemFormManager {
             'itemModel'
         ]);
 
-        // Auto-generar SKU (será generado por el servidor al guardar, mostrar placeholder)
-        const skuInput = document.getElementById('itemSku');
-        if (skuInput) {
-            skuInput.value = 'Se generará automáticamente';
-            skuInput.disabled = true;
-        }
+        // Generar SKU automáticamente
+        this.generateAndSetSku();
 
         // Generar siguiente ID para este parent
         this.generateNextIdForParent(itemParent.id);
@@ -307,6 +303,28 @@ class ItemFormManager {
             }
         }
     }
+
+    // ===== GENERAR SKU ÚNICO =====
+    randomSixDigits() {
+        return String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+    }
+
+    generateUniqueSku() {
+        // Generar un SKU único tipo "BP123456"
+        // En el contexto del formulario, simplemente generamos uno aleatorio
+        // La validación de unicidad se hará en el servidor al guardar
+        return `BP${this.randomSixDigits()}`;
+    }
+
+    generateAndSetSku() {
+        const skuInput = document.getElementById('itemSku');
+        if (skuInput) {
+            const sku = this.generateUniqueSku();
+            skuInput.value = sku;
+            skuInput.disabled = true;
+        }
+    }
+
 
     checkNewUnitMode() {
         // Verificar si estamos en modo "new-from-parent" desde Blade
