@@ -771,6 +771,7 @@ class ItemFormManager {
 
                 // Preparar datos para el backend
                 const payload = this.prepareBackendPayload(true); // true = is_draft
+                const csrfToken = this.getCsrfToken();
 
                 let response;
 
@@ -780,7 +781,7 @@ class ItemFormManager {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -791,7 +792,7 @@ class ItemFormManager {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -852,6 +853,7 @@ class ItemFormManager {
 
                 // Preparar datos para el backend
                 const payload = this.prepareBackendPayload(true); // true = is_draft
+                const csrfToken = this.getCsrfToken();
 
                 let response;
 
@@ -861,7 +863,7 @@ class ItemFormManager {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -872,7 +874,7 @@ class ItemFormManager {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -941,6 +943,7 @@ class ItemFormManager {
             try {
                 // Preparar datos para el backend (is_draft = false para guardado final)
                 const payload = this.prepareBackendPayload(false);
+                const csrfToken = this.getCsrfToken();
 
                 let response;
 
@@ -950,7 +953,7 @@ class ItemFormManager {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -961,7 +964,7 @@ class ItemFormManager {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -996,6 +999,16 @@ class ItemFormManager {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
             }
+        }
+
+        // ===== OBTENER CSRF TOKEN =====
+        getCsrfToken() {
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (!token) {
+                console.error('CSRF token no encontrado. Asegúrate de que existe <meta name="csrf-token"> en el HTML.');
+                throw new Error('CSRF token no encontrado');
+            }
+            return token;
         }
 
         // ===== PREPARAR PAYLOAD PARA BACKEND =====
