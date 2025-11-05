@@ -27,10 +27,6 @@ return new class extends Migration
             'updated_at' => now(),
         ]);
 
-        // También hacer status nullable para que los borradores puedan no tener status
-        Schema::table('inventory_items', function (Blueprint $table) {
-            $table->string('status', 20)->nullable()->change();
-        });
     }
 
     /**
@@ -41,9 +37,5 @@ return new class extends Migration
         // Eliminar ubicación PENDIENTE
         DB::table('locations')->where('name', 'PENDIENTE')->delete();
 
-        // Restaurar status con default
-        Schema::table('inventory_items', function (Blueprint $table) {
-            $table->string('status', 20)->default('ACTIVO')->change();
-        });
     }
 };
