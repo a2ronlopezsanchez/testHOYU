@@ -11,10 +11,10 @@ return new class extends Migration
      * Run the migrations.
      *
      * Crea una ubicación especial "PENDIENTE" que se usa como placeholder
-     * para items en borrador que aún no tienen ubicación asignada.
+     * para items en borrador que aún no tienen ubicación o status asignados.
      *
-     * Cuando is_draft=true → location_id puede ser PENDIENTE
-     * Cuando is_draft=false → location_id NO puede ser PENDIENTE (validación en Controller)
+     * Cuando is_draft=true → location_id y status pueden ser PENDIENTE
+     * Cuando is_draft=false → NO pueden ser PENDIENTE (validación en Controller)
      */
     public function up(): void
     {
@@ -27,6 +27,8 @@ return new class extends Migration
             'updated_at' => now(),
         ]);
 
+        // No necesitamos modificar la tabla - usamos status='PENDIENTE' como valor
+        // Esto evita problemas de compatibilidad con PostgreSQL
     }
 
     /**
@@ -36,6 +38,5 @@ return new class extends Migration
     {
         // Eliminar ubicación PENDIENTE
         DB::table('locations')->where('name', 'PENDIENTE')->delete();
-
     }
 };

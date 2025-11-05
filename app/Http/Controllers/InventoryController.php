@@ -446,25 +446,39 @@ class InventoryController extends Controller
             }
 
             // 3) Normalizar status ("EN REPARACION" -> "EN_REPARACION") ignorando acentos
-            // Para borradores, status puede ser null
+            // Para borradores sin status, usamos 'PENDIENTE'
             $status = null;
             $statusIn = (string) $request->input('status');
 
             if ($statusIn !== '') {
                 $status = strtoupper(str_replace(' ', '_', Str::ascii($statusIn)));
-                $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA'];
+                $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA','PENDIENTE'];
                 if (!in_array($status, $validStatuses, true)) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Status inválido.'
                     ], 422);
                 }
-            } elseif (!$isDraft) {
-                // Si NO es borrador, el status es obligatorio
-                return response()->json([
-                    'success' => false,
-                    'message' => 'El status es obligatorio.'
-                ], 422);
+
+                // Si NO es borrador, validar que no sea PENDIENTE
+                if (!$isDraft && $status === 'PENDIENTE') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Debes seleccionar un status válido para guardar el item.'
+                    ], 422);
+                }
+            } else {
+                // No hay status seleccionado
+                if ($isDraft) {
+                    // Para borradores, usar PENDIENTE
+                    $status = 'PENDIENTE';
+                } else {
+                    // Para guardado final, el status es OBLIGATORIO
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El status es obligatorio.'
+                    ], 422);
+                }
             }
 
             // 4) SKU e ItemID (si no vienen, generamos)
@@ -493,7 +507,7 @@ class InventoryController extends Controller
                 'panel_position'       => (string) $request->input('panel_position', ''),
                 'rfid_tag'             => (string) $request->input('rfid_tag', ''),
                 'serial_number'        => (string) $request->input('serial_number', ''),
-                'status'               => $status ?: ($isDraft ? null : 'ACTIVO'),
+                'status'               => $status, // Ya tiene valor PENDIENTE si es borrador sin status
                 'condition'            => (string) $request->input('condition', 'BUENO'),
                 'original_price'       => $request->input('original_price', 0),
                 'ideal_rental_price'   => $request->input('ideal_rental_price', 0),
@@ -674,12 +688,26 @@ class InventoryController extends Controller
 
             if ($statusIn !== '') {
                 $status = strtoupper(str_replace(' ', '_', Str::ascii($statusIn)));
-                $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA'];
+                $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA','PENDIENTE'];
                 if (!in_array($status, $validStatuses, true)) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Status inválido.'
                     ], 422);
+                }
+
+                // Si NO es borrador, validar que no sea PENDIENTE
+                if (!$isDraft && $status === 'PENDIENTE') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Debes seleccionar un status válido para guardar el item.'
+                    ], 422);
+                }
+            } else {
+                // No se envió status en el request
+                // Si es borrador y el status actual es PENDIENTE o está vacío, mantener PENDIENTE
+                if ($isDraft && (!$inventoryItem->status || $inventoryItem->status === 'PENDIENTE')) {
+                    $status = 'PENDIENTE';
                 }
             }
 
