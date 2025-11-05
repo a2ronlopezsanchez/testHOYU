@@ -388,7 +388,7 @@ class InventoryController extends Controller
                 ->findOrFail($request->integer('item_parent_id'));
 
             // 2) Resolver ubicación por ID o por NOMBRE (case/acento-insensible)
-            // Para borradores, la ubicación puede ser null
+            // Para borradores sin ubicación, usamos la ubicación especial "PENDIENTE"
             $locationId = null;
             $locName = trim((string) $request->input('location'));
 
@@ -409,19 +409,40 @@ class InventoryController extends Controller
                     $locationId = $row?->id;
                 }
 
-                // Solo falla si NO es borrador y la ubicación no existe
-                if (!$locationId && !$isDraft) {
+                // Validar que la ubicación existe
+                if (!$locationId) {
                     return response()->json([
                         'success' => false,
                         'message' => "La ubicación '{$locName}' no existe."
                     ], 422);
                 }
-            } elseif (!$isDraft) {
-                // Si NO es borrador, la ubicación es OBLIGATORIA
-                return response()->json([
-                    'success' => false,
-                    'message' => 'La ubicación es obligatoria para guardar el item.'
-                ], 422);
+
+                // Si NO es borrador, validar que no sea PENDIENTE
+                if (!$isDraft && $locName === 'PENDIENTE') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Debes seleccionar una ubicación válida para guardar el item.'
+                    ], 422);
+                }
+            } else {
+                // No hay ubicación seleccionada
+                if ($isDraft) {
+                    // Para borradores, usar ubicación PENDIENTE
+                    $locationId = Location::where('name', 'PENDIENTE')->value('id');
+
+                    if (!$locationId) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Error: No se encontró la ubicación PENDIENTE. Ejecuta las migraciones.'
+                        ], 500);
+                    }
+                } else {
+                    // Para guardado final, la ubicación es OBLIGATORIA
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'La ubicación es obligatoria para guardar el item.'
+                    ], 422);
+                }
             }
 
             // 3) Normalizar status ("EN REPARACION" -> "EN_REPARACION") ignorando acentos
@@ -621,6 +642,29 @@ class InventoryController extends Controller
                     $row = Location::select('id','name')->get()
                         ->first(fn($r) => Str::lower(Str::ascii((string)$r->name)) === $target);
                     $locationId = $row?->id;
+                }
+
+                // Validar que la ubicación existe
+                if (!$locationId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La ubicación '{$locName}' no existe."
+                    ], 422);
+                }
+
+                // Si NO es borrador, validar que no sea PENDIENTE
+                if (!$isDraft && $locName === 'PENDIENTE') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Debes seleccionar una ubicación válida para guardar el item.'
+                    ], 422);
+                }
+            } else {
+                // No se envió ubicación en el request
+                // Si es borrador y la ubicación actual está vacía o es PENDIENTE, mantener PENDIENTE
+                if ($isDraft && (!$inventoryItem->location_id ||
+                    $inventoryItem->location?->name === 'PENDIENTE')) {
+                    $locationId = Location::where('name', 'PENDIENTE')->value('id');
                 }
             }
 
