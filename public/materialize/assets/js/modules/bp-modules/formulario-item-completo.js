@@ -82,11 +82,11 @@ class ItemFormManager {
         this.init();
     }
 
-    init() {
+    async init() {
         this.checkEditMode();
         this.checkNewUnitMode();
         this.setupEventListeners();
-        this.initializeTagify();
+        await this.initializeTagify(); // Ahora es async para cargar ubicaciones
         this.initializeDropzone();
         this.calculateProgress();
         this.setupAutoSave();
@@ -454,7 +454,7 @@ class ItemFormManager {
     }
 
     // ===== INICIALIZAR TAGIFY =====
-    initializeTagify() {
+    async initializeTagify() {
         const tagifyConfig = {
             maxTags: 1,
             dropdown: {
@@ -564,16 +564,33 @@ class ItemFormManager {
             });
         }
 
-        // Ubicación
+        // Ubicación - Cargar dinámicamente desde el servidor
         const locationInput = document.querySelector('#itemLocation');
         if (locationInput) {
+            // Inicializar Tagify sin whitelist (se cargará después)
             tagifyInstances.location = new Tagify(locationInput, {
                 ...tagifyConfig,
-                whitelist: ['ALMACEN', 'PICKING', 'TRASLADO', 'EVENTO', 'EXTRAVIADO'],
+                whitelist: [],
                 enforceWhitelist: true
             });
-            
-            // 👇 AGREGAR ESTE EVENTO COMPLETO
+
+            // Cargar ubicaciones desde el servidor
+            try {
+                const response = await fetch('/inventory/locations');
+                const data = await response.json();
+
+                if (data && Array.isArray(data)) {
+                    // Extraer solo los nombres de las ubicaciones
+                    const locationNames = data.map(loc => loc.name);
+                    tagifyInstances.location.settings.whitelist = locationNames;
+                    console.log('Ubicaciones cargadas:', locationNames);
+                }
+            } catch (error) {
+                console.error('Error al cargar ubicaciones:', error);
+                // Fallback a ubicaciones por defecto
+                tagifyInstances.location.settings.whitelist = ['ALMACEN', 'PICKING', 'TRASLADO', 'EVENTO'];
+            }
+
             tagifyInstances.location.on('change', () => {
                 unsavedChanges = true;
                 this.enableSaveButton();

@@ -416,6 +416,12 @@ class InventoryController extends Controller
                         'message' => "La ubicación '{$locName}' no existe."
                     ], 422);
                 }
+            } elseif (!$isDraft) {
+                // Si NO es borrador, la ubicación es OBLIGATORIA
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La ubicación es obligatoria para guardar el item.'
+                ], 422);
             }
 
             // 3) Normalizar status ("EN REPARACION" -> "EN_REPARACION") ignorando acentos
