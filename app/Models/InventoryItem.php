@@ -67,6 +67,7 @@ class InventoryItem extends Model
 
         // Control
         'is_active',         // Soft delete: true = activo, false = eliminado
+        'is_draft',          // Sistema de autoguardado: true = borrador, false = guardado final
         'created_by',        // Usuario que creó el registro
     ];
 
@@ -83,6 +84,7 @@ class InventoryItem extends Model
         'total_units'              => 'integer',  // Total de unidades si es SET
         'tags'                     => 'array',    // JSON a Array
         'is_active'                => 'boolean',  // Activo/Inactivo
+        'is_draft'                 => 'boolean',  // Borrador (autoguardado) / Final
     ];
 
     // ========================================

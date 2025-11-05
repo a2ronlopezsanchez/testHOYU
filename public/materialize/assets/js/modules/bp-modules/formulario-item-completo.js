@@ -69,6 +69,7 @@ let formData = {
 
 let isEditing = false;
 let editingItemId = null;
+let currentInventoryItemId = null; // ID del InventoryItem (unidad) una vez guardado como borrador
 let autoSaveEnabled = true;
 let autoSaveTimer = null;
 let unsavedChanges = false;
@@ -757,55 +758,169 @@ class ItemFormManager {
         }
 
         // ===== AUTO-GUARDAR =====
-        autoSave() {
+        async autoSave() {
             console.log('Auto-guardando...');
             const autoSaveStatus = document.getElementById('autoSaveStatus');
             autoSaveStatus.textContent = 'Guardando...';
             autoSaveStatus.classList.add('text-warning');
-            
-            // Simular guardado
-            setTimeout(() => {
-                autoSaveStatus.textContent = 'Guardado hace un momento';
-                autoSaveStatus.classList.remove('text-warning');
-                autoSaveStatus.classList.add('text-success');
-                unsavedChanges = false;
-                
+            autoSaveStatus.classList.remove('text-success', 'text-danger');
+
+            try {
+                // Recopilar datos actuales
+                this.collectFormData();
+
+                // Preparar datos para el backend
+                const payload = this.prepareBackendPayload(true); // true = is_draft
+
+                let response;
+
+                if (currentInventoryItemId) {
+                    // Actualizar item existente (PUT)
+                    response = await fetch(`/inventory/inventory-items/${currentInventoryItemId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Crear nuevo item (POST)
+                    response = await fetch('/inventory/items', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Si es la primera vez que guardamos, almacenar el ID de base de datos
+                    if (!currentInventoryItemId && result.data && result.data.database_id) {
+                        currentInventoryItemId = result.data.database_id;
+                        console.log('Borrador creado con ID:', currentInventoryItemId);
+                    }
+
+                    autoSaveStatus.textContent = 'Guardado hace un momento';
+                    autoSaveStatus.classList.remove('text-warning');
+                    autoSaveStatus.classList.add('text-success');
+                    unsavedChanges = false;
+
+                    setTimeout(() => {
+                        autoSaveStatus.classList.remove('text-success');
+                    }, 3000);
+                } else {
+                    throw new Error(result.message || 'Error al guardar');
+                }
+
+            } catch (error) {
+                console.error('Error en autoguardado:', error);
+                autoSaveStatus.textContent = 'Error al guardar';
+                autoSaveStatus.classList.remove('text-warning', 'text-success');
+                autoSaveStatus.classList.add('text-danger');
+
                 setTimeout(() => {
-                    autoSaveStatus.classList.remove('text-success');
+                    autoSaveStatus.textContent = 'No guardado';
+                    autoSaveStatus.classList.remove('text-danger');
                 }, 3000);
-            }, 1000);
+            }
         }
 
         // ===== AUTO-GUARDAR AL CAMBIAR DE TAB =====
-        autoSaveOnTabChange() {
+        async autoSaveOnTabChange() {
             const saveBtn = document.getElementById('saveFormBtn');
             const saveButtonText = document.getElementById('saveButtonText');
             const originalText = saveButtonText.textContent.replace(' *', '');
-            
+
             // Animación de guardado
             saveBtn.classList.add('btn-success');
             saveBtn.classList.remove('btn-primary');
             saveBtn.disabled = true;
-            
-            // Icono de check animado
-            saveButtonText.innerHTML = '<i class="mdi mdi-check-circle me-1"></i>Cambios Guardados';
-            
-            // Simular guardado
-            setTimeout(() => {
-                unsavedChanges = false;
-                
-                // Después de 2 segundos, restaurar el botón
+
+            // Icono de guardando
+            saveButtonText.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i>Guardando...';
+
+            try {
+                // Recopilar datos actuales
+                this.collectFormData();
+
+                // Preparar datos para el backend
+                const payload = this.prepareBackendPayload(true); // true = is_draft
+
+                let response;
+
+                if (currentInventoryItemId) {
+                    // Actualizar item existente (PUT)
+                    response = await fetch(`/inventory/inventory-items/${currentInventoryItemId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Crear nuevo item (POST)
+                    response = await fetch('/inventory/items', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Si es la primera vez que guardamos, almacenar el ID de base de datos
+                    if (!currentInventoryItemId && result.data && result.data.database_id) {
+                        currentInventoryItemId = result.data.database_id;
+                        console.log('Borrador creado con ID:', currentInventoryItemId);
+                    }
+
+                    unsavedChanges = false;
+
+                    // Icono de check animado
+                    saveButtonText.innerHTML = '<i class="mdi mdi-check-circle me-1"></i>Cambios Guardados';
+
+                    // Después de 2 segundos, restaurar el botón
+                    setTimeout(() => {
+                        saveBtn.classList.remove('btn-success');
+                        saveBtn.classList.add('btn-primary');
+                        saveButtonText.textContent = originalText;
+                        saveBtn.disabled = false;
+                    }, 2000);
+
+                    console.log('Cambios guardados automáticamente al cambiar de tab');
+                } else {
+                    throw new Error(result.message || 'Error al guardar');
+                }
+
+            } catch (error) {
+                console.error('Error al guardar en cambio de tab:', error);
+
+                // Mostrar error
+                saveButtonText.innerHTML = '<i class="mdi mdi-alert-circle me-1"></i>Error al guardar';
+                saveBtn.classList.remove('btn-success');
+                saveBtn.classList.add('btn-danger');
+
                 setTimeout(() => {
-                    saveBtn.classList.remove('btn-success');
+                    saveBtn.classList.remove('btn-danger');
                     saveBtn.classList.add('btn-primary');
                     saveButtonText.textContent = originalText;
-                    
-                    // El botón queda habilitado por si quieren guardar manualmente
                     saveBtn.disabled = false;
-                }, 2000);
-            }, 500);
-            
-            console.log('Cambios guardados automáticamente al cambiar de tab');
+                }, 3000);
+            }
         }
 
         // ===== GUARDAR FORMULARIO =====
@@ -813,51 +928,109 @@ class ItemFormManager {
             if (!this.validateForm()) {
                 return;
             }
-            
+
             // Recopilar datos del formulario
             this.collectFormData();
-            
+
             // Mostrar loading
             const saveBtn = document.getElementById('saveFormBtn');
             const originalText = saveBtn.innerHTML;
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
-            
+
             try {
-                // Simular envío al servidor
-                await this.simulateServerSave();
-                
-                // Éxito
-                unsavedChanges = false;
-                this.disableSaveButton(); // 👈 NUEVA LÍNEA
-                this.showAlert(
-                    isEditing ? 'Item actualizado correctamente' : 'Item creado correctamente', 
-                    'success'
-                );
-                
-                // Redirigir después de 2 segundos
-                setTimeout(() => {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const mode = urlParams.get('mode');
-                    const itemId = urlParams.get('id');
-                    
-                    // Si es edición, volver al detalle
-                    if (mode === 'edit' && itemId) {
-                        window.location.href = `vista-detalle-item.html?id=${itemId}`;
-                    } else {
-                        // Si es nuevo, ir al catálogo
-                        window.location.href = 'catalogo-inventario.html';
-                    }
-                }, 2000);
-                
+                // Preparar datos para el backend (is_draft = false para guardado final)
+                const payload = this.prepareBackendPayload(false);
+
+                let response;
+
+                if (currentInventoryItemId) {
+                    // Actualizar item existente (PUT) - marcar como no-borrador
+                    response = await fetch(`/inventory/inventory-items/${currentInventoryItemId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Crear nuevo item (POST) con validación completa
+                    response = await fetch('/inventory/items', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Éxito
+                    unsavedChanges = false;
+                    this.disableSaveButton();
+                    this.showAlert(
+                        isEditing ? 'Item actualizado correctamente' : 'Item creado correctamente',
+                        'success'
+                    );
+
+                    // Redirigir después de 2 segundos
+                    setTimeout(() => {
+                        // Volver al catálogo
+                        window.location.href = '/catalogo';
+                    }, 2000);
+                } else {
+                    throw new Error(result.message || 'Error al guardar');
+                }
+
             } catch (error) {
                 console.error('Error al guardar:', error);
-                this.showAlert('Error al guardar el item. Por favor intente nuevamente.', 'error');
-                
+                this.showAlert('Error al guardar el item: ' + error.message, 'error');
+
                 // Restaurar botón
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
             }
+        }
+
+        // ===== PREPARAR PAYLOAD PARA BACKEND =====
+        prepareBackendPayload(isDraft = false) {
+            // Obtener item_parent_id desde window.bladeFormData
+            const itemParentId = window.bladeFormData?.itemParent?.id || null;
+
+            if (!itemParentId) {
+                throw new Error('No se encontró item_parent_id');
+            }
+
+            // Transformar formData al formato que espera el backend
+            const payload = {
+                item_parent_id: itemParentId,
+                sku: formData.sku || '',
+                item_id: formData.id || '',
+                name: formData.nombreProducto || '',
+                public_name: formData.nombrePublico || formData.nombreProducto || '',
+                location: formData.ubicacion || '',
+                unit_set: formData.unitSet || 'UNIT',
+                rack_position: formData.rack || '',
+                panel_position: formData.panel || '',
+                rfid_tag: formData.identificadorRfid || '',
+                serial_number: formData.numeroSerie || '',
+                status: formData.status || '',
+                condition: formData.condicion || 'BUENO',
+                original_price: formData.precioOriginal || 0,
+                ideal_rental_price: formData.precioRentaIdeal || 0,
+                minimum_rental_price: formData.precioRentaMinimo || 0,
+                warranty_valid: formData.garantiaVigente === 'SI',
+                is_draft: isDraft
+            };
+
+            console.log('Payload preparado para backend:', payload);
+            return payload;
         }
 
         // ===== RECOPILAR DATOS DEL FORMULARIO =====

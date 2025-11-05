@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
         Route::post('inventory/items', [App\Http\Controllers\InventoryController::class, 'store']);
         Route::get('inventory/items/{itemParentId}', [App\Http\Controllers\InventoryController::class, 'getItemDetails']);
         Route::put('inventory/items/{itemParentId}', [App\Http\Controllers\InventoryController::class, 'update']);
+        Route::put('inventory/inventory-items/{inventoryItemId}', [App\Http\Controllers\InventoryController::class, 'updateItem']);
         Route::delete('inventory/items/{itemParentId}', [App\Http\Controllers\InventoryController::class, 'destroy']);
         
         // Configuraciones y filtros

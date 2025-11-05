@@ -348,32 +348,39 @@ class InventoryController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Determinar si es borrador (autoguardado) o guardado final
+        $isDraft = $request->boolean('is_draft', false);
+
         // Validación según payload que envías desde el front
-        $request->validate([
+        // Si es borrador, validación laxa; si es final, validación completa
+        $rules = [
             'item_parent_id'      => ['required','integer','exists:item_parents,id'],
             'sku'                 => ['nullable','string','max:50','unique:inventory_items,sku'],
             'item_id'             => ['nullable','string','max:50','unique:inventory_items,item_id'],
-            'name'                => ['required','string','max:255'],
+            'name'                => [$isDraft ? 'nullable' : 'required','string','max:255'],
             'public_name'         => ['nullable','string','max:255'],
 
             // ubicación: puedes mandar id o nombre
-            'location'            => ['nullable','string','max:255'],
+            'location'            => [$isDraft ? 'nullable' : 'nullable','string','max:255'],
 
-            'unit_set'            => ['required','in:UNIT,SET'],
+            'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
             'rack_position'       => ['nullable','string','max:50'],
             'panel_position'      => ['nullable','string','max:50'],
             'rfid_tag'            => ['nullable','string','max:50'],
             'serial_number'       => ['nullable','string','max:100'],
 
             // aceptamos texto y normalizamos
-            'status'              => ['required','string','max:30'],
+            'status'              => [$isDraft ? 'nullable' : 'required','string','max:30'],
             'condition'           => ['nullable','in:EXCELENTE,BUENO,REGULAR,MALO'],
 
             'original_price'      => ['nullable','numeric','min:0'],
             'ideal_rental_price'  => ['nullable','numeric','min:0'],
             'minimum_rental_price'=> ['nullable','numeric','min:0'],
             'warranty_valid'      => ['boolean'],
-        ]);
+            'is_draft'            => ['boolean'],
+        ];
+
+        $request->validate($rules);
 
         try {
             // 1) Padre (traemos categoría/marca para ID y respuesta)
@@ -381,41 +388,55 @@ class InventoryController extends Controller
                 ->findOrFail($request->integer('item_parent_id'));
 
             // 2) Resolver ubicación por ID o por NOMBRE (case/acento-insensible)
-            // Resolver ubicación por NOMBRE (case-insensitive; con fallback sin acentos)
-            $locName = trim((string) $request->input('location'));
+            // Para borradores, la ubicación puede ser null
             $locationId = null;
+            $locName = trim((string) $request->input('location'));
 
-            // a) Coincidencia exacta (si tu collation ya es case-insensitive, con esto basta)
-            $locationId = Location::where('name', $locName)->value('id');
+            if ($locName !== '') {
+                // a) Coincidencia exacta (si tu collation ya es case-insensitive, con esto basta)
+                $locationId = Location::where('name', $locName)->value('id');
 
-            // b) Case-insensitive explícito
-            if (!$locationId) {
-                $locationId = Location::whereRaw('LOWER(name) = ?', [mb_strtolower($locName, 'UTF-8')])->value('id');
-            }
+                // b) Case-insensitive explícito
+                if (!$locationId) {
+                    $locationId = Location::whereRaw('LOWER(name) = ?', [mb_strtolower($locName, 'UTF-8')])->value('id');
+                }
 
-            // c) (Opcional) Acento-insensible en memoria
-            if (!$locationId) {
-                $target = Str::lower(Str::ascii($locName));
-                $row = Location::select('id','name')->get()
-                    ->first(fn($r) => Str::lower(Str::ascii((string)$r->name)) === $target);
-                $locationId = $row?->id;
-            }
+                // c) (Opcional) Acento-insensible en memoria
+                if (!$locationId) {
+                    $target = Str::lower(Str::ascii($locName));
+                    $row = Location::select('id','name')->get()
+                        ->first(fn($r) => Str::lower(Str::ascii((string)$r->name)) === $target);
+                    $locationId = $row?->id;
+                }
 
-            if (!$locationId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "La ubicación '{$locName}' no existe."
-                ], 422);
+                // Solo falla si NO es borrador y la ubicación no existe
+                if (!$locationId && !$isDraft) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La ubicación '{$locName}' no existe."
+                    ], 422);
+                }
             }
 
             // 3) Normalizar status ("EN REPARACION" -> "EN_REPARACION") ignorando acentos
+            // Para borradores, status puede ser null
+            $status = null;
             $statusIn = (string) $request->input('status');
-            $status   = strtoupper(str_replace(' ', '_', Str::ascii($statusIn)));
-            $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA'];
-            if (!in_array($status, $validStatuses, true)) {
+
+            if ($statusIn !== '') {
+                $status = strtoupper(str_replace(' ', '_', Str::ascii($statusIn)));
+                $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA'];
+                if (!in_array($status, $validStatuses, true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Status inválido.'
+                    ], 422);
+                }
+            } elseif (!$isDraft) {
+                // Si NO es borrador, el status es obligatorio
                 return response()->json([
                     'success' => false,
-                    'message' => 'Status inválido.'
+                    'message' => 'El status es obligatorio.'
                 ], 422);
             }
 
@@ -434,10 +455,10 @@ class InventoryController extends Controller
             $inventoryItem = InventoryItem::create([
                 'sku'                  => $sku,
                 'item_id'              => $itemId,
-                'name'                 => (string) $request->string('name'),
+                'name'                 => $request->filled('name') ? (string) $request->string('name') : null,
                 'public_name'          => $request->filled('public_name')
                                             ? (string) $request->string('public_name')
-                                            : (string) $request->string('name'),
+                                            : ($request->filled('name') ? (string) $request->string('name') : null),
                 'item_parent_id'       => $parent->id,
                 'location_id'          => $locationId,
                 'unit_set'             => (string) $request->input('unit_set', 'UNIT'),
@@ -445,13 +466,14 @@ class InventoryController extends Controller
                 'panel_position'       => (string) $request->input('panel_position', ''),
                 'rfid_tag'             => (string) $request->input('rfid_tag', ''),
                 'serial_number'        => (string) $request->input('serial_number', ''),
-                'status'               => $status,
+                'status'               => $status ?: ($isDraft ? null : 'ACTIVO'),
                 'condition'            => (string) $request->input('condition', 'BUENO'),
                 'original_price'       => $request->input('original_price', 0),
                 'ideal_rental_price'   => $request->input('ideal_rental_price', 0),
                 'minimum_rental_price' => $request->input('minimum_rental_price', 0),
                 'warranty_valid'       => (bool) $request->boolean('warranty_valid', false),
                 'is_active'            => true,
+                'is_draft'             => $isDraft,
                 'created_by'           => auth()->id() ?? 1,
             ]);
 
@@ -459,6 +481,7 @@ class InventoryController extends Controller
             $inventoryItem->load(['parent.category','parent.brand','location']);
 
             $grid = [
+                'database_id'       => $inventoryItem->id, // ID de base de datos para actualizaciones
                 'sku'               => $inventoryItem->sku,
                 'nombreProducto'    => $inventoryItem->name,
                 'id'                => $inventoryItem->item_id,
@@ -546,13 +569,156 @@ class InventoryController extends Controller
     }
 
     /**
+     * Update an existing InventoryItem (unidad individual)
+     * Soporta tanto borradores (autoguardado) como guardado final
+     */
+    public function updateItem(Request $request, $inventoryItemId): JsonResponse
+    {
+        // Determinar si es borrador (autoguardado) o guardado final
+        $isDraft = $request->boolean('is_draft', false);
+
+        // Validación condicional según si es borrador o final
+        $rules = [
+            'name'                => [$isDraft ? 'nullable' : 'required','string','max:255'],
+            'public_name'         => ['nullable','string','max:255'],
+            'location'            => ['nullable','string','max:255'],
+            'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
+            'rack_position'       => ['nullable','string','max:50'],
+            'panel_position'      => ['nullable','string','max:50'],
+            'rfid_tag'            => ['nullable','string','max:50'],
+            'serial_number'       => ['nullable','string','max:100'],
+            'status'              => [$isDraft ? 'nullable' : 'required','string','max:30'],
+            'condition'           => ['nullable','in:EXCELENTE,BUENO,REGULAR,MALO'],
+            'original_price'      => ['nullable','numeric','min:0'],
+            'ideal_rental_price'  => ['nullable','numeric','min:0'],
+            'minimum_rental_price'=> ['nullable','numeric','min:0'],
+            'warranty_valid'      => ['boolean'],
+            'is_draft'            => ['boolean'],
+        ];
+
+        $request->validate($rules);
+
+        try {
+            $inventoryItem = InventoryItem::findOrFail($inventoryItemId);
+
+            // Resolver ubicación si viene
+            $locationId = $inventoryItem->location_id; // Mantener la actual por defecto
+            $locName = trim((string) $request->input('location'));
+
+            if ($locName !== '') {
+                $locationId = Location::where('name', $locName)->value('id');
+                if (!$locationId) {
+                    $locationId = Location::whereRaw('LOWER(name) = ?', [mb_strtolower($locName, 'UTF-8')])->value('id');
+                }
+                if (!$locationId) {
+                    $target = Str::lower(Str::ascii($locName));
+                    $row = Location::select('id','name')->get()
+                        ->first(fn($r) => Str::lower(Str::ascii((string)$r->name)) === $target);
+                    $locationId = $row?->id;
+                }
+            }
+
+            // Normalizar status si viene
+            $status = $inventoryItem->status; // Mantener el actual por defecto
+            $statusIn = (string) $request->input('status');
+
+            if ($statusIn !== '') {
+                $status = strtoupper(str_replace(' ', '_', Str::ascii($statusIn)));
+                $validStatuses = ['ACTIVO','INACTIVO','DESCOMPUESTO','EN_REPARACION','EXTRAVIADO','BAJA'];
+                if (!in_array($status, $validStatuses, true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Status inválido.'
+                    ], 422);
+                }
+            }
+
+            // Actualizar el item
+            $updateData = [
+                'is_draft' => $isDraft,
+            ];
+
+            if ($request->filled('name')) {
+                $updateData['name'] = (string) $request->string('name');
+            }
+            if ($request->filled('public_name')) {
+                $updateData['public_name'] = (string) $request->string('public_name');
+            }
+            if ($locationId) {
+                $updateData['location_id'] = $locationId;
+            }
+            if ($request->filled('unit_set')) {
+                $updateData['unit_set'] = (string) $request->input('unit_set');
+            }
+            if ($request->filled('rack_position')) {
+                $updateData['rack_position'] = (string) $request->input('rack_position');
+            }
+            if ($request->filled('panel_position')) {
+                $updateData['panel_position'] = (string) $request->input('panel_position');
+            }
+            if ($request->filled('rfid_tag')) {
+                $updateData['rfid_tag'] = (string) $request->input('rfid_tag');
+            }
+            if ($request->filled('serial_number')) {
+                $updateData['serial_number'] = (string) $request->input('serial_number');
+            }
+            if ($status) {
+                $updateData['status'] = $status;
+            }
+            if ($request->filled('condition')) {
+                $updateData['condition'] = (string) $request->input('condition');
+            }
+            if ($request->has('original_price')) {
+                $updateData['original_price'] = $request->input('original_price', 0);
+            }
+            if ($request->has('ideal_rental_price')) {
+                $updateData['ideal_rental_price'] = $request->input('ideal_rental_price', 0);
+            }
+            if ($request->has('minimum_rental_price')) {
+                $updateData['minimum_rental_price'] = $request->input('minimum_rental_price', 0);
+            }
+            if ($request->has('warranty_valid')) {
+                $updateData['warranty_valid'] = (bool) $request->boolean('warranty_valid', false);
+            }
+
+            $inventoryItem->update($updateData);
+
+            // Recargar relaciones
+            $inventoryItem->load(['parent.category','parent.brand','location']);
+
+            // Preparar respuesta con formato similar al store()
+            $responseData = [
+                'database_id'       => $inventoryItem->id,
+                'sku'               => $inventoryItem->sku,
+                'nombreProducto'    => $inventoryItem->name,
+                'id'                => $inventoryItem->item_id,
+                'ubicacion'         => $inventoryItem->location?->name ?? '',
+                'status'            => str_replace('_',' ',$inventoryItem->status),
+                'is_draft'          => $inventoryItem->is_draft,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => $isDraft ? 'Borrador guardado automáticamente' : 'Item actualizado exitosamente',
+                'data' => $responseData,
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el item: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Delete inventory item (soft delete)
      */
     public function destroy($itemParentId): JsonResponse
     {
         try {
             $itemParent = ItemParent::findOrFail($itemParentId);
-            
+
             // Soft delete the parent and all related items
             $itemParent->update(['is_active' => false]);
             $itemParent->items()->update(['is_active' => false]);
