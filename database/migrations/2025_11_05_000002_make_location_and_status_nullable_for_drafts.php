@@ -19,16 +19,23 @@ return new class extends Migration
             // Hacer location_id nullable
             // Primero eliminamos la foreign key constraint
             $table->dropForeign(['location_id']);
+        });
 
-            // Luego hacemos la columna nullable
-            $table->foreignId('location_id')->nullable()->change();
+        Schema::table('inventory_items', function (Blueprint $table) {
+            // Modificar columna a nullable (compatible con PostgreSQL y MySQL)
+            // Usamos unsignedBigInteger en lugar de foreignId para ->change()
+            $table->unsignedBigInteger('location_id')->nullable()->change();
+        });
 
+        Schema::table('inventory_items', function (Blueprint $table) {
             // Volvemos a agregar la foreign key constraint
             $table->foreign('location_id')
                   ->references('id')
                   ->on('locations')
                   ->onDelete('restrict');
+        });
 
+        Schema::table('inventory_items', function (Blueprint $table) {
             // Hacer status nullable (remover default también)
             $table->string('status', 20)->nullable()->change();
         });
@@ -40,14 +47,24 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inventory_items', function (Blueprint $table) {
-            // Restaurar location_id como NOT NULL
+            // Eliminar foreign key
             $table->dropForeign(['location_id']);
-            $table->foreignId('location_id')->nullable(false)->change();
+        });
+
+        Schema::table('inventory_items', function (Blueprint $table) {
+            // Restaurar location_id como NOT NULL
+            $table->unsignedBigInteger('location_id')->nullable(false)->change();
+        });
+
+        Schema::table('inventory_items', function (Blueprint $table) {
+            // Volver a agregar foreign key
             $table->foreign('location_id')
                   ->references('id')
                   ->on('locations')
                   ->onDelete('restrict');
+        });
 
+        Schema::table('inventory_items', function (Blueprint $table) {
             // Restaurar status con default
             $table->string('status', 20)->default('ACTIVO')->change();
         });
