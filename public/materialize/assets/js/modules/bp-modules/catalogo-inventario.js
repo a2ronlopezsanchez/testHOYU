@@ -20,6 +20,7 @@ const CONFIG = {
 // ===== CARGA DE CATÁLOGOS DESDE BACKEND =====
 let LOOKUPS_CACHE = null;
 let PARENTS_CACHE = null;
+let LOCATIONS_FULL_CACHE = null; // Cache para ubicaciones completas (con ID, name, etc.)
 
 async function loadInventoryLookups() {
     // Cache en memoria para no pedirlos de nuevo
@@ -43,6 +44,29 @@ async function loadInventoryLookups() {
     CONFIG.locations  = LOOKUPS_CACHE.locations;
 
     return LOOKUPS_CACHE;
+}
+
+// ===== CARGA DE UBICACIONES COMPLETAS =====
+async function loadFullLocations() {
+    // Cache en memoria
+    if (LOCATIONS_FULL_CACHE) return LOCATIONS_FULL_CACHE;
+
+    try {
+        const res = await fetch('/inventory/locations', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('No se pudieron cargar las ubicaciones');
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Respuesta inválida de ubicaciones');
+
+        // Guardar ubicaciones completas en cache
+        LOCATIONS_FULL_CACHE = data.data || [];
+        console.log('✅ Ubicaciones cargadas:', LOCATIONS_FULL_CACHE.length);
+
+        return LOCATIONS_FULL_CACHE;
+    } catch (error) {
+        console.error('Error cargando ubicaciones:', error);
+        return [];
+    }
 }
 async function loadItemParents() {
   if (PARENTS_CACHE) return PARENTS_CACHE;
@@ -112,6 +136,14 @@ class InventoryCatalog {
         } catch (e) {
             console.error('Error cargando catálogos:', e);
             this.showAlert('No se pudieron cargar catálogos. Se usarán listas vacías.', 'warning');
+        }
+
+        try {
+            // 1.5) Cargar ubicaciones completas desde la BD para getLocationName()
+            await loadFullLocations();
+        } catch (e) {
+            console.error('Error cargando ubicaciones completas:', e);
+            // No mostramos alerta, el fallback en getLocationName() funcionará
         }
 
         try {
@@ -1488,12 +1520,22 @@ class InventoryCatalog {
     }
 
     getLocationName(location) {
+        // Si tenemos ubicaciones cargadas desde la BD, usarlas
+        if (LOCATIONS_FULL_CACHE && LOCATIONS_FULL_CACHE.length > 0) {
+            const found = LOCATIONS_FULL_CACHE.find(loc =>
+                loc.name?.toUpperCase() === String(location).toUpperCase()
+            );
+            return found ? found.name : location;
+        }
+
+        // Fallback a nombres por defecto si aún no se cargaron las ubicaciones
         const names = {
             'ALMACEN': 'Almacén',
             'PICKING': 'Picking',
             'TRASLADO': 'Traslado',
             'EVENTO': 'Evento',
-            'EXTRAVIADO': 'Extraviado'
+            'EXTRAVIADO': 'Extraviado',
+            'PENDIENTE': 'Pendiente'
         };
         return names[location] || location;
     }
