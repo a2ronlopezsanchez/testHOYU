@@ -82,6 +82,10 @@ Route::middleware('auth')->group(function () {
             ->name('inventory.units.details');
 
         Route::post('inventory/items', [App\Http\Controllers\InventoryController::class, 'store']);
+        Route::post('inventory/items/auto-save', [App\Http\Controllers\InventoryController::class, 'autoSave'])
+            ->name('inventory.items.autoSave');
+        Route::get('inventory/item-parents/{parent}/data', [App\Http\Controllers\InventoryController::class, 'getParentData'])
+            ->name('inventory.parents.data');
         Route::get('inventory/items/{itemParentId}', [App\Http\Controllers\InventoryController::class, 'getItemDetails']);
         Route::put('inventory/items/{itemParentId}', [App\Http\Controllers\InventoryController::class, 'update']);
         Route::delete('inventory/items/{itemParentId}', [App\Http\Controllers\InventoryController::class, 'destroy']);

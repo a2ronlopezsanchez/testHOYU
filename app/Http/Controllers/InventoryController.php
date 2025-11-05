@@ -572,6 +572,54 @@ class InventoryController extends Controller
 
 
     /**
+     * Auto-save form data
+     */
+    public function autoSave(Request $request): JsonResponse
+    {
+        // Temporal: Para debugging
+        dd($request->all());
+
+        // TODO: Implementar lógica de auto-guardado en sesión o caché
+        // Por ejemplo:
+        // session(['form_autosave_' . auth()->id() => $request->all()]);
+        //
+        // return response()->json([
+        //     'success' => true,
+        //     'message' => 'Datos guardados temporalmente'
+        // ]);
+    }
+
+    /**
+     * Get parent item data for creating new unit from parent
+     */
+    public function getParentData(ItemParent $parent): JsonResponse
+    {
+        try {
+            $parent->load(['category', 'brand']);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $parent->id,
+                    'name' => $parent->name,
+                    'public_name' => $parent->public_name,
+                    'category' => $parent->category?->name ?? '',
+                    'brand' => $parent->brand?->name ?? '',
+                    'model' => $parent->model ?? '',
+                    'family' => $parent->family ?? '',
+                    'sub_family' => $parent->sub_family ?? '',
+                    'color' => $parent->color ?? '',
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener datos del padre: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Generate unique SKU
      */
     private function generateUniqueSku()
@@ -579,8 +627,41 @@ class InventoryController extends Controller
         do {
             $sku = 'BP' . str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
         } while (InventoryItem::where('sku', $sku)->exists());
-        
+
         return $sku;
+    }
+
+    /**
+     * Generate unique Item ID from parent
+     */
+    private function generateUniqueItemIdFromParent(ItemParent $parent): string
+    {
+        $catName = strtoupper((string)($parent->category?->name ?? ''));
+        $brName  = strtoupper((string)($parent->brand?->name ?? ''));
+
+        // Iniciales (primer carácter alfabético)
+        $catInitial = $this->firstAlpha($catName) ?: 'X';
+        $brInitial  = $this->firstAlpha($brName)  ?: 'X';
+
+        $prefix = $catInitial . $brInitial;
+
+        // Buscar el mayor correlativo existente para ese prefijo
+        $ids = InventoryItem::where('item_id', 'like', $prefix . '%')->pluck('item_id');
+
+        $max = 0;
+        $regex = '/^'.preg_quote($prefix, '/').'(\d+)$/i';
+        foreach ($ids as $id) {
+            if (preg_match($regex, $id, $m)) {
+                $n = (int)$m[1];
+                if ($n > $max) $max = $n;
+            }
+        }
+        $next = $max + 1;
+
+        // Formatear: 001..999 y de ahí 1000, 1001, ...
+        $suffix = $next <= 999 ? str_pad((string)$next, 3, '0', STR_PAD_LEFT) : (string)$next;
+
+        return $prefix . $suffix;
     }
 
 

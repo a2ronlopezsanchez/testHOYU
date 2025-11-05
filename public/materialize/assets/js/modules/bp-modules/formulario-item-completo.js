@@ -108,18 +108,62 @@ class ItemFormManager {
     }
 
     checkNewUnitMode() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
-    const parentItem = urlParams.get('parentItem');
-    
-    if (mode === 'newUnit' && parentItem) {
-        // Cargar datos del item padre
-        document.getElementById('formTitle').textContent = 'Agregar Nueva Unidad';
-        document.getElementById('saveButtonText').textContent = 'Guardar Unidad';
-        
-        // Aquí cargarías los datos del item padre
-        console.log('Agregando nueva unidad al item:', parentItem);
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const parentId = urlParams.get('id');
+
+        if (mode === 'new-from-parent' && parentId) {
+            // Cargar datos del item padre
+            document.getElementById('formTitle').textContent = 'Agregar Nueva Unidad';
+            document.getElementById('saveButtonText').textContent = 'Guardar Nueva Unidad';
+
+            // Cargar datos del padre desde el servidor
+            this.loadParentData(parentId);
+        }
     }
+
+    // Cargar datos del item padre para nueva unidad
+    async loadParentData(parentId) {
+        try {
+            const response = await fetch(`/inventory/item-parents/${parentId}/data`);
+            const result = await response.json();
+
+            if (result.success) {
+                const data = result.data;
+
+                // Poblar campos del padre
+                if (data.category && tagifyInstances.category) {
+                    tagifyInstances.category.addTags([data.category]);
+                }
+                if (data.brand && tagifyInstances.brand) {
+                    tagifyInstances.brand.addTags([data.brand]);
+                }
+                if (data.model && tagifyInstances.model) {
+                    tagifyInstances.model.addTags([data.model]);
+                }
+                if (data.family && tagifyInstances.family) {
+                    tagifyInstances.family.addTags([data.family]);
+                }
+                if (data.sub_family && tagifyInstances.subFamily) {
+                    tagifyInstances.subFamily.addTags([data.sub_family]);
+                }
+                if (data.color && tagifyInstances.color) {
+                    tagifyInstances.color.addTags([data.color]);
+                }
+
+                document.getElementById('itemName').value = data.name || '';
+                document.getElementById('itemPublicName').value = data.public_name || '';
+
+                // Guardar el ID del padre para usar al guardar
+                formData.item_parent_id = parentId;
+
+                this.updatePreview();
+                this.showAlert('Datos del item padre cargados correctamente', 'success');
+            }
+        } catch (error) {
+            console.error('Error al cargar datos del padre:', error);
+            this.showAlert('Error al cargar datos del item padre', 'error');
+        }
     }
 
     // ===== CARGAR DATOS DEL ITEM (MODO EDICIÓN) =====
@@ -425,49 +469,67 @@ class ItemFormManager {
 
     // ===== CALCULAR PROGRESO DEL FORMULARIO =====
     calculateProgress() {
-        const allFields = document.querySelectorAll('#itemCompleteForm input, #itemCompleteForm select, #itemCompleteForm textarea');
-        const requiredFields = document.querySelectorAll('#itemCompleteForm input[required], #itemCompleteForm select[required]');
-        
+        // Solo contar campos visibles y relevantes (excluir hidden, readonly)
+        const allFields = Array.from(document.querySelectorAll('#itemCompleteForm input:not([type="hidden"]):not([readonly]), #itemCompleteForm select, #itemCompleteForm textarea'))
+            .filter(field => field.offsetParent !== null); // Solo campos visibles
+
+        // Campos requeridos del config
+        const requiredFieldIds = ['itemName', 'itemCategory', 'itemBrand', 'itemModel', 'itemStatus', 'itemLocation'];
+
         let filledFields = 0;
         let filledRequired = 0;
-        
+        let totalRequired = requiredFieldIds.length;
+
+        // Contar campos normales llenos
         allFields.forEach(field => {
             if (this.isFieldFilled(field)) {
                 filledFields++;
             }
         });
-        
-        requiredFields.forEach(field => {
-            if (this.isFieldFilled(field)) {
+
+        // Verificar campos requeridos (Tagify)
+        requiredFieldIds.forEach(fieldId => {
+            const tagifyKey = Object.keys(tagifyInstances).find(key =>
+                tagifyInstances[key].DOM.originalInput.id === fieldId
+            );
+
+            if (tagifyKey && tagifyInstances[tagifyKey].value.length > 0) {
                 filledRequired++;
-            }
-        });
-        
-        // Verificar también campos Tagify
-        Object.keys(tagifyInstances).forEach(key => {
-            if (tagifyInstances[key].value.length > 0) {
-                filledFields++;
-                if (FORM_CONFIG.requiredFields.includes(tagifyInstances[key].DOM.originalInput.id)) {
+                filledFields++; // También cuenta para el total
+            } else if (fieldId === 'itemName') {
+                // itemName no es Tagify, es input normal
+                const nameField = document.getElementById('itemName');
+                if (nameField && this.isFieldFilled(nameField)) {
                     filledRequired++;
                 }
             }
         });
-        
+
         const totalFields = allFields.length + Object.keys(tagifyInstances).length;
         const progressPercentage = Math.round((filledFields / totalFields) * 100);
-        
+
         // Actualizar UI
         document.getElementById('formProgress').style.width = progressPercentage + '%';
         document.getElementById('progressText').textContent = progressPercentage + '% completado';
         document.getElementById('fieldsCompleted').textContent = filledFields;
         document.getElementById('totalFields').textContent = totalFields;
-        
+
         // Habilitar/deshabilitar botón de guardar según campos requeridos
+        // Solo deshabilitar si NO están llenos los campos requeridos
         const saveBtn = document.getElementById('saveFormBtn');
-        if (filledRequired === requiredFields.length) {
-            saveBtn.disabled = false;
-        } else {
+        const allRequiredFilled = filledRequired >= totalRequired;
+
+        if (!allRequiredFilled) {
             saveBtn.disabled = true;
+            saveBtn.classList.remove('btn-primary');
+            saveBtn.classList.add('btn-secondary');
+        } else {
+            // Si ya están llenos los requeridos, dejar habilitado
+            if (saveBtn.disabled) {
+                saveBtn.disabled = false;
+                saveBtn.classList.remove('btn-secondary');
+                saveBtn.classList.add('btn-primary');
+            }
         }
     }
 
@@ -530,23 +592,51 @@ class ItemFormManager {
         }
 
         // ===== AUTO-GUARDAR =====
-        autoSave() {
+        async autoSave() {
             console.log('Auto-guardando...');
             const autoSaveStatus = document.getElementById('autoSaveStatus');
             autoSaveStatus.textContent = 'Guardando...';
             autoSaveStatus.classList.add('text-warning');
-            
-            // Simular guardado
-            setTimeout(() => {
-                autoSaveStatus.textContent = 'Guardado hace un momento';
+
+            // Recopilar datos del formulario
+            this.collectFormData();
+
+            try {
+                // Enviar datos al servidor
+                const response = await fetch('/inventory/items/auto-save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    autoSaveStatus.textContent = 'Guardado hace un momento';
+                    autoSaveStatus.classList.remove('text-warning');
+                    autoSaveStatus.classList.add('text-success');
+                    unsavedChanges = false;
+
+                    setTimeout(() => {
+                        autoSaveStatus.classList.remove('text-success');
+                        autoSaveStatus.textContent = 'Último guardado: ' + new Date().toLocaleTimeString();
+                    }, 3000);
+                } else {
+                    throw new Error('Error en el auto-guardado');
+                }
+            } catch (error) {
+                console.error('Error al auto-guardar:', error);
+                autoSaveStatus.textContent = 'Error al guardar';
                 autoSaveStatus.classList.remove('text-warning');
-                autoSaveStatus.classList.add('text-success');
-                unsavedChanges = false;
-                
+                autoSaveStatus.classList.add('text-danger');
+
                 setTimeout(() => {
-                    autoSaveStatus.classList.remove('text-success');
+                    autoSaveStatus.classList.remove('text-danger');
+                    autoSaveStatus.textContent = 'No guardado';
                 }, 3000);
-            }, 1000);
+            }
         }
 
         // ===== AUTO-GUARDAR AL CAMBIAR DE TAB =====
