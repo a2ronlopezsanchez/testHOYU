@@ -181,19 +181,21 @@
                       <div class="col-md-4">
                         <div class="form-floating form-floating-outline">
                           <input id="itemCategory" name="itemCategory" class="form-control h-auto" placeholder="Seleccionar categoría"
-                                value="{{ old('itemCategory', $itemParent->category->name ?? '') }}">
+                                  value="{{ old('itemCategory', $itemParent->category->name ?? '') }}">
                           <label for="itemCategory">Categoría *</label>
                         </div>
                       </div>
                       <div class="col-md-4">
                         <div class="form-floating form-floating-outline">
-                          <input id="itemFamily" name="itemFamily" class="form-control h-auto" placeholder="Familia del producto">
+                          <input id="itemFamily" name="itemFamily" class="form-control h-auto" placeholder="Familia del producto"
+                                  value="{{ old('itemFamily', $itemParent->family ?? '') }}">
                           <label for="itemFamily">Familia</label>
                         </div>
                       </div>
                       <div class="col-md-4">
                         <div class="form-floating form-floating-outline">
-                          <input id="itemSubFamily" name="itemSubFamily" class="form-control h-auto" placeholder="Sub-familia">
+                          <input id="itemSubFamily" name="itemSubFamily" class="form-control h-auto" placeholder="Sub-familia"
+                                value="{{ old('itemSubFamily', $itemParent->sub_family ?? '') }}">
                           <label for="itemSubFamily">Sub-Familia</label>
                         </div>
                       </div>
@@ -206,7 +208,8 @@
                       </div>
                       <div class="col-md-6">
                         <div class="form-floating form-floating-outline">
-                          <input id="itemModel" name="itemModel" class="form-control h-auto" placeholder="Modelo">
+                          <input id="itemModel" name="itemModel" class="form-control h-auto" placeholder="Modelo"
+                                value="{{ old('itemModel', $itemParent->model ?? '') }}">
                           <label for="itemModel">Modelo *</label>
                         </div>
                       </div>
