@@ -577,16 +577,20 @@ class ItemFormManager {
             // Cargar ubicaciones desde el servidor
             try {
                 const response = await fetch('/inventory/locations');
-                const data = await response.json();
+                const result = await response.json();
 
-                if (data && Array.isArray(data)) {
+                if (result.success && Array.isArray(result.data)) {
                     // Extraer solo los nombres de las ubicaciones
-                    const locationNames = data.map(loc => loc.name);
+                    const locationNames = result.data.map(loc => loc.name);
                     tagifyInstances.location.settings.whitelist = locationNames;
-                    console.log('Ubicaciones cargadas:', locationNames);
+                    console.log('✅ Ubicaciones cargadas desde BD:', locationNames);
+                } else {
+                    console.warn('Respuesta inesperada del servidor:', result);
+                    // Fallback a ubicaciones por defecto
+                    tagifyInstances.location.settings.whitelist = ['ALMACEN', 'PICKING', 'TRASLADO', 'EVENTO'];
                 }
             } catch (error) {
-                console.error('Error al cargar ubicaciones:', error);
+                console.error('❌ Error al cargar ubicaciones:', error);
                 // Fallback a ubicaciones por defecto
                 tagifyInstances.location.settings.whitelist = ['ALMACEN', 'PICKING', 'TRASLADO', 'EVENTO'];
             }
