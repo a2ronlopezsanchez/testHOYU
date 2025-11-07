@@ -771,15 +771,19 @@ class ItemFormManager {
         enableSaveButton() {
             const saveBtn = document.getElementById('saveFormBtn');
             const saveButtonText = document.getElementById('saveButtonText');
-            
+
+            if (!saveBtn) return; // Protección si el botón no existe
+
             if (saveBtn.disabled) {
                 saveBtn.disabled = false;
                 saveBtn.classList.add('btn-primary');
-                
+
                 // Cambiar el texto del botón para indicar que hay cambios
-                const originalText = saveButtonText.textContent;
-                if (!originalText.includes('*')) {
-                    saveButtonText.textContent = originalText + ' *';
+                if (saveButtonText) {
+                    const originalText = saveButtonText.textContent;
+                    if (!originalText.includes('*')) {
+                        saveButtonText.textContent = originalText + ' *';
+                    }
                 }
             }
         }
@@ -788,11 +792,15 @@ class ItemFormManager {
         disableSaveButton() {
             const saveBtn = document.getElementById('saveFormBtn');
             const saveButtonText = document.getElementById('saveButtonText');
-            
+
+            if (!saveBtn) return; // Protección si el botón no existe
+
             saveBtn.classList.add('btn-primary');
-            
+
             // Remover el asterisco si existe
-            saveButtonText.textContent = saveButtonText.textContent.replace(' *', '');
+            if (saveButtonText) {
+                saveButtonText.textContent = saveButtonText.textContent.replace(' *', '');
+            }
         }
 
         // ===== VERIFICAR SI UN CAMPO ESTÁ LLENO =====
@@ -905,6 +913,12 @@ class ItemFormManager {
         async autoSaveOnTabChange() {
             const saveBtn = document.getElementById('saveFormBtn');
             const saveButtonText = document.getElementById('saveButtonText');
+
+            if (!saveBtn || !saveButtonText) {
+                console.warn('Elementos del botón no encontrados, saltando autoguardado en cambio de tab');
+                return; // Salir si los elementos no existen
+            }
+
             const originalText = saveButtonText.textContent.replace(' *', '');
 
             // Animación de guardado
@@ -1100,6 +1114,7 @@ class ItemFormManager {
                 // Identificadores
                 serial_number: formData.numeroSerie || '',
                 rfid_tag: formData.identificadorRfid || '',
+                color: formData.color || '',
                 unit_set: formData.unitSet || 'UNIT',
                 total_units: formData.totalUnits || 1,
 
@@ -1127,7 +1142,11 @@ class ItemFormManager {
                 is_draft: isDraft
             };
 
-            console.log('Payload preparado para backend:', payload);
+            console.log('✅ Payload preparado para backend:', payload);
+            console.log('📝 Especificaciones a enviar:', payload.specifications);
+            console.log('🎨 Color:', payload.color);
+            console.log('📄 Description:', payload.description);
+            console.log('📝 Notes:', payload.notes);
             return payload;
         }
 

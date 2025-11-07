@@ -365,6 +365,7 @@ class InventoryController extends Controller
             // Identificadores
             'serial_number'       => ['nullable','string','max:100'],
             'rfid_tag'            => ['nullable','string','max:50'],
+            'color'               => ['nullable','string','max:120'],
             'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
             'total_units'         => ['nullable','integer','min:1'],
 
@@ -522,6 +523,7 @@ class InventoryController extends Controller
                 // Identificadores
                 'serial_number'        => (string) $request->input('serial_number', ''),
                 'rfid_tag'             => (string) $request->input('rfid_tag', ''),
+                'color'                => $request->filled('color') ? (string) $request->string('color') : null,
                 'unit_set'             => (string) $request->input('unit_set', 'UNIT'),
                 'total_units'          => (int) $request->input('total_units', 1),
 
@@ -671,6 +673,7 @@ class InventoryController extends Controller
             // Identificadores
             'serial_number'       => ['nullable','string','max:100'],
             'rfid_tag'            => ['nullable','string','max:50'],
+            'color'               => ['nullable','string','max:120'],
             'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
             'total_units'         => ['nullable','integer','min:1'],
 
@@ -797,6 +800,9 @@ class InventoryController extends Controller
             }
             if ($request->filled('rfid_tag')) {
                 $updateData['rfid_tag'] = (string) $request->input('rfid_tag');
+            }
+            if ($request->filled('color')) {
+                $updateData['color'] = (string) $request->string('color');
             }
             if ($request->filled('unit_set')) {
                 $updateData['unit_set'] = (string) $request->input('unit_set');
