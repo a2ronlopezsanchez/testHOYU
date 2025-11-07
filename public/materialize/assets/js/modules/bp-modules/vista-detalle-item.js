@@ -68,7 +68,7 @@ class ItemDetailManager {
             brand: itemParent.brand?.name || 'Sin marca',
             model: itemParent.model || 'Sin modelo',
             purchaseDate: item.purchase_date || 'N/A',
-            purchasePrice: item.purchase_price || 0,
+            purchasePrice: item.original_price || 0,  // Usar original_price en lugar de purchase_price
             status: this.translateStatus(item.status) || 'Operativo',
             condition: item.condition || 'Bueno',
             currentLocation: item.location?.name || 'Sin ubicación',
@@ -282,8 +282,12 @@ class ItemDetailManager {
             }
         ];
 
-        // Actualizar la UI con los datos
-        this.updateUI();
+        // NOTA: NO actualizar la UI porque los datos ya están en el HTML desde Blade
+        // Si descomentas esto, sobrescribirá los datos reales con estos datos de prueba
+        // this.updateUI();
+
+        console.warn('⚠️ Usando datos mock - No se encontraron datos de Blade ni en sessionStorage');
+        console.warn('Los datos se muestran desde el HTML, pero no se sobrescriben con updateUI()');
     }
 
     // ===== ACTUALIZAR INTERFAZ =====
