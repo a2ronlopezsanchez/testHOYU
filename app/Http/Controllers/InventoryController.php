@@ -359,24 +359,39 @@ class InventoryController extends Controller
             'item_id'             => ['nullable','string','max:50','unique:inventory_items,item_id'],
             'name'                => [$isDraft ? 'nullable' : 'required','string','max:255'],
             'public_name'         => ['nullable','string','max:255'],
+            'description'         => ['nullable','string'],
+
+            // Identificadores
+            'serial_number'       => ['nullable','string','max:100'],
+            'rfid_tag'            => ['nullable','string','max:50'],
+            'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
+            'total_units'         => ['nullable','integer','min:1'],
 
             // ubicación: puedes mandar id o nombre
             'location'            => [$isDraft ? 'nullable' : 'nullable','string','max:255'],
-
-            'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
             'rack_position'       => ['nullable','string','max:50'],
             'panel_position'      => ['nullable','string','max:50'],
-            'rfid_tag'            => ['nullable','string','max:50'],
-            'serial_number'       => ['nullable','string','max:100'],
 
             // aceptamos texto y normalizamos
             'status'              => [$isDraft ? 'nullable' : 'required','string','max:30'],
             'condition'           => ['nullable','in:EXCELENTE,BUENO,REGULAR,MALO'],
 
+            // Precios y garantía
+            'purchase_date'       => ['nullable','date'],
             'original_price'      => ['nullable','numeric','min:0'],
             'ideal_rental_price'  => ['nullable','numeric','min:0'],
             'minimum_rental_price'=> ['nullable','numeric','min:0'],
             'warranty_valid'      => ['boolean'],
+
+            // Notas
+            'notes'               => ['nullable','string'],
+
+            // Especificaciones
+            'specifications'      => ['nullable','array'],
+            'specifications.*.name' => ['required_with:specifications','string','max:100'],
+            'specifications.*.value' => ['nullable','string','max:255'],
+
+            // Control
             'is_draft'            => ['boolean'],
         ];
 
@@ -500,25 +515,54 @@ class InventoryController extends Controller
                 'public_name'          => $request->filled('public_name')
                                             ? (string) $request->string('public_name')
                                             : ($request->filled('name') ? (string) $request->string('name') : null),
+                'description'          => $request->filled('description') ? (string) $request->string('description') : null,
                 'item_parent_id'       => $parent->id,
-                'location_id'          => $locationId,
+
+                // Identificadores
+                'serial_number'        => (string) $request->input('serial_number', ''),
+                'rfid_tag'             => (string) $request->input('rfid_tag', ''),
                 'unit_set'             => (string) $request->input('unit_set', 'UNIT'),
+                'total_units'          => (int) $request->input('total_units', 1),
+
+                // Ubicación y estado
+                'location_id'          => $locationId,
                 'rack_position'        => (string) $request->input('rack_position', ''),
                 'panel_position'       => (string) $request->input('panel_position', ''),
-                'rfid_tag'             => (string) $request->input('rfid_tag', ''),
-                'serial_number'        => (string) $request->input('serial_number', ''),
                 'status'               => $status, // Ya tiene valor PENDIENTE si es borrador sin status
                 'condition'            => (string) $request->input('condition', 'BUENO'),
+
+                // Precios y garantía
+                'purchase_date'        => $request->filled('purchase_date') ? $request->date('purchase_date') : null,
                 'original_price'       => $request->input('original_price', 0),
                 'ideal_rental_price'   => $request->input('ideal_rental_price', 0),
                 'minimum_rental_price' => $request->input('minimum_rental_price', 0),
                 'warranty_valid'       => (bool) $request->boolean('warranty_valid', false),
+
+                // Notas
+                'notes'                => $request->filled('notes') ? (string) $request->string('notes') : null,
+
+                // Control
                 'is_active'            => true,
                 'is_draft'             => $isDraft,
                 'created_by'           => auth()->id() ?? 1,
             ]);
 
-            // 6) Respuesta formateada para tu grilla (lo mismo que espera tu front)
+            // 6) Guardar especificaciones si se enviaron
+            if ($request->filled('specifications') && is_array($request->input('specifications'))) {
+                $specifications = $request->input('specifications');
+                foreach ($specifications as $index => $spec) {
+                    if (!empty($spec['name'])) {
+                        ItemSpecification::create([
+                            'inventory_item_id' => $inventoryItem->id,
+                            'name' => $spec['name'],
+                            'value' => $spec['value'] ?? '',
+                            'display_order' => $index,
+                        ]);
+                    }
+                }
+            }
+
+            // 7) Respuesta formateada para tu grilla (lo mismo que espera tu front)
             $inventoryItem->load(['parent.category','parent.brand','location']);
 
             $grid = [
@@ -622,18 +666,39 @@ class InventoryController extends Controller
         $rules = [
             'name'                => [$isDraft ? 'nullable' : 'required','string','max:255'],
             'public_name'         => ['nullable','string','max:255'],
-            'location'            => ['nullable','string','max:255'],
+            'description'         => ['nullable','string'],
+
+            // Identificadores
+            'serial_number'       => ['nullable','string','max:100'],
+            'rfid_tag'            => ['nullable','string','max:50'],
             'unit_set'            => [$isDraft ? 'nullable' : 'required','in:UNIT,SET'],
+            'total_units'         => ['nullable','integer','min:1'],
+
+            // Ubicación
+            'location'            => ['nullable','string','max:255'],
             'rack_position'       => ['nullable','string','max:50'],
             'panel_position'      => ['nullable','string','max:50'],
-            'rfid_tag'            => ['nullable','string','max:50'],
-            'serial_number'       => ['nullable','string','max:100'],
+
+            // Estado
             'status'              => [$isDraft ? 'nullable' : 'required','string','max:30'],
             'condition'           => ['nullable','in:EXCELENTE,BUENO,REGULAR,MALO'],
+
+            // Precios y garantía
+            'purchase_date'       => ['nullable','date'],
             'original_price'      => ['nullable','numeric','min:0'],
             'ideal_rental_price'  => ['nullable','numeric','min:0'],
             'minimum_rental_price'=> ['nullable','numeric','min:0'],
             'warranty_valid'      => ['boolean'],
+
+            // Notas
+            'notes'               => ['nullable','string'],
+
+            // Especificaciones
+            'specifications'      => ['nullable','array'],
+            'specifications.*.name' => ['required_with:specifications','string','max:100'],
+            'specifications.*.value' => ['nullable','string','max:255'],
+
+            // Control
             'is_draft'            => ['boolean'],
         ];
 
@@ -722,11 +787,27 @@ class InventoryController extends Controller
             if ($request->filled('public_name')) {
                 $updateData['public_name'] = (string) $request->string('public_name');
             }
-            if ($locationId) {
-                $updateData['location_id'] = $locationId;
+            if ($request->filled('description')) {
+                $updateData['description'] = (string) $request->string('description');
+            }
+
+            // Identificadores
+            if ($request->filled('serial_number')) {
+                $updateData['serial_number'] = (string) $request->input('serial_number');
+            }
+            if ($request->filled('rfid_tag')) {
+                $updateData['rfid_tag'] = (string) $request->input('rfid_tag');
             }
             if ($request->filled('unit_set')) {
                 $updateData['unit_set'] = (string) $request->input('unit_set');
+            }
+            if ($request->has('total_units')) {
+                $updateData['total_units'] = (int) $request->input('total_units', 1);
+            }
+
+            // Ubicación y estado
+            if ($locationId) {
+                $updateData['location_id'] = $locationId;
             }
             if ($request->filled('rack_position')) {
                 $updateData['rack_position'] = (string) $request->input('rack_position');
@@ -734,17 +815,16 @@ class InventoryController extends Controller
             if ($request->filled('panel_position')) {
                 $updateData['panel_position'] = (string) $request->input('panel_position');
             }
-            if ($request->filled('rfid_tag')) {
-                $updateData['rfid_tag'] = (string) $request->input('rfid_tag');
-            }
-            if ($request->filled('serial_number')) {
-                $updateData['serial_number'] = (string) $request->input('serial_number');
-            }
             if ($status) {
                 $updateData['status'] = $status;
             }
             if ($request->filled('condition')) {
                 $updateData['condition'] = (string) $request->input('condition');
+            }
+
+            // Precios y garantía
+            if ($request->filled('purchase_date')) {
+                $updateData['purchase_date'] = $request->date('purchase_date');
             }
             if ($request->has('original_price')) {
                 $updateData['original_price'] = $request->input('original_price', 0);
@@ -759,7 +839,33 @@ class InventoryController extends Controller
                 $updateData['warranty_valid'] = (bool) $request->boolean('warranty_valid', false);
             }
 
+            // Notas
+            if ($request->filled('notes')) {
+                $updateData['notes'] = (string) $request->string('notes');
+            }
+
             $inventoryItem->update($updateData);
+
+            // Actualizar especificaciones si se enviaron
+            if ($request->has('specifications')) {
+                // Eliminar especificaciones existentes
+                $inventoryItem->specifications()->delete();
+
+                // Crear nuevas especificaciones
+                if (is_array($request->input('specifications'))) {
+                    $specifications = $request->input('specifications');
+                    foreach ($specifications as $index => $spec) {
+                        if (!empty($spec['name'])) {
+                            ItemSpecification::create([
+                                'inventory_item_id' => $inventoryItem->id,
+                                'name' => $spec['name'],
+                                'value' => $spec['value'] ?? '',
+                                'display_order' => $index,
+                            ]);
+                        }
+                    }
+                }
+            }
 
             // Recargar relaciones
             $inventoryItem->load(['parent.category','parent.brand','location']);
