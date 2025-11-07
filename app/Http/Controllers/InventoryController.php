@@ -8,7 +8,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\EventAssignment;
-use App\Models\Models\Specification;
+use App\Models\Specification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;

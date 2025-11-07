@@ -95,7 +95,7 @@ class InventoryItem extends Model
      */
     public function specifications()
     {
-        return $this->hasMany(\App\Models\Models\Specification::class, 'item_id');
+        return $this->hasMany(\App\Models\Specification::class, 'item_id');
     }
 
     public function images()
