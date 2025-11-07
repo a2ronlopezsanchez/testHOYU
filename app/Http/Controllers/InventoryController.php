@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\EventAssignment;
+use App\Models\Models\Specification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -552,11 +553,10 @@ class InventoryController extends Controller
                 $specifications = $request->input('specifications');
                 foreach ($specifications as $index => $spec) {
                     if (!empty($spec['name'])) {
-                        ItemSpecification::create([
-                            'inventory_item_id' => $inventoryItem->id,
+                        Specification::create([
+                            'item_id' => $inventoryItem->id,
                             'name' => $spec['name'],
                             'value' => $spec['value'] ?? '',
-                            'display_order' => $index,
                         ]);
                     }
                 }
@@ -856,11 +856,10 @@ class InventoryController extends Controller
                     $specifications = $request->input('specifications');
                     foreach ($specifications as $index => $spec) {
                         if (!empty($spec['name'])) {
-                            ItemSpecification::create([
-                                'inventory_item_id' => $inventoryItem->id,
+                            Specification::create([
+                                'item_id' => $inventoryItem->id,
                                 'name' => $spec['name'],
                                 'value' => $spec['value'] ?? '',
-                                'display_order' => $index,
                             ]);
                         }
                     }

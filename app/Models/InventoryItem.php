@@ -95,7 +95,7 @@ class InventoryItem extends Model
      */
     public function specifications()
     {
-        return $this->hasMany(ItemSpecification::class, 'inventory_item_id')->orderBy('display_order');
+        return $this->hasMany(\App\Models\Models\Specification::class, 'item_id');
     }
 
     public function images()
