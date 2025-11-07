@@ -1095,18 +1095,35 @@ class ItemFormManager {
                 item_id: formData.id || '',
                 name: formData.nombreProducto || '',
                 public_name: formData.nombrePublico || formData.nombreProducto || '',
-                location: formData.ubicacion || '',
+                description: formData.descripcion || '',
+
+                // Identificadores
+                serial_number: formData.numeroSerie || '',
+                rfid_tag: formData.identificadorRfid || '',
                 unit_set: formData.unitSet || 'UNIT',
+                total_units: formData.totalUnits || 1,
+
+                // Ubicación y estado
+                location: formData.ubicacion || '',
                 rack_position: formData.rack || '',
                 panel_position: formData.panel || '',
-                rfid_tag: formData.identificadorRfid || '',
-                serial_number: formData.numeroSerie || '',
                 status: formData.status || '',
                 condition: formData.condicion || 'BUENO',
+
+                // Precios y garantía
+                purchase_date: formData.fechaCompra || '',
                 original_price: formData.precioOriginal || 0,
                 ideal_rental_price: formData.precioRentaIdeal || 0,
                 minimum_rental_price: formData.precioRentaMinimo || 0,
                 warranty_valid: formData.garantiaVigente === 'SI',
+
+                // Notas
+                notes: formData.notas || '',
+
+                // Especificaciones
+                specifications: formData.especificaciones || [],
+
+                // Control
                 is_draft: isDraft
             };
 
