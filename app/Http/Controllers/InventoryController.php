@@ -1297,7 +1297,8 @@ class InventoryController extends Controller
         $inventoryItem = InventoryItem::with([
             'parent.category',
             'parent.brand',
-            'location'
+            'location',
+            'specifications'  // Cargar especificaciones del item
         ])->findOrFail($id);
 
         // Usar el parent del item

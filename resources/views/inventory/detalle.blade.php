@@ -152,7 +152,7 @@
                   <div class="info-item">
                     <span class="info-label">Precio de Compra</span>
                     <div class="info-value" id="itemPurchasePrice">
-                      ${{ $currentItem->purchase_price ?? '0.00' }}
+                      ${{ number_format($currentItem->original_price ?? 0, 2) }}
                     </div>
                   </div>
                 </div>
@@ -194,6 +194,47 @@
                     </div>
                   </div>
                 </div>
+                @if($currentItem->color)
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <span class="info-label">Color</span>
+                    <div class="info-value" id="itemColor">
+                      {{ $currentItem->color }}
+                    </div>
+                  </div>
+                </div>
+                @endif
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <span class="info-label">Tipo de Unidad</span>
+                    <div class="info-value" id="itemUnitSet">
+                      {{ $currentItem->unit_set === 'SET' ? 'Conjunto' : 'Unidad Individual' }}
+                      @if($currentItem->unit_set === 'SET' && $currentItem->total_units > 1)
+                        <span class="badge bg-label-info ms-2">{{ $currentItem->total_units }} piezas</span>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+                @if($currentItem->rack_position)
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <span class="info-label">Posición en Rack</span>
+                    <div class="info-value" id="itemRackPosition">
+                      {{ $currentItem->rack_position }}
+                    </div>
+                  </div>
+                </div>
+                @endif
+                @if($currentItem->panel_position)
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <span class="info-label">Posición en Panel</span>
+                    <div class="info-value" id="itemPanelPosition">
+                      {{ $currentItem->panel_position }}
+                    </div>
+                  </div>
+                </div>
+                @endif
               </div>
 
               <div class="mt-4">
@@ -204,9 +245,16 @@
               </div>
 
               <div class="mt-4">
-                <h6 class="mb-2">Especificaciones</h6>
+                <h6 class="mb-2">Especificaciones Técnicas</h6>
                 <ul class="list-unstyled mb-0" id="itemSpecifications">
-                  @if($itemParent->specifications)
+                  @if($currentItem->specifications && $currentItem->specifications->count() > 0)
+                    @foreach($currentItem->specifications as $spec)
+                      <li class="mb-1">
+                        <i class="mdi mdi-check text-primary me-2"></i>
+                        <strong>{{ $spec->name }}:</strong> {{ $spec->value }}
+                      </li>
+                    @endforeach
+                  @elseif($itemParent->specifications)
                     @php
                       $specs = is_string($itemParent->specifications) ? json_decode($itemParent->specifications, true) : $itemParent->specifications;
                     @endphp
@@ -357,23 +405,37 @@
               <hr>
 
               <div class="mb-4">
-                <h6 class="mb-3">Valor y Depreciación</h6>
+                <h6 class="mb-3">Precios y Valores</h6>
                 <div class="d-flex justify-content-between mb-2">
-                  <span class="text-muted">Valor original:</span>
-                  <span id="originalValue">$499.99</span>
+                  <span class="text-muted">Precio de compra:</span>
+                  <span id="originalValue" class="fw-medium">${{ number_format($currentItem->original_price ?? 0, 2) }}</span>
                 </div>
+                @if($currentItem->ideal_rental_price)
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Renta ideal:</span>
+                  <span id="idealRentalPrice" class="fw-medium text-success">${{ number_format($currentItem->ideal_rental_price, 2) }}</span>
+                </div>
+                @endif
+                @if($currentItem->minimum_rental_price)
                 <div class="d-flex justify-content-between mb-3">
-                  <span class="text-muted">Valor actual estimado:</span>
-                  <span class="fw-medium" id="currentValue">$299.99</span>
+                  <span class="text-muted">Renta mínima:</span>
+                  <span id="minimumRentalPrice" class="fw-medium text-warning">${{ number_format($currentItem->minimum_rental_price, 2) }}</span>
                 </div>
+                @endif
 
+                @if($currentItem->original_price && $currentItem->ideal_rental_price)
+                @php
+                  $depreciation = 40; // Valor de ejemplo, podrías calcularlo
+                  $remainingLife = 100 - $depreciation;
+                @endphp
                 <div class="progress mb-1" style="height: 8px;">
-                  <div class="progress-bar" role="progressbar" style="width: 60%"></div>
+                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ $remainingLife }}%"></div>
                 </div>
                 <div class="d-flex justify-content-between text-muted small">
-                  <span>Depreciación: 40%</span>
-                  <span>Vida útil: 60%</span>
+                  <span>Depreciación: {{ $depreciation }}%</span>
+                  <span>Vida útil: {{ $remainingLife }}%</span>
                 </div>
+                @endif
               </div>
 
               <div class="d-grid gap-2">
