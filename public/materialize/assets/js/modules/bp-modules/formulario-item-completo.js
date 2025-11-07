@@ -124,6 +124,12 @@ class ItemFormManager {
 
         const { itemParent, inventoryItem } = bladeData;
 
+        // Si estamos editando un item existente, establecer su ID
+        if (inventoryItem && inventoryItem.id) {
+            currentInventoryItemId = inventoryItem.id;
+            console.log('✅ Item cargado para edición. ID:', currentInventoryItemId);
+        }
+
         // Convertir datos de Blade al formato esperado por populateForm()
         const formattedData = {
             // Información básica
@@ -166,6 +172,11 @@ class ItemFormManager {
 
         // Poblar el formulario con los datos
         this.populateForm(formattedData);
+
+        // Si estamos en modo edición, bloquear campos que no se deben modificar
+        if (bladeData.mode === 'edit') {
+            this.lockFieldsInEditMode();
+        }
     }
 
     // ===== PARSEAR ESPECIFICACIONES =====
@@ -200,6 +211,42 @@ class ItemFormManager {
             console.error('Error parseando especificaciones:', e);
             return [];
         }
+    }
+
+    // ===== BLOQUEAR CAMPOS EN MODO EDICIÓN =====
+    lockFieldsInEditMode() {
+        console.log('🔒 Bloqueando campos no editables en modo edición');
+
+        // Campos que no se pueden modificar en edición
+        const fieldsToLock = [
+            'itemSku',        // SKU
+            'itemId',         // Item ID
+        ];
+
+        // Deshabilitar inputs normales
+        fieldsToLock.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.disabled = true;
+                field.classList.add('bg-light');
+                field.style.cursor = 'not-allowed';
+            }
+        });
+
+        // Deshabilitar Tagify instances (categoria, familia, sub-familia, marca, modelo)
+        const tagifyFieldsToLock = ['category', 'family', 'subFamily', 'brand', 'model'];
+
+        tagifyFieldsToLock.forEach(tagifyKey => {
+            if (tagifyInstances[tagifyKey]) {
+                tagifyInstances[tagifyKey].setReadonly(true);
+                // Añadir estilo visual de deshabilitado
+                const tagifyElement = tagifyInstances[tagifyKey].DOM.scope;
+                if (tagifyElement) {
+                    tagifyElement.classList.add('bg-light');
+                    tagifyElement.style.cursor = 'not-allowed';
+                }
+            }
+        });
     }
 
     // ===== CARGAR DATOS DESDE PARENT (MODO NEW-FROM-PARENT) =====
@@ -1548,11 +1595,14 @@ class ItemFormManager {
                     this.addSpecification(spec.name, spec.value);
                 });
             }
-            
+
             // Actualizar preview y progreso
-            this.updatePreview();
-            this.calculateProgress();
-            this.calculateROI();
+            // Usar setTimeout para dar tiempo a que Tagify procese los tags
+            setTimeout(() => {
+                this.updatePreview();
+                this.calculateProgress();
+                this.calculateROI();
+            }, 100);
         }
 
         // ===== INICIALIZAR VALIDACIÓN =====
