@@ -22,7 +22,7 @@
             <i class="mdi mdi-arrow-left"></i>
           </button>
           <div>
-            <h4 class="mb-1" id="itemName">{{ $itemParent->name  ?? $itemParent->public_name }}</h4>
+            <h4 class="mb-1" id="itemName">{{ $inventoryItem->name  ?? $inventoryItem->public_name }}</h4>
             <div class="d-flex align-items-center gap-3">
               <span class="text-muted">ID:
                 <span id="itemId">
