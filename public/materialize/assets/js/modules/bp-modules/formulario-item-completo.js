@@ -723,24 +723,68 @@ class ItemFormManager {
     calculateProgress() {
         const allFields = document.querySelectorAll('#itemCompleteForm input, #itemCompleteForm select, #itemCompleteForm textarea');
         const requiredFields = document.querySelectorAll('#itemCompleteForm input[required], #itemCompleteForm select[required]');
-        
+
+        // IDs y nombres a excluir del conteo
+        const excludedIds = ['autoSaveToggle', 'rfidName', 'rfidCategory', 'rfidBrand', 'rfidSerial', 'rfidPurchase', 'rfidCondition'];
+        const processedRadioGroups = new Set(); // Para trackear grupos de radio ya procesados
+
         let filledFields = 0;
         let filledRequired = 0;
-        
+        let totalFieldsCount = 0;
+
         allFields.forEach(field => {
+            // Excluir campos específicos
+            if (excludedIds.includes(field.id)) {
+                return;
+            }
+
+            // Para radio buttons, solo contar el grupo una vez
+            if (field.type === 'radio') {
+                const radioName = field.name;
+
+                // Si ya procesamos este grupo de radio, saltar
+                if (processedRadioGroups.has(radioName)) {
+                    return;
+                }
+
+                // Marcar este grupo como procesado
+                processedRadioGroups.add(radioName);
+
+                // Contar el grupo como 1 campo
+                totalFieldsCount++;
+
+                // Verificar si algún radio del grupo está seleccionado
+                const radioGroup = document.querySelectorAll(`input[name="${radioName}"]`);
+                const isGroupFilled = Array.from(radioGroup).some(radio => radio.checked);
+
+                if (isGroupFilled) {
+                    filledFields++;
+                }
+
+                return;
+            }
+
+            // Para otros campos normales
+            totalFieldsCount++;
             if (this.isFieldFilled(field)) {
                 filledFields++;
             }
         });
-        
+
         requiredFields.forEach(field => {
+            // Excluir campos específicos
+            if (excludedIds.includes(field.id)) {
+                return;
+            }
+
             if (this.isFieldFilled(field)) {
                 filledRequired++;
             }
         });
-        
+
         // Verificar también campos Tagify
         Object.keys(tagifyInstances).forEach(key => {
+            totalFieldsCount++;
             if (tagifyInstances[key].value.length > 0) {
                 filledFields++;
                 if (FORM_CONFIG.requiredFields.includes(tagifyInstances[key].DOM.originalInput.id)) {
@@ -748,16 +792,15 @@ class ItemFormManager {
                 }
             }
         });
-        
-        const totalFields = allFields.length + Object.keys(tagifyInstances).length;
-        const progressPercentage = Math.round((filledFields / totalFields) * 100);
-        
+
+        const progressPercentage = Math.round((filledFields / totalFieldsCount) * 100);
+
         // Actualizar UI
         document.getElementById('formProgress').style.width = progressPercentage + '%';
         document.getElementById('progressText').textContent = progressPercentage + '% completado';
         document.getElementById('fieldsCompleted').textContent = filledFields;
-        document.getElementById('totalFields').textContent = totalFields;
-        
+        document.getElementById('totalFields').textContent = totalFieldsCount;
+
         // El botón de guardar siempre estará habilitado
         // La validación se realiza al hacer clic en el botón
         const saveBtn = document.getElementById('saveFormBtn');
