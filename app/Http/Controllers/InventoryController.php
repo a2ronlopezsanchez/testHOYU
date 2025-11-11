@@ -1321,6 +1321,38 @@ class InventoryController extends Controller
     }
 
     /**
+     * Actualizar las notas de una unidad específica (InventoryItem)
+     */
+    public function actualizarNotas(Request $request, $id)
+    {
+        try {
+            // Validar que se envió el campo notes
+            $validated = $request->validate([
+                'notes' => 'nullable|string|max:1000'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Actualizar las notas
+            $inventoryItem->notes = $validated['notes'];
+            $inventoryItem->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Notas actualizadas correctamente',
+                'notes' => $inventoryItem->notes
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar las notas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get detailed unit status for a specific date
      */
     public function getUnitDetails(Request $request, $itemParentId): JsonResponse

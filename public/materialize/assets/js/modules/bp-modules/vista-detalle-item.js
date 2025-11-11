@@ -736,8 +736,14 @@ class ItemDetailManager {
     }
 
     // ===== EDITAR NOTAS ===== 
-    handleEditNotes() {
+    async handleEditNotes() {
         if (!currentItemData) return;
+
+        // Verificar que tengamos el inventoryItemId
+        if (!currentItemData.inventoryItemId) {
+            this.showToast('error', 'No se puede editar: ID de unidad no encontrado');
+            return;
+        }
 
         Swal.fire({
             title: 'Editar Notas del Item',
@@ -756,26 +762,55 @@ class ItemDetailManager {
                 cancelButton: 'btn btn-outline-secondary'
             },
             buttonsStyling: false,
-            preConfirm: () => {
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
                 const notes = document.getElementById('swal-notes-textarea').value.trim();
-                return { notes };
-            }
+
+                try {
+                    // Obtener CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                    // Hacer petición al backend
+                    const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/notas`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ notes })
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.message || 'Error al guardar las notas');
+                    }
+
+                    return { notes: result.notes };
+
+                } catch (error) {
+                    Swal.showValidationMessage(`Error: ${error.message}`);
+                    return false;
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {
             if (result.isConfirmed) {
-                // Actualizar notas
+                // Actualizar notas en memoria
                 currentItemData.notes = result.value.notes;
-                
+
                 // Actualizar UI
+                const notesContainer = document.getElementById('itemNotes');
+                const notesText = document.querySelector('#itemNotes #itemNotesText');
+
                 if (currentItemData.notes) {
-                    document.getElementById('itemNotes').style.display = 'flex';
-                    document.querySelector('#itemNotes p').textContent = currentItemData.notes;
+                    if (notesContainer) notesContainer.style.display = 'flex';
+                    if (notesText) notesText.textContent = currentItemData.notes;
                 } else {
-                    document.getElementById('itemNotes').style.display = 'none';
+                    if (notesContainer) notesContainer.style.display = 'none';
                 }
-                
-                // En producción, aquí harías un AJAX para guardar
-                console.log('Saving notes:', result.value.notes);
-                
+
                 this.showToast('success', 'Notas actualizadas correctamente');
             }
         });
