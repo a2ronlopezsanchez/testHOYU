@@ -149,20 +149,23 @@ class ItemFormManager {
         const formattedData = {
             // Información básica
             sku: inventoryItem?.sku || '',
-            nombreProducto: itemParent.name || '',
+            // En modo edit-unit, usar nombre del inventoryItem; en otros modos, usar el del parent
+            nombreProducto: (bladeData.mode === 'edit-unit' && inventoryItem?.name) ? inventoryItem.name : itemParent.name || '',
             id: inventoryItem?.item_id || '',
             categoria: itemParent.category?.name || '',
             familia: itemParent.family || '',
             subFamilia: itemParent.sub_family || '',
             marca: itemParent.brand?.name || '',
             modelo: itemParent.model || '',
-            nombrePublico: itemParent.public_name || '',
+            // En modo edit-unit, usar nombre público del inventoryItem; en otros modos, usar el del parent
+            nombrePublico: (bladeData.mode === 'edit-unit' && inventoryItem?.public_name) ? inventoryItem.public_name : itemParent.public_name || '',
             descripcion: itemParent.description || inventoryItem?.description || '',
 
             // Identificadores
             numeroSerie: inventoryItem?.serial_number || '',
             identificadorRfid: inventoryItem?.rfid_tag || '',
-            color: itemParent.color || '',
+            // Color del inventoryItem si existe, sino del parent
+            color: inventoryItem?.color || itemParent.color || '',
             unitSet: inventoryItem?.unit_set || 'UNIT',
             totalUnits: inventoryItem?.total_units || 1,
 
@@ -185,12 +188,21 @@ class ItemFormManager {
             especificaciones: specifications
         };
 
+        // Log para debug
+        console.log('📋 Datos formateados para poblar formulario:', formattedData);
+        console.log('🎨 Color:', formattedData.color);
+        console.log('📍 Ubicación:', formattedData.ubicacion);
+        console.log('🔄 Status:', formattedData.status);
+
         // Poblar el formulario con los datos
         this.populateForm(formattedData);
 
         // Si estamos en modo edición o edit-unit, bloquear campos que no se deben modificar
+        // Usar setTimeout para dar tiempo a Tagify a procesar los tags antes de bloquear
         if (bladeData.mode === 'edit' || bladeData.mode === 'edit-unit') {
-            this.lockFieldsInEditMode();
+            setTimeout(() => {
+                this.lockFieldsInEditMode();
+            }, 200);
         }
     }
 
@@ -1649,24 +1661,33 @@ class ItemFormManager {
             document.getElementById('itemSerialNumber').value = data.numeroSerie || '';
             document.getElementById('itemRfidTag').value = data.identificadorRfid || '';
             if (data.color && tagifyInstances.color) {
+                console.log('🎨 Agregando tag de color:', data.color);
                 tagifyInstances.color.addTags([data.color]);
+            } else if (data.color) {
+                console.warn('⚠️ Color tiene valor pero tagifyInstances.color no está inicializado:', data.color);
             }
             document.getElementById('itemUnitSet').value = data.unitSet || 'UNIT';
             document.getElementById('itemTotalUnits').value = data.totalUnits || 1;
-            
+
             // Información financiera
             document.getElementById('itemPurchaseDate').value = data.fechaCompra || '';
             document.getElementById('itemWarranty').value = data.garantiaVigente || 'NO';
             document.getElementById('itemOriginalPrice').value = data.precioOriginal || 0;
             document.getElementById('itemIdealRentPrice').value = data.precioRentaIdeal || 0;
             document.getElementById('itemMinRentPrice').value = data.precioRentaMinimo || 0;
-            
+
             // Ubicación y estado
             if (data.ubicacion && tagifyInstances.location) {
+                console.log('📍 Agregando tag de ubicación:', data.ubicacion);
                 tagifyInstances.location.addTags([data.ubicacion]);
+            } else if (data.ubicacion) {
+                console.warn('⚠️ Ubicación tiene valor pero tagifyInstances.location no está inicializado:', data.ubicacion);
             }
             if (data.status && tagifyInstances.status) {
+                console.log('🔄 Agregando tag de status:', data.status);
                 tagifyInstances.status.addTags([data.status]);
+            } else if (data.status) {
+                console.warn('⚠️ Status tiene valor pero tagifyInstances.status no está inicializado:', data.status);
             }
             document.getElementById('itemRack').value = data.rack || '';
             document.getElementById('itemPanel').value = data.panel || '';
