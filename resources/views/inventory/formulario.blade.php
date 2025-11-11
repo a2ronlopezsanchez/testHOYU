@@ -38,7 +38,7 @@
                 @if($mode === 'edit')
                   Modifique los campos necesarios y guarde los cambios
                 @elseif($mode === 'edit-unit')
-                  Modifique los campos de esta unidad específica. Algunos campos están bloqueados porque pertenecen al producto padre
+                  Modifique los campos de esta unidad específica.
                 @elseif($mode === 'new-from-parent')
                   Complete los campos para añadir una nueva unidad a este producto
                 @else
