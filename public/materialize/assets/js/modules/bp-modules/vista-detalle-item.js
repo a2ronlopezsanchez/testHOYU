@@ -636,6 +636,21 @@ class ItemDetailManager {
             saveMaintenanceBtn.addEventListener('click', () => this.saveMaintenance());
         }
 
+        // Event delegation para botones de completar mantenimiento
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.complete-maintenance-btn')) {
+                e.preventDefault();
+                const maintenanceId = e.target.closest('.complete-maintenance-btn').dataset.maintenanceId;
+                this.openCompleteMaintenanceModal(maintenanceId);
+            }
+        });
+
+        // Botón de confirmar completar mantenimiento
+        const confirmCompleteMaintenanceBtn = document.getElementById('confirmCompleteMaintenanceBtn');
+        if (confirmCompleteMaintenanceBtn) {
+            confirmCompleteMaintenanceBtn.addEventListener('click', () => this.confirmCompleteMaintenance());
+        }
+
                 // Botón de subir documento (en el tab de documentos)
         const uploadDocumentBtn = document.getElementById('uploadDocumentBtn');
         if (uploadDocumentBtn) {
@@ -1091,46 +1106,241 @@ class ItemDetailManager {
     }
 
     // ===== GUARDAR REGISTRO DE MANTENIMIENTO =====
-    saveMaintenance() {
+    async saveMaintenance() {
         const form = document.getElementById('maintenanceForm');
-        
+
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return;
         }
 
         const maintenanceData = {
-            id: maintenanceHistoryData.length + 1,
-            type: document.getElementById('maintenanceType').value,
-            date: this.formatDate(new Date(document.getElementById('maintenanceDate').value)),
-            technician: document.getElementById('technician').value,
-            cost: parseFloat(document.getElementById('maintenanceCost').value) || 0,
-            status: 'Completado',
-            notes: document.getElementById('maintenanceNotes').value || 'Sin notas'
+            maintenance_type: document.getElementById('maintenanceType').value,
+            scheduled_date: document.getElementById('maintenanceDate').value,
+            technician_name: document.getElementById('technician').value,
+            total_cost: parseFloat(document.getElementById('maintenanceCost').value) || 0,
+            work_description: document.getElementById('maintenanceNotes').value || null
         };
 
-        // En producción, esto sería una llamada AJAX
-        console.log('Saving maintenance:', maintenanceData);
-
-        // Agregar a los datos
-        maintenanceHistoryData.unshift(maintenanceData);
-        
-        // Actualizar tabla
-        this.updateMaintenanceHistoryTable();
-        
-        // Actualizar estadísticas
-        document.getElementById('totalMaintenances').textContent = maintenanceHistoryData.length;
-        
-        // Actualizar última inspección
-        currentItemData.lastInspection = maintenanceData.date;
-        document.getElementById('lastInspection').textContent = maintenanceData.date;
-
-        // Cerrar modal
+        // Cerrar modal antes de la llamada AJAX
         const modal = bootstrap.Modal.getInstance(document.getElementById('registerMaintenanceModal'));
         modal.hide();
 
-        // Mostrar mensaje de éxito
-        this.showToast('success', 'Mantenimiento registrado exitosamente');
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Guardando mantenimiento...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Hacer llamada AJAX
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/mantenimiento`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(maintenanceData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Agregar nueva fila a la tabla sin recargar
+                this.addMaintenanceRowToTable(result.data);
+
+                // Resetear formulario
+                form.reset();
+                form.classList.remove('was-validated');
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    title: 'Mantenimiento registrado',
+                    text: result.message,
+                    icon: 'success',
+                    confirmButtonText: 'Entendido',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            } else {
+                throw new Error(result.message || 'Error al registrar el mantenimiento');
+            }
+
+        } catch (error) {
+            console.error('Error saving maintenance:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'No se pudo registrar el mantenimiento',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
+            });
+        }
+    }
+
+    // ===== AGREGAR FILA DE MANTENIMIENTO A LA TABLA =====
+    addMaintenanceRowToTable(maintenanceData) {
+        const tbody = document.querySelector('#maintenanceHistoryTable tbody');
+
+        // Si hay mensaje de "sin registros", eliminarlo
+        const emptyRow = tbody.querySelector('td[colspan="7"]');
+        if (emptyRow) {
+            emptyRow.closest('tr').remove();
+        }
+
+        // Determinar clase de badge según el estado
+        let badgeClass = 'bg-label-secondary';
+        let statusText = maintenanceData.maintenance_status;
+        if (maintenanceData.maintenance_status === 'COMPLETADO') {
+            badgeClass = 'bg-label-success';
+            statusText = 'Completado';
+        } else if (maintenanceData.maintenance_status === 'PROGRAMADO') {
+            badgeClass = 'bg-label-primary';
+            statusText = 'Programado';
+        } else if (maintenanceData.maintenance_status === 'VENCIDO') {
+            badgeClass = 'bg-label-danger';
+            statusText = 'Vencido';
+        }
+
+        // Crear la nueva fila
+        const newRow = document.createElement('tr');
+        newRow.dataset.maintenanceId = maintenanceData.id;
+        newRow.innerHTML = `
+            <td>${maintenanceData.maintenance_type}</td>
+            <td>${maintenanceData.scheduled_date}</td>
+            <td>${maintenanceData.technician_name}</td>
+            <td>$${maintenanceData.total_cost}</td>
+            <td>
+                <span class="badge ${badgeClass}" data-status="${maintenanceData.maintenance_status}">
+                    ${statusText}
+                </span>
+            </td>
+            <td>${maintenanceData.work_description || 'Sin notas'}</td>
+            <td>
+                ${maintenanceData.maintenance_status !== 'COMPLETADO' ? `
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item complete-maintenance-btn" href="#" data-maintenance-id="${maintenanceData.id}">
+                                    <i class="mdi mdi-check me-2"></i>Completar
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                ` : '<span class="text-muted">-</span>'}
+            </td>
+        `;
+
+        // Insertar al inicio de la tabla
+        tbody.insertBefore(newRow, tbody.firstChild);
+    }
+
+    // ===== ABRIR MODAL DE COMPLETAR MANTENIMIENTO =====
+    openCompleteMaintenanceModal(maintenanceId) {
+        // Guardar el ID del mantenimiento que se va a completar
+        this.currentMaintenanceId = maintenanceId;
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('completeMaintenanceModal'));
+        modal.show();
+    }
+
+    // ===== CONFIRMAR COMPLETAR MANTENIMIENTO =====
+    async confirmCompleteMaintenance() {
+        if (!this.currentMaintenanceId) return;
+
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('completeMaintenanceModal'));
+        modal.hide();
+
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Completando mantenimiento...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Hacer llamada AJAX
+            const response = await fetch(`/inventory/unidad/mantenimiento/${this.currentMaintenanceId}/completar`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Actualizar la fila en la tabla
+                this.updateMaintenanceRowStatus(this.currentMaintenanceId, result.data);
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    title: 'Mantenimiento completado',
+                    text: result.message,
+                    icon: 'success',
+                    confirmButtonText: 'Entendido',
+                    customClass: {
+                        confirmButton: 'btn btn-success'
+                    },
+                    buttonsStyling: false
+                });
+            } else {
+                throw new Error(result.message || 'Error al completar el mantenimiento');
+            }
+
+        } catch (error) {
+            console.error('Error completing maintenance:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'No se pudo completar el mantenimiento',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
+            });
+        } finally {
+            this.currentMaintenanceId = null;
+        }
+    }
+
+    // ===== ACTUALIZAR ESTADO DE FILA DE MANTENIMIENTO =====
+    updateMaintenanceRowStatus(maintenanceId, data) {
+        const row = document.querySelector(`tr[data-maintenance-id="${maintenanceId}"]`);
+        if (!row) return;
+
+        // Actualizar badge de estado
+        const statusBadge = row.querySelector('.badge');
+        if (statusBadge) {
+            statusBadge.className = 'badge bg-label-success';
+            statusBadge.textContent = 'Completado';
+            statusBadge.dataset.status = 'COMPLETADO';
+        }
+
+        // Reemplazar dropdown con guión
+        const actionsCell = row.querySelector('td:last-child');
+        if (actionsCell) {
+            actionsCell.innerHTML = '<span class="text-muted">-</span>';
+        }
     }
 
     // ===== MOSTRAR TOAST =====

@@ -600,33 +600,58 @@
                   <th>Costo</th>
                   <th>Estado</th>
                   <th>Notas</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Revisión</td>
-                  <td>05/03/2025</td>
-                  <td>Miguel Ángel</td>
-                  <td>$0</td>
-                  <td><span class="badge bg-label-success">Completado</span></td>
-                  <td>Se verificó el zumbido reportado. Se recomienda revisar los circuitos internos en la próxima revisión.</td>
-                </tr>
-                <tr>
-                  <td>Limpieza</td>
-                  <td>10/01/2025</td>
-                  <td>Carlos Mendoza</td>
-                  <td>$25</td>
-                  <td><span class="badge bg-label-success">Completado</span></td>
-                  <td>Limpieza de componentes y carcasa.</td>
-                </tr>
-                <tr>
-                  <td>Reparación</td>
-                  <td>15/11/2024</td>
-                  <td>Roberto Sánchez</td>
-                  <td>$75</td>
-                  <td><span class="badge bg-label-success">Completado</span></td>
-                  <td>Sustitución de fusible y revisión de conexiones internas.</td>
-                </tr>
+                @forelse($maintenanceRecords as $record)
+                  <tr data-maintenance-id="{{ $record->id }}">
+                    <td>{{ $record->maintenance_type }}</td>
+                    <td>{{ $record->scheduled_date->format('d/m/Y') }}</td>
+                    <td>{{ $record->technician_name }}</td>
+                    <td>${{ number_format($record->total_cost, 2) }}</td>
+                    <td>
+                      @php
+                        $badgeClass = 'bg-label-secondary';
+                        if ($record->maintenance_status === 'COMPLETADO') {
+                          $badgeClass = 'bg-label-success';
+                        } elseif ($record->maintenance_status === 'PROGRAMADO') {
+                          $badgeClass = 'bg-label-primary';
+                        } elseif ($record->maintenance_status === 'VENCIDO') {
+                          $badgeClass = 'bg-label-danger';
+                        }
+                      @endphp
+                      <span class="badge {{ $badgeClass }}" data-status="{{ $record->maintenance_status }}">
+                        {{ ucfirst(strtolower($record->maintenance_status)) }}
+                      </span>
+                    </td>
+                    <td>{{ $record->work_description ?? 'Sin notas' }}</td>
+                    <td>
+                      @if($record->maintenance_status !== 'COMPLETADO')
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a class="dropdown-item complete-maintenance-btn" href="#" data-maintenance-id="{{ $record->id }}">
+                                <i class="mdi mdi-check me-2"></i>Completar
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      @else
+                        <span class="text-muted">-</span>
+                      @endif
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                      No hay registros de mantenimiento para este item
+                    </td>
+                  </tr>
+                @endforelse
               </tbody>
             </table>
           </div>
@@ -744,6 +769,29 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-primary" id="saveMaintenanceBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Completar Mantenimiento -->
+<div class="modal fade" id="completeMaintenanceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Completar Mantenimiento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center py-3">
+          <i class="mdi mdi-check-circle-outline mdi-48px text-success mb-3"></i>
+          <h5 class="mb-2">¿Completar este mantenimiento?</h5>
+          <p class="text-muted mb-0">Esta acción marcará el mantenimiento como completado y registrará la fecha de finalización.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="confirmCompleteMaintenanceBtn">Completar</button>
       </div>
     </div>
   </div>

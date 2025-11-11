@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Location;
 use App\Models\EventAssignment;
 use App\Models\Specification;
+use App\Models\MaintenanceRecord;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -1317,7 +1318,12 @@ class InventoryController extends Controller
         // Calcular disponibilidad actual del parent
         $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
 
-        return view('inventory.detalle', compact('itemParent', 'availability', 'inventoryItem'));
+        // Cargar registros de mantenimiento para esta unidad
+        $maintenanceRecords = MaintenanceRecord::where('inventory_item_id', $id)
+            ->orderBy('scheduled_date', 'desc')
+            ->get();
+
+        return view('inventory.detalle', compact('itemParent', 'availability', 'inventoryItem', 'maintenanceRecords'));
     }
 
     /**
@@ -1502,6 +1508,118 @@ class InventoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener detalles de unidades: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Registrar un nuevo mantenimiento para una unidad
+     */
+    public function registrarMantenimiento(Request $request, $id)
+    {
+        try {
+            // Validar los datos
+            $validated = $request->validate([
+                'maintenance_type' => 'required|string|max:50',
+                'scheduled_date' => 'required|date',
+                'technician_name' => 'required|string|max:100',
+                'total_cost' => 'nullable|numeric|min:0',
+                'work_description' => 'nullable|string|max:1000'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Determinar el estado según la fecha programada
+            $scheduledDate = Carbon::parse($validated['scheduled_date']);
+            $today = Carbon::today();
+
+            if ($scheduledDate->isFuture()) {
+                $status = 'PROGRAMADO';
+            } elseif ($scheduledDate->isPast()) {
+                $status = 'VENCIDO';
+            } else {
+                $status = 'PROGRAMADO';
+            }
+
+            // Crear el registro de mantenimiento
+            $maintenance = MaintenanceRecord::create([
+                'inventory_item_id' => $inventoryItem->id,
+                'maintenance_type' => $validated['maintenance_type'],
+                'scheduled_date' => $validated['scheduled_date'],
+                'actual_date' => now(),
+                'technician_name' => $validated['technician_name'],
+                'total_cost' => $validated['total_cost'] ?? 0,
+                'work_description' => $validated['work_description'] ?? null,
+                'maintenance_status' => $status,
+                'created_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mantenimiento registrado correctamente',
+                'data' => [
+                    'id' => $maintenance->id,
+                    'maintenance_type' => $maintenance->maintenance_type,
+                    'scheduled_date' => $maintenance->scheduled_date->format('d/m/Y'),
+                    'technician_name' => $maintenance->technician_name,
+                    'total_cost' => number_format($maintenance->total_cost, 2),
+                    'maintenance_status' => $maintenance->maintenance_status,
+                    'work_description' => $maintenance->work_description
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el mantenimiento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Completar un mantenimiento existente
+     */
+    public function completarMantenimiento(Request $request, $id)
+    {
+        try {
+            // Buscar el registro de mantenimiento
+            $maintenance = MaintenanceRecord::findOrFail($id);
+
+            // Verificar que no esté ya completado
+            if ($maintenance->maintenance_status === 'COMPLETADO') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este mantenimiento ya está completado'
+                ], 400);
+            }
+
+            // Actualizar el estado y la fecha de completado
+            $maintenance->maintenance_status = 'COMPLETADO';
+            $maintenance->completion_date = now();
+            $maintenance->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mantenimiento completado correctamente',
+                'data' => [
+                    'id' => $maintenance->id,
+                    'maintenance_status' => $maintenance->maintenance_status,
+                    'completion_date' => $maintenance->completion_date->format('d/m/Y')
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al completar el mantenimiento: ' . $e->getMessage()
             ], 500);
         }
     }
