@@ -176,12 +176,14 @@
                   <div class="info-item">
                     <span class="info-label">Garantía</span>
                     <div class="info-value">
+                      <!--
                       <span id="itemWarranty">
                         {{ $currentItem->warranty_provider ?? 'N/A' }}
                         @if($currentItem->warranty_expiration)
                           ({{ $currentItem->warranty_expiration }})
                         @endif
                       </span>
+                        -->
                       @if($currentItem->warranty_valid)
                         <span class="badge bg-label-success ms-2" id="warrantyStatus">Vigente</span>
                       @else
