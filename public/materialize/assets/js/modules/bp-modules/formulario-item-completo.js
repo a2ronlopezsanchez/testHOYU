@@ -83,10 +83,10 @@ class ItemFormManager {
     }
 
     async init() {
-        this.checkEditMode();
+        await this.initializeTagify(); // ✅ Inicializar Tagify PRIMERO
+        this.checkEditMode(); // ✅ Luego cargar datos (que usará Tagify)
         this.checkNewUnitMode();
         this.setupEventListeners();
-        await this.initializeTagify(); // Ahora es async para cargar ubicaciones
         this.initializeDropzone();
         this.calculateProgress();
         this.setupAutoSave();
@@ -178,7 +178,8 @@ class ItemFormManager {
             totalUnits: inventoryItem?.total_units || 1,
 
             // Información financiera
-            fechaCompra: inventoryItem?.purchase_date || '',
+            // Convertir fecha de formato ISO a YYYY-MM-DD
+            fechaCompra: inventoryItem?.purchase_date ? inventoryItem.purchase_date.split('T')[0] : '',
             garantiaVigente: inventoryItem?.warranty_valid ? 'SI' : 'NO',
             precioOriginal: inventoryItem?.original_price || 0,
             precioRentaIdeal: inventoryItem?.ideal_rental_price || 0,
@@ -206,11 +207,8 @@ class ItemFormManager {
         this.populateForm(formattedData);
 
         // Si estamos en modo edición o edit-unit, bloquear campos que no se deben modificar
-        // Usar setTimeout para dar tiempo a Tagify a procesar los tags antes de bloquear
         if (bladeData.mode === 'edit' || bladeData.mode === 'edit-unit') {
-            setTimeout(() => {
-                this.lockFieldsInEditMode();
-            }, 200);
+            this.lockFieldsInEditMode();
         }
     }
 
