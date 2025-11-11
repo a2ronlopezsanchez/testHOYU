@@ -182,7 +182,11 @@
                           ({{ $currentItem->warranty_expiration }})
                         @endif
                       </span>
-                      <span class="badge bg-label-danger ms-2" id="warrantyStatus">Expirada</span>
+                      @if($currentItem->warranty_valid)
+                        <span class="badge bg-label-success ms-2" id="warrantyStatus">Vigente</span>
+                      @else
+                        <span class="badge bg-label-danger ms-2" id="warrantyStatus">Sin garantía</span>
+                      @endif
                     </div>
                   </div>
                 </div>
@@ -395,10 +399,26 @@
                 </div>
 
                 <div class="mb-2">
-                  <span class="badge bg-label-success">En buen estado</span>
+                  @php
+                    $condition = strtoupper($currentItem->condition ?? 'BUENO');
+                    $badgeClass = 'bg-label-success';
+                    $progressPercent = 75;
+                    $progressClass = 'bg-success';
+
+                    if (in_array($condition, ['REGULAR', 'MEDIO'])) {
+                      $badgeClass = 'bg-label-warning';
+                      $progressPercent = 50;
+                      $progressClass = 'bg-warning';
+                    } elseif (in_array($condition, ['MALO', 'DEFICIENTE', 'DAÑADO'])) {
+                      $badgeClass = 'bg-label-danger';
+                      $progressPercent = 25;
+                      $progressClass = 'bg-danger';
+                    }
+                  @endphp
+                  <span class="badge {{ $badgeClass }}">{{ ucfirst(strtolower($currentItem->condition ?? 'Bueno')) }}</span>
                 </div>
                 <div class="progress" style="height: 8px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                  <div class="progress-bar {{ $progressClass }}" role="progressbar" style="width: {{ $progressPercent }}%"></div>
                 </div>
               </div>
 
