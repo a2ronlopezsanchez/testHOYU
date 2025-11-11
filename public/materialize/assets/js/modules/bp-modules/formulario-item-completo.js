@@ -758,13 +758,10 @@ class ItemFormManager {
         document.getElementById('fieldsCompleted').textContent = filledFields;
         document.getElementById('totalFields').textContent = totalFields;
         
-        // Habilitar/deshabilitar botón de guardar según campos requeridos
+        // El botón de guardar siempre estará habilitado
+        // La validación se realiza al hacer clic en el botón
         const saveBtn = document.getElementById('saveFormBtn');
-        if (filledRequired === requiredFields.length) {
-            saveBtn.disabled = false;
-        } else {
-            saveBtn.disabled = true;
-        }
+        saveBtn.disabled = false;
     }
 
         // ===== HABILITAR BOTÓN DE GUARDAR =====
@@ -819,7 +816,8 @@ class ItemFormManager {
             if (!autoSaveEnabled) return;
             
             autoSaveTimer = setInterval(() => {
-                if (unsavedChanges) {
+                // Si hay cambios sin guardar Y el guardado automático está activado, guardar automáticamente
+                if (unsavedChanges && autoSaveEnabled) {
                     this.autoSave();
                 }
             }, FORM_CONFIG.autoSaveInterval);
