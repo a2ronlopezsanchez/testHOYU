@@ -130,6 +130,14 @@ class ItemFormManager {
             console.log('✅ Item cargado para edición. ID:', currentInventoryItemId);
         }
 
+        // Logs detallados de los valores
+        console.log('📦 inventoryItem completo:', inventoryItem);
+        console.log('🏢 itemParent completo:', itemParent);
+        console.log('🎨 inventoryItem.color:', inventoryItem?.color);
+        console.log('📍 inventoryItem.location:', inventoryItem?.location);
+        console.log('🔄 inventoryItem.status:', inventoryItem?.status);
+        console.log('📅 inventoryItem.purchase_date:', inventoryItem?.purchase_date);
+
         // Determinar qué especificaciones usar: del inventoryItem si existen, sino del parent
         let specifications = [];
         if (bladeData.mode === 'edit-unit' && inventoryItem?.specifications && inventoryItem.specifications.length > 0) {
@@ -628,10 +636,10 @@ class ItemFormManager {
         if (statusInput) {
             tagifyInstances.status = new Tagify(statusInput, {
                 ...tagifyConfig,
-                whitelist: ['ACTIVO', 'INACTIVO', 'DESCOMPUESTO', 'EN REPARACION', 'EXTRAVIADO', 'BAJA'],
-                enforceWhitelist: true
+                whitelist: ['DISPONIBLE', 'ACTIVO', 'INACTIVO', 'DESCOMPUESTO', 'EN REPARACION', 'EN_REPARACION', 'EXTRAVIADO', 'BAJA', 'EN_EVENTO', 'MANTENIMIENTO'],
+                enforceWhitelist: false  // Permitir valores personalizados
             });
-            
+
             tagifyInstances.status.on('change', () => {
                 unsavedChanges = true;
                 this.enableSaveButton();
@@ -645,7 +653,7 @@ class ItemFormManager {
             tagifyInstances.location = new Tagify(locationInput, {
                 ...tagifyConfig,
                 whitelist: [],
-                enforceWhitelist: true
+                enforceWhitelist: false  // Permitir valores personalizados (ubicaciones no en la whitelist)
             });
 
             // Cargar ubicaciones desde el servidor
