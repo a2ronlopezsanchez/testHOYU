@@ -330,7 +330,6 @@
                               <i class="mdi mdi-qrcode-scan"></i>
                             </button>
                           </div>
-                          <label for="itemRfidTag">Etiqueta RFID</label>
                         </div>
                       </div>
                       <div class="col-md-4">
