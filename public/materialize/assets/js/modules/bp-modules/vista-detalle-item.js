@@ -942,23 +942,82 @@ class ItemDetailManager {
     }
 
     // ===== DAR DE BAJA ITEM =====
-    decommissionItem(data) {
-        // En producción, esto sería una llamada AJAX
-        console.log('Decommissioning item:', data);
+    async decommissionItem(data) {
+        // Verificar que tengamos el inventoryItemId
+        if (!currentItemData.inventoryItemId) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se puede dar de baja: ID de unidad no encontrado',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: { confirmButton: 'btn btn-primary' },
+                buttonsStyling: false
+            });
+            return;
+        }
 
+        // Mostrar loading
         Swal.fire({
-            title: 'Item dado de baja',
-            text: 'El item ha sido dado de baja exitosamente',
-            icon: 'success',
-            confirmButtonText: 'Entendido',
-            customClass: {
-                confirmButton: 'btn btn-primary'
-            },
-            buttonsStyling: false
-        }).then(() => {
-            // Redirigir al catálogo usando ruta de Laravel
-            window.location.href = '/inventory/disponibilidad';
+            title: 'Procesando...',
+            text: 'Dando de baja el item',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
         });
+
+        try {
+            // Obtener CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            // Hacer petición al backend
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/dar-de-baja`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    decommission_reason: data.reason,
+                    decommission_notes: data.comments
+                })
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Error al dar de baja el item');
+            }
+
+            // Mostrar éxito
+            Swal.fire({
+                title: 'Item dado de baja',
+                text: 'El item ha sido dado de baja exitosamente',
+                icon: 'success',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-primary'
+                },
+                buttonsStyling: false
+            }).then(() => {
+                // Redirigir al catálogo
+                window.location.href = '/inventory/disponibilidad';
+            });
+
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: `Error al dar de baja el item: ${error.message}`,
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-primary'
+                },
+                buttonsStyling: false
+            });
+        }
     }
 
     // ===== ABRIR MODAL DE REGISTRO DE USO =====

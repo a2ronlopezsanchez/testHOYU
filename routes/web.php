@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/item/{id}', [App\Http\Controllers\InventoryController::class, 'detalle'])->name('detalle');
             Route::get('/unidad/{id}', [App\Http\Controllers\InventoryController::class, 'detalleUnidad'])->name('detalle.unidad');
             Route::patch('/unidad/{id}/notas', [App\Http\Controllers\InventoryController::class, 'actualizarNotas'])->name('unidad.notas');
+            Route::post('/unidad/{id}/dar-de-baja', [App\Http\Controllers\InventoryController::class, 'darDeBaja'])->name('unidad.dar-de-baja');
             Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
         });
 

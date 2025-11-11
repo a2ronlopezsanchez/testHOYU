@@ -1353,6 +1353,66 @@ class InventoryController extends Controller
     }
 
     /**
+     * Dar de baja una unidad específica (InventoryItem)
+     */
+    public function darDeBaja(Request $request, $id)
+    {
+        try {
+            // Validar los datos
+            $validated = $request->validate([
+                'decommission_reason' => 'required|string|max:50',
+                'decommission_notes' => 'nullable|string|max:500'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Verificar que no esté ya dado de baja
+            if ($inventoryItem->trashed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este item ya está dado de baja'
+                ], 400);
+            }
+
+            // Actualizar campos de dar de baja
+            $inventoryItem->status = 'BAJA';
+            $inventoryItem->decommission_reason = $validated['decommission_reason'];
+            $inventoryItem->decommission_notes = $validated['decommission_notes'] ?? null;
+            $inventoryItem->decommissioned_by = auth()->id();
+            $inventoryItem->decommissioned_at = now();
+            $inventoryItem->save();
+
+            // Hacer soft delete
+            $inventoryItem->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item dado de baja correctamente',
+                'data' => [
+                    'decommission_reason' => $inventoryItem->decommission_reason,
+                    'decommission_notes' => $inventoryItem->decommission_notes,
+                    'decommissioned_by' => $inventoryItem->decommissioned_by,
+                    'decommissioned_at' => $inventoryItem->decommissioned_at->format('Y-m-d H:i:s')
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al dar de baja el item: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get detailed unit status for a specific date
      */
     public function getUnitDetails(Request $request, $itemParentId): JsonResponse
