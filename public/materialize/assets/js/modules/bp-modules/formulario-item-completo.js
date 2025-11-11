@@ -426,8 +426,8 @@ class ItemFormManager {
         // Cambio de tabs
         document.querySelectorAll('#formTabs .nav-link').forEach(tab => {
             tab.addEventListener('shown.bs.tab', () => {
-                // Si hay cambios sin guardar, guardar automáticamente
-                if (unsavedChanges) {
+                // Si hay cambios sin guardar Y el guardado automático está activado, guardar automáticamente
+                if (unsavedChanges && autoSaveEnabled) {
                     this.autoSaveOnTabChange();
                 }
                 this.calculateProgress();
