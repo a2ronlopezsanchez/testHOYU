@@ -97,7 +97,7 @@ class ItemFormManager {
     // ===== VERIFICAR MODO DE EDICIÓN =====
     checkEditMode() {
         // Primero verificar si hay datos de Blade
-        if (window.bladeFormData && window.bladeFormData.mode === 'edit' && window.bladeFormData.itemParent) {
+        if (window.bladeFormData && (window.bladeFormData.mode === 'edit' || window.bladeFormData.mode === 'edit-unit') && window.bladeFormData.itemParent) {
             isEditing = true;
             editingItemId = window.bladeFormData.itemParent.id;
             this.loadItemDataFromBlade(window.bladeFormData);
@@ -128,6 +128,21 @@ class ItemFormManager {
         if (inventoryItem && inventoryItem.id) {
             currentInventoryItemId = inventoryItem.id;
             console.log('✅ Item cargado para edición. ID:', currentInventoryItemId);
+        }
+
+        // Determinar qué especificaciones usar: del inventoryItem si existen, sino del parent
+        let specifications = [];
+        if (bladeData.mode === 'edit-unit' && inventoryItem?.specifications && inventoryItem.specifications.length > 0) {
+            // En modo edit-unit, priorizar specifications del inventoryItem
+            specifications = inventoryItem.specifications.map(spec => ({
+                name: spec.name || spec.key,
+                value: spec.value
+            }));
+            console.log('✅ Usando specifications del InventoryItem:', specifications);
+        } else {
+            // En otros modos, usar specifications del parent
+            specifications = this.parseSpecifications(itemParent.specifications);
+            console.log('✅ Usando specifications del ItemParent:', specifications);
         }
 
         // Convertir datos de Blade al formato esperado por populateForm()
@@ -166,15 +181,15 @@ class ItemFormManager {
             condicion: inventoryItem?.condition || 'BUENO',
             notas: inventoryItem?.notes || '',
 
-            // Especificaciones
-            especificaciones: this.parseSpecifications(itemParent.specifications)
+            // Especificaciones (del inventoryItem o del parent según el modo)
+            especificaciones: specifications
         };
 
         // Poblar el formulario con los datos
         this.populateForm(formattedData);
 
-        // Si estamos en modo edición, bloquear campos que no se deben modificar
-        if (bladeData.mode === 'edit') {
+        // Si estamos en modo edición o edit-unit, bloquear campos que no se deben modificar
+        if (bladeData.mode === 'edit' || bladeData.mode === 'edit-unit') {
             this.lockFieldsInEditMode();
         }
     }

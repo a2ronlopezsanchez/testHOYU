@@ -60,6 +60,7 @@ class ItemDetailManager {
         // Convertir datos de Blade al formato que espera el JS
         currentItemData = {
             id: itemParent.id,
+            inventoryItemId: inventoryItem?.id || null, // ID del InventoryItem específico
             item_id: itemParent.item_id,
             sku: item.sku || 'N/A',
             name: itemParent.public_name || itemParent.name,
@@ -697,8 +698,13 @@ class ItemDetailManager {
     handleEdit() {
         if (!currentItemData) return;
 
-        // Redirigir a la página de edición usando rutas de Laravel
-        window.location.href = `/inventory/formulario/${currentItemData.id}`;
+        // Si hay un inventoryItemId, estamos editando una unidad específica
+        if (currentItemData.inventoryItemId) {
+            window.location.href = `/inventory/formulario/${currentItemData.id}?mode=edit-unit&unit_id=${currentItemData.inventoryItemId}`;
+        } else {
+            // Si no, editamos el parent
+            window.location.href = `/inventory/formulario/${currentItemData.id}?mode=edit`;
+        }
     }
 
     // ===== MANEJAR COMPARTIR =====

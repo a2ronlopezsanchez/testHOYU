@@ -1267,6 +1267,7 @@ class InventoryController extends Controller
     public function formulario($id = null)
     {
         $itemParent = null;
+        $inventoryItem = null;
         $mode = 'new';
 
         if ($id) {
@@ -1276,16 +1277,25 @@ class InventoryController extends Controller
                 'items.location'
             ])->findOrFail($id);
 
-            // Detectar modo: edit (editar parent) o new-from-parent (crear nueva unidad)
+            // Detectar modo: edit (editar parent), new-from-parent (crear nueva unidad), o edit-unit (editar unidad específica)
             $queryMode = request()->query('mode');
+            $unitId = request()->query('unit_id');
+
             if ($queryMode === 'new-from-parent') {
                 $mode = 'new-from-parent';
+            } elseif ($queryMode === 'edit-unit' && $unitId) {
+                $mode = 'edit-unit';
+                // Cargar el InventoryItem específico con sus specifications
+                $inventoryItem = InventoryItem::with([
+                    'location',
+                    'specifications'
+                ])->findOrFail($unitId);
             } else {
                 $mode = 'edit';
             }
         }
 
-        return view('inventory.formulario', compact('itemParent', 'mode'));
+        return view('inventory.formulario', compact('itemParent', 'mode', 'inventoryItem'));
     }
 
     /**
