@@ -92,14 +92,20 @@ class ItemDetailManager {
 
         // Datos de historial (por ahora vacíos, se pueden cargar con AJAX)
         usageHistoryData = [];
-        maintenanceHistoryData = [];
+        maintenanceHistoryData = bladeData.maintenanceRecords || [];
         upcomingEventsData = [];
 
         // NO llamar updateUI() porque los datos ya están en el HTML desde Blade
         // Solo actualizar las tablas dinámicas que no están pobladas desde Blade
         this.updateUpcomingEventsTable();
         this.updateUsageHistoryTable();
-        this.updateMaintenanceHistoryTable();
+
+        // NO actualizar updateMaintenanceHistoryTable() porque ya está renderizada en el HTML
+        // En su lugar, calcular métricas desde el DOM después de que cargue
+        // Usar setTimeout para asegurar que el DOM esté listo
+        setTimeout(() => {
+            this.updateMaintenanceMetrics();
+        }, 100);
     }
 
     // ===== TRADUCIR ESTADO DE BD A FORMATO UI =====

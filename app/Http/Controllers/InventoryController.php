@@ -1318,6 +1318,12 @@ class InventoryController extends Controller
         // Calcular disponibilidad actual del parent
         $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
 
+        // Actualizar estados de mantenimientos vencidos antes de cargar
+        MaintenanceRecord::where('inventory_item_id', $id)
+            ->where('maintenance_status', 'PROGRAMADO')
+            ->whereDate('scheduled_date', '<', now()->toDateString())
+            ->update(['maintenance_status' => 'VENCIDO']);
+
         // Cargar registros de mantenimiento para esta unidad
         $maintenanceRecords = MaintenanceRecord::where('inventory_item_id', $id)
             ->orderBy('scheduled_date', 'desc')

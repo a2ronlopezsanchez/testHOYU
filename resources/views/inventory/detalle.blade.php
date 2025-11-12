@@ -817,10 +817,11 @@ window.bladeItemData = {
     itemParent: @json($itemParent),
     availability: @json($availability),
     @if(isset($inventoryItem))
-    inventoryItem: @json($inventoryItem)
+    inventoryItem: @json($inventoryItem),
     @else
-    inventoryItem: null
+    inventoryItem: null,
     @endif
+    maintenanceRecords: @json($maintenanceRecords ?? [])
 };
 </script>
 
