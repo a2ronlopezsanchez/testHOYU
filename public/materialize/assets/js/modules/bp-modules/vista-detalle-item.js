@@ -32,7 +32,8 @@ class ItemDetailManager {
         this.initializeCharts();
         this.checkMaintenanceStatus();
         this.calculateDepreciation();
-        this.initializeDataTables();
+        // No inicializar DataTables aquí - se inicializará cuando se muestre el tab de mantenimiento
+        this.dataTablesInitialized = false;
     }
 
     // ===== CARGAR DATOS DEL ITEM =====
@@ -105,7 +106,11 @@ class ItemDetailManager {
         // En su lugar, calcular métricas desde el DOM después de que cargue
         // Usar setTimeout para asegurar que el DOM esté listo
         setTimeout(() => {
-            this.updateMaintenanceMetrics();
+            // Solo actualizar métricas si los elementos existen
+            const lastInspectionEl = document.getElementById('lastInspection');
+            if (lastInspectionEl) {
+                this.updateMaintenanceMetrics();
+            }
         }, 100);
     }
 
@@ -674,8 +679,11 @@ class ItemDetailManager {
         const tabs = document.querySelectorAll('#detailTabs .nav-link');
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                currentTab = e.target.getAttribute('href').replace('#', '');
-                this.handleTabChange(currentTab);
+                const href = e.target.getAttribute('href') || e.target.closest('.nav-link')?.getAttribute('href');
+                if (href) {
+                    currentTab = href.replace('#', '');
+                    this.handleTabChange(currentTab);
+                }
             });
         });
     }
@@ -683,7 +691,7 @@ class ItemDetailManager {
     // ===== MANEJAR CAMBIO DE TAB =====
     handleTabChange(tabName) {
         console.log(`Tab changed to: ${tabName}`);
-        
+
         // Acciones específicas según el tab
         switch (tabName) {
             case 'usage':
@@ -691,6 +699,13 @@ class ItemDetailManager {
                 break;
             case 'maintenance':
                 this.loadMaintenanceHistory();
+                // Inicializar DataTables solo la primera vez que se muestra el tab
+                if (!this.dataTablesInitialized) {
+                    setTimeout(() => {
+                        this.initializeDataTables();
+                        this.dataTablesInitialized = true;
+                    }, 100);
+                }
                 break;
             case 'documents':
                 this.loadDocuments();
@@ -1445,13 +1460,13 @@ class ItemDetailManager {
 
         // Actualizar la última inspección
         const lastInspectionEl = document.getElementById('lastInspection');
-        if (lastInspectionEl) {
+        if (lastInspectionEl && lastInspectionDate) {
             lastInspectionEl.textContent = lastInspectionDate;
         }
 
         // Actualizar la próxima inspección
         const nextInspectionEl = document.getElementById('nextInspection');
-        if (nextInspectionEl) {
+        if (nextInspectionEl && nextInspectionDate) {
             nextInspectionEl.textContent = nextInspectionDate;
             // Cambiar color según si está vencida
             if (nextInspectionOverdue) {
@@ -1507,49 +1522,84 @@ class ItemDetailManager {
 
     // ===== INICIALIZAR DATATABLES =====
     initializeDataTables() {
+        console.log('Intentando inicializar DataTables...');
+
         // Esperar a que jQuery y DataTables estén disponibles
-        if (typeof $ === 'undefined' || typeof $.fn.DataTable === 'undefined') {
-            console.warn('jQuery o DataTables no están disponibles');
+        if (typeof $ === 'undefined') {
+            console.warn('jQuery no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeDataTables(), 500);
             return;
         }
 
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.warn('DataTables no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeDataTables(), 500);
+            return;
+        }
+
+        console.log('jQuery y DataTables disponibles');
+
         // Inicializar DataTable en la tabla de mantenimiento
         const maintenanceTable = $('#maintenanceHistoryTable');
-        if (maintenanceTable.length) {
-            this.maintenanceDataTable = maintenanceTable.DataTable({
-                order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                },
-                pageLength: 10,
-                lengthMenu: [5, 10, 25, 50, 100],
-                columnDefs: [
-                    {
-                        // Columna de Acciones (última columna) - no ordenable ni exportable
-                        targets: -1,
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                dom: 'lrtip', // Sin botones en la tabla, los controlaremos manualmente
-                responsive: true
-            });
+        console.log('Tabla encontrada:', maintenanceTable.length);
 
-            // Conectar botones de exportación personalizados
-            this.setupMaintenanceExportButtons();
+        if (maintenanceTable.length) {
+            // Verificar si ya está inicializado
+            if ($.fn.DataTable.isDataTable('#maintenanceHistoryTable')) {
+                console.log('DataTable ya inicializado, destruyendo...');
+                maintenanceTable.DataTable().destroy();
+            }
+
+            try {
+                console.log('Inicializando DataTable...');
+                this.maintenanceDataTable = maintenanceTable.DataTable({
+                    order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    },
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    columnDefs: [
+                        {
+                            // Columna de Acciones (última columna) - no ordenable ni exportable
+                            targets: -1,
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+                    responsive: true
+                });
+
+                console.log('DataTable inicializado exitosamente');
+
+                // Conectar botones de exportación personalizados
+                this.setupMaintenanceExportButtons();
+            } catch (error) {
+                console.error('Error al inicializar DataTable:', error);
+            }
+        } else {
+            console.warn('Tabla maintenanceHistoryTable no encontrada en el DOM');
         }
     }
 
     // ===== CONFIGURAR BOTONES DE EXPORTACIÓN =====
     setupMaintenanceExportButtons() {
+        console.log('Configurando botones de exportación...');
         const exportButtons = document.querySelectorAll('#maintenanceExportButtons a');
+        console.log('Botones encontrados:', exportButtons.length);
 
         exportButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const exportType = button.dataset.export;
 
-                if (!this.maintenanceDataTable) return;
+                console.log('Exportando como:', exportType);
+
+                if (!this.maintenanceDataTable) {
+                    console.error('DataTable no está inicializado');
+                    return;
+                }
 
                 // Configurar opciones de exportación
                 const exportOptions = {
