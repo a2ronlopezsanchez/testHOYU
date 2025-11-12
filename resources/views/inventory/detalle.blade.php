@@ -624,7 +624,7 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($maintenanceRecords as $record)
+                @foreach($maintenanceRecords as $record)
                   <tr data-maintenance-id="{{ $record->id }}">
                     <td>{{ $record->maintenance_type }}</td>
                     <td>{{ $record->scheduled_date->format('d/m/Y') }}</td>
@@ -665,13 +665,7 @@
                       @endif
                     </td>
                   </tr>
-                @empty
-                  <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
-                      No hay registros de mantenimiento para este item
-                    </td>
-                  </tr>
-                @endforelse
+                @endforeach
               </tbody>
             </table>
           </div>
