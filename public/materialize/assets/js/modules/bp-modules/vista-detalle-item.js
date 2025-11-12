@@ -32,6 +32,7 @@ class ItemDetailManager {
         this.initializeCharts();
         this.checkMaintenanceStatus();
         this.calculateDepreciation();
+        this.initializeDataTables();
     }
 
     // ===== CARGAR DATOS DEL ITEM =====
@@ -1195,14 +1196,6 @@ class ItemDetailManager {
 
     // ===== AGREGAR FILA DE MANTENIMIENTO A LA TABLA =====
     addMaintenanceRowToTable(maintenanceData) {
-        const tbody = document.querySelector('#maintenanceHistoryTable tbody');
-
-        // Si hay mensaje de "sin registros", eliminarlo
-        const emptyRow = tbody.querySelector('td[colspan="7"]');
-        if (emptyRow) {
-            emptyRow.closest('tr').remove();
-        }
-
         // Determinar clase de badge según el estado
         let badgeClass = 'bg-label-secondary';
         let statusText = maintenanceData.maintenance_status;
@@ -1217,40 +1210,47 @@ class ItemDetailManager {
             statusText = 'Vencido';
         }
 
-        // Crear la nueva fila
-        const newRow = document.createElement('tr');
-        newRow.dataset.maintenanceId = maintenanceData.id;
-        newRow.innerHTML = `
-            <td>${maintenanceData.maintenance_type}</td>
-            <td>${maintenanceData.scheduled_date}</td>
-            <td>${maintenanceData.technician_name}</td>
-            <td>$${maintenanceData.total_cost}</td>
-            <td>
-                <span class="badge ${badgeClass}" data-status="${maintenanceData.maintenance_status}">
-                    ${statusText}
-                </span>
-            </td>
-            <td>${maintenanceData.work_description || 'Sin notas'}</td>
-            <td>
-                ${maintenanceData.maintenance_status !== 'COMPLETADO' ? `
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="mdi mdi-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item complete-maintenance-btn" href="#" data-maintenance-id="${maintenanceData.id}">
-                                    <i class="mdi mdi-check me-2"></i>Completar
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                ` : '<span class="text-muted">-</span>'}
-            </td>
-        `;
+        // Crear el HTML de la fila
+        const rowData = [
+            maintenanceData.maintenance_type,
+            maintenanceData.scheduled_date,
+            maintenanceData.technician_name,
+            `$${maintenanceData.total_cost}`,
+            `<span class="badge ${badgeClass}" data-status="${maintenanceData.maintenance_status}">${statusText}</span>`,
+            maintenanceData.work_description || 'Sin notas',
+            maintenanceData.maintenance_status !== 'COMPLETADO' ?
+                `<div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item complete-maintenance-btn" href="#" data-maintenance-id="${maintenanceData.id}">
+                                <i class="mdi mdi-check me-2"></i>Completar
+                            </a>
+                        </li>
+                    </ul>
+                </div>`
+                : '<span class="text-muted">-</span>'
+        ];
 
-        // Insertar al inicio de la tabla
-        tbody.insertBefore(newRow, tbody.firstChild);
+        // Agregar fila al DataTable si existe, sino al tbody directamente
+        if (this.maintenanceDataTable) {
+            const row = this.maintenanceDataTable.row.add(rowData).draw(false);
+            $(row.node()).attr('data-maintenance-id', maintenanceData.id);
+        } else {
+            // Fallback si DataTable no está inicializado
+            const tbody = document.querySelector('#maintenanceHistoryTable tbody');
+            const emptyRow = tbody.querySelector('td[colspan="7"]');
+            if (emptyRow) {
+                emptyRow.closest('tr').remove();
+            }
+
+            const newRow = document.createElement('tr');
+            newRow.dataset.maintenanceId = maintenanceData.id;
+            newRow.innerHTML = rowData.map(data => `<td>${data}</td>`).join('');
+            tbody.insertBefore(newRow, tbody.firstChild);
+        }
 
         // Actualizar alertas y fechas de inspección
         this.updateMaintenanceMetrics();
@@ -1334,21 +1334,35 @@ class ItemDetailManager {
 
     // ===== ACTUALIZAR ESTADO DE FILA DE MANTENIMIENTO =====
     updateMaintenanceRowStatus(maintenanceId, data) {
-        const row = document.querySelector(`tr[data-maintenance-id="${maintenanceId}"]`);
-        if (!row) return;
+        // Si estamos usando DataTable
+        if (this.maintenanceDataTable) {
+            const row = this.maintenanceDataTable.row(`[data-maintenance-id="${maintenanceId}"]`);
+            if (row.length > 0) {
+                const rowData = row.data();
+                // Actualizar la columna de estado (índice 4)
+                rowData[4] = '<span class="badge bg-label-success" data-status="COMPLETADO">Completado</span>';
+                // Actualizar la columna de acciones (índice 6)
+                rowData[6] = '<span class="text-muted">-</span>';
+                row.data(rowData).draw(false);
+            }
+        } else {
+            // Fallback para DOM directo
+            const rowElement = document.querySelector(`tr[data-maintenance-id="${maintenanceId}"]`);
+            if (!rowElement) return;
 
-        // Actualizar badge de estado
-        const statusBadge = row.querySelector('.badge');
-        if (statusBadge) {
-            statusBadge.className = 'badge bg-label-success';
-            statusBadge.textContent = 'Completado';
-            statusBadge.dataset.status = 'COMPLETADO';
-        }
+            // Actualizar badge de estado
+            const statusBadge = rowElement.querySelector('.badge');
+            if (statusBadge) {
+                statusBadge.className = 'badge bg-label-success';
+                statusBadge.textContent = 'Completado';
+                statusBadge.dataset.status = 'COMPLETADO';
+            }
 
-        // Reemplazar dropdown con guión
-        const actionsCell = row.querySelector('td:last-child');
-        if (actionsCell) {
-            actionsCell.innerHTML = '<span class="text-muted">-</span>';
+            // Reemplazar dropdown con guión
+            const actionsCell = rowElement.querySelector('td:last-child');
+            if (actionsCell) {
+                actionsCell.innerHTML = '<span class="text-muted">-</span>';
+            }
         }
 
         // Actualizar alertas y fechas de inspección
@@ -1357,8 +1371,15 @@ class ItemDetailManager {
 
     // ===== ACTUALIZAR MÉTRICAS DE MANTENIMIENTO =====
     updateMaintenanceMetrics() {
-        // Obtener todas las filas de mantenimiento
-        const rows = document.querySelectorAll('#maintenanceHistoryTable tbody tr[data-maintenance-id]');
+        // Obtener todas las filas de mantenimiento (desde DataTable o DOM)
+        let rows;
+        if (this.maintenanceDataTable) {
+            // Obtener todas las filas del DataTable (incluyendo las no visibles por paginación)
+            rows = this.maintenanceDataTable.rows().nodes();
+        } else {
+            // Fallback a DOM directo
+            rows = document.querySelectorAll('#maintenanceHistoryTable tbody tr[data-maintenance-id]');
+        }
 
         let lastInspectionDate = 'Sin registros';
         let nextInspectionDate = 'Sin programar';
@@ -1482,6 +1503,118 @@ class ItemDetailManager {
                 alert.remove();
             }
         }
+    }
+
+    // ===== INICIALIZAR DATATABLES =====
+    initializeDataTables() {
+        // Esperar a que jQuery y DataTables estén disponibles
+        if (typeof $ === 'undefined' || typeof $.fn.DataTable === 'undefined') {
+            console.warn('jQuery o DataTables no están disponibles');
+            return;
+        }
+
+        // Inicializar DataTable en la tabla de mantenimiento
+        const maintenanceTable = $('#maintenanceHistoryTable');
+        if (maintenanceTable.length) {
+            this.maintenanceDataTable = maintenanceTable.DataTable({
+                order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50, 100],
+                columnDefs: [
+                    {
+                        // Columna de Acciones (última columna) - no ordenable ni exportable
+                        targets: -1,
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                dom: 'lrtip', // Sin botones en la tabla, los controlaremos manualmente
+                responsive: true
+            });
+
+            // Conectar botones de exportación personalizados
+            this.setupMaintenanceExportButtons();
+        }
+    }
+
+    // ===== CONFIGURAR BOTONES DE EXPORTACIÓN =====
+    setupMaintenanceExportButtons() {
+        const exportButtons = document.querySelectorAll('#maintenanceExportButtons a');
+
+        exportButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const exportType = button.dataset.export;
+
+                if (!this.maintenanceDataTable) return;
+
+                // Configurar opciones de exportación
+                const exportOptions = {
+                    columns: [0, 1, 2, 3, 4, 5], // Excluir columna de Acciones (índice 6)
+                    format: {
+                        body: function (data, row, column, node) {
+                            // Extraer solo el texto de los badges y otros elementos HTML
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = data;
+                            return tempDiv.textContent || tempDiv.innerText || '';
+                        }
+                    }
+                };
+
+                // Exportar según el tipo
+                switch (exportType) {
+                    case 'excel':
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(
+                            this.maintenanceDataTable.button(),
+                            null,
+                            this.maintenanceDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: `Historial_Mantenimiento_${new Date().getTime()}`,
+                                filename: `Historial_Mantenimiento_${new Date().getTime()}`
+                            }
+                        );
+                        break;
+
+                    case 'pdf':
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(
+                            this.maintenanceDataTable.button(),
+                            null,
+                            this.maintenanceDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: 'Historial de Mantenimiento',
+                                filename: `Historial_Mantenimiento_${new Date().getTime()}`,
+                                orientation: 'landscape',
+                                pageSize: 'LEGAL'
+                            }
+                        );
+                        break;
+
+                    case 'print':
+                        $.fn.dataTable.ext.buttons.print.action.call(
+                            this.maintenanceDataTable.button(),
+                            null,
+                            this.maintenanceDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: '<h2>Historial de Mantenimiento</h2>',
+                                customize: function (win) {
+                                    $(win.document.body).css('font-size', '10pt');
+                                    $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
+                                }
+                            }
+                        );
+                        break;
+                }
+            });
+        });
     }
 
     // ===== MOSTRAR TOAST =====

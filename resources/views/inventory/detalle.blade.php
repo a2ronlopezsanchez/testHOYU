@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/cards-statistics.css') }}" />
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/vista-detalle-item.css') }}" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}">
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}">
 @endsection
 
 @section('content')
@@ -590,9 +594,16 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Historial de Mantenimiento</h5>
           <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="mdi mdi-download me-1"></i>Exportar
-            </button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="mdi mdi-download me-1"></i>Exportar
+              </button>
+              <ul class="dropdown-menu" id="maintenanceExportButtons">
+                <li><a class="dropdown-item" href="#" data-export="excel"><i class="mdi mdi-file-excel-outline me-1"></i>Excel</a></li>
+                <li><a class="dropdown-item" href="#" data-export="pdf"><i class="mdi mdi-file-pdf-box me-1"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="#" data-export="print"><i class="mdi mdi-printer-outline me-1"></i>Imprimir</a></li>
+              </ul>
+            </div>
             <button class="btn btn-sm btn-primary" id="registerMaintenanceBtn">
               <i class="mdi mdi-wrench me-1"></i>Registrar Mantenimiento
             </button>
@@ -810,6 +821,19 @@
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+<!-- DataTables JS -->
+<script src="{{ asset('/materialize/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+<!-- JSZip for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- pdfMake for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <!-- Pasar datos de Blade a JavaScript -->
 <script>
