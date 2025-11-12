@@ -187,7 +187,7 @@
                     <div class="info-value">
                       <!--
                       <span id="itemWarranty">
-                        {{ $currentItem->warranty_provider ?? 'N/A' }}<textarea class="form-control" id="maintenanceNotes" rows="3"
+                        {{ $currentItem->warranty_provider ?? 'N/A' }}
                         @if($currentItem->warranty_expiration)
                           ({{ $currentItem->warranty_expiration }})
                         @endif
@@ -771,7 +771,7 @@
           </div>
           <div class="mb-3">
             <label class="form-label" for="maintenanceNotes">Notas</label>
-            <textarea class="form-control" id="maintenanceNotes" rows="3" required></textarea>
+            <textarea class="form-control" id="maintenanceNotes" rows="3"></textarea>
           </div>
         </form>
       </div>
