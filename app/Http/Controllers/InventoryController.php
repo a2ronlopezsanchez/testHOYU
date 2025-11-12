@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\EventAssignment;
+use App\Models\Event;
 use App\Models\Specification;
 use App\Models\MaintenanceRecord;
 use Illuminate\Http\Request;
@@ -1364,6 +1365,12 @@ class InventoryController extends Controller
             $overdueDays = now()->diffInDays($oldestOverdue->scheduled_date);
         }
 
+        // Cargar registros de uso (event_assignments) para esta unidad con su evento
+        $usageRecords = EventAssignment::where('inventory_item_id', $id)
+            ->with('event')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('inventory.detalle', compact(
             'itemParent',
             'availability',
@@ -1373,7 +1380,8 @@ class InventoryController extends Controller
             'nextInspectionDate',
             'nextInspectionOverdue',
             'hasOverdueMaintenance',
-            'overdueDays'
+            'overdueDays',
+            'usageRecords'
         ));
     }
 
@@ -1671,6 +1679,79 @@ class InventoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al completar el mantenimiento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Registrar un nuevo uso del equipo (event_assignment)
+     */
+    public function registrarUso(Request $request, $id)
+    {
+        try {
+            // Validar los datos
+            $validated = $request->validate([
+                'event_name' => 'required|string|max:255',
+                'event_date' => 'required|date',
+                'event_venue' => 'required|string|max:255',
+                'hours_used' => 'nullable|numeric|min:0',
+                'assignment_status' => 'required|in:ASIGNADO,EN_USO,DEVUELTO,CANCELADO',
+                'notes' => 'nullable|string|max:1000'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Crear el evento (simplificado - solo los campos básicos necesarios)
+            $event = Event::create([
+                'event_code' => 'EVT-' . strtoupper(Str::random(8)),
+                'name' => $validated['event_name'],
+                'start_date' => $validated['event_date'],
+                'end_date' => $validated['event_date'], // Misma fecha por defecto
+                'venue_address' => $validated['event_venue'],
+                'status' => 'ACTIVO',
+                'created_by' => auth()->id()
+            ]);
+
+            // Crear el registro de asignación
+            $assignment = EventAssignment::create([
+                'event_id' => $event->id,
+                'inventory_item_id' => $inventoryItem->id,
+                'assigned_from' => $validated['event_date'],
+                'assigned_until' => $validated['event_date'],
+                'assignment_status' => $validated['assignment_status'],
+                'hours_used' => $validated['hours_used'] ?? null,
+                'notes' => $validated['notes'] ?? null
+            ]);
+
+            // Cargar la relación del evento
+            $assignment->load('event');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Uso del equipo registrado correctamente',
+                'data' => [
+                    'id' => $assignment->id,
+                    'event_name' => $assignment->event->name,
+                    'event_date' => $assignment->event->start_date->format('d/m/Y'),
+                    'venue_address' => $assignment->event->venue_address,
+                    'hours_used' => $assignment->hours_used,
+                    'assignment_status' => $assignment->assignment_status,
+                    'notes' => $assignment->notes
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el uso del equipo: ' . $e->getMessage()
             ], 500);
         }
     }

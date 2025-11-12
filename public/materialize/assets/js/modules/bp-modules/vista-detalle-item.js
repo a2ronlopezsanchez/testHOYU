@@ -32,8 +32,9 @@ class ItemDetailManager {
         this.initializeCharts();
         this.checkMaintenanceStatus();
         this.calculateDepreciation();
-        // No inicializar DataTables aquí - se inicializará cuando se muestre el tab de mantenimiento
+        // No inicializar DataTables aquí - se inicializará cuando se muestre el tab correspondiente
         this.dataTablesInitialized = false;
+        this.usageDataTablesInitialized = false;
     }
 
     // ===== CARGAR DATOS DEL ITEM =====
@@ -696,6 +697,13 @@ class ItemDetailManager {
         switch (tabName) {
             case 'usage':
                 this.loadUsageHistory();
+                // Inicializar DataTables de uso solo la primera vez que se muestra el tab
+                if (!this.usageDataTablesInitialized) {
+                    setTimeout(() => {
+                        this.initializeUsageDataTable();
+                        this.usageDataTablesInitialized = true;
+                    }, 100);
+                }
                 break;
             case 'maintenance':
                 this.loadMaintenanceHistory();
@@ -1072,45 +1080,84 @@ class ItemDetailManager {
     }
 
     // ===== GUARDAR REGISTRO DE USO =====
-    saveUsage() {
+    async saveUsage() {
         const form = document.getElementById('usageForm');
-        
+
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return;
         }
 
         const usageData = {
-            id: usageHistoryData.length + 1,
-            eventName: document.getElementById('eventName').value,
-            date: this.formatDate(new Date(document.getElementById('eventDate').value)),
-            location: document.getElementById('eventLocation').value,
-            hours: parseInt(document.getElementById('usageHours').value),
-            status: 'Programado',
-            notes: document.getElementById('usageNotes').value || 'Sin notas'
+            event_name: document.getElementById('eventName').value,
+            event_date: document.getElementById('eventDate').value,
+            event_venue: document.getElementById('eventVenue').value,
+            hours_used: parseFloat(document.getElementById('usageHours').value) || null,
+            assignment_status: document.getElementById('assignmentStatus').value,
+            notes: document.getElementById('usageNotes').value || null
         };
 
-        // En producción, esto sería una llamada AJAX
-        console.log('Saving usage:', usageData);
-
-        // Agregar a los datos
-        usageHistoryData.unshift(usageData);
-        
-        // Actualizar tabla
-        this.updateUsageHistoryTable();
-        
-        // Actualizar estadísticas
-        currentItemData.usageCount++;
-        currentItemData.totalHours += usageData.hours;
-        document.getElementById('totalEvents').textContent = currentItemData.usageCount;
-        document.getElementById('totalHours').textContent = `${currentItemData.totalHours} hrs`;
-
-        // Cerrar modal
+        // Cerrar modal antes de la llamada AJAX
         const modal = bootstrap.Modal.getInstance(document.getElementById('registerUsageModal'));
         modal.hide();
 
-        // Mostrar mensaje de éxito
-        this.showToast('success', 'Uso registrado exitosamente');
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Guardando uso del equipo...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const inventoryItemId = currentItemData.inventoryItemId;
+            const response = await fetch(`/inventory/unidad/${inventoryItemId}/uso`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(usageData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Cerrar loading
+                Swal.close();
+
+                // Agregar registro a la tabla
+                this.addUsageRowToTable(result.data);
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Uso Registrado',
+                    text: 'El uso del equipo se registró correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Limpiar formulario
+                form.reset();
+                form.classList.remove('was-validated');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Error al registrar el uso del equipo'
+                });
+            }
+        } catch (error) {
+            console.error('Error al guardar el uso:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al registrar el uso del equipo'
+            });
+        }
     }
 
     // ===== ABRIR MODAL DE REGISTRO DE MANTENIMIENTO =====
@@ -1210,6 +1257,49 @@ class ItemDetailManager {
     }
 
     // ===== AGREGAR FILA DE MANTENIMIENTO A LA TABLA =====
+    addUsageRowToTable(usageData) {
+        // Determinar clase de badge según el estado
+        let badgeClass = 'bg-label-secondary';
+        let statusText = usageData.assignment_status;
+        if (usageData.assignment_status === 'ASIGNADO') {
+            badgeClass = 'bg-label-info';
+            statusText = 'Asignado';
+        } else if (usageData.assignment_status === 'EN_USO') {
+            badgeClass = 'bg-label-primary';
+            statusText = 'En Uso';
+        } else if (usageData.assignment_status === 'DEVUELTO') {
+            badgeClass = 'bg-label-success';
+            statusText = 'Devuelto';
+        } else if (usageData.assignment_status === 'CANCELADO') {
+            badgeClass = 'bg-label-danger';
+            statusText = 'Cancelado';
+        }
+
+        // Crear el HTML de la fila
+        const rowData = [
+            usageData.event_name,
+            usageData.event_date,
+            usageData.venue_address || 'Sin ubicación',
+            usageData.hours_used ? `${usageData.hours_used} hrs` : '-',
+            `<span class="badge ${badgeClass}" data-status="${usageData.assignment_status}">${statusText}</span>`,
+            usageData.notes || 'Sin notas'
+        ];
+
+        // Agregar fila al DataTable si existe, sino al tbody directamente
+        if (this.usageDataTable) {
+            const row = this.usageDataTable.row.add(rowData).draw(false);
+            $(row.node()).attr('data-usage-id', usageData.id);
+        } else {
+            // Fallback si DataTable no está inicializado
+            const tbody = document.querySelector('#usageHistoryTable tbody');
+
+            const newRow = document.createElement('tr');
+            newRow.dataset.usageId = usageData.id;
+            newRow.innerHTML = rowData.map(data => `<td>${data}</td>`).join('');
+            tbody.insertBefore(newRow, tbody.firstChild);
+        }
+    }
+
     addMaintenanceRowToTable(maintenanceData) {
         // Determinar clase de badge según el estado
         let badgeClass = 'bg-label-secondary';
@@ -1522,6 +1612,61 @@ class ItemDetailManager {
     }
 
     // ===== INICIALIZAR DATATABLES =====
+    initializeUsageDataTable() {
+        console.log('Intentando inicializar DataTable de uso...');
+
+        // Esperar a que jQuery y DataTables estén disponibles
+        if (typeof $ === 'undefined') {
+            console.warn('jQuery no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeUsageDataTable(), 500);
+            return;
+        }
+
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.warn('DataTables no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeUsageDataTable(), 500);
+            return;
+        }
+
+        console.log('jQuery y DataTables disponibles para tabla de uso');
+
+        // Inicializar DataTable en la tabla de uso
+        const usageTable = $('#usageHistoryTable');
+        console.log('Tabla de uso encontrada:', usageTable.length);
+
+        if (usageTable.length) {
+            // Verificar si ya está inicializado
+            if ($.fn.DataTable.isDataTable('#usageHistoryTable')) {
+                console.log('DataTable de uso ya inicializado, destruyendo...');
+                usageTable.DataTable().destroy();
+            }
+
+            try {
+                console.log('Inicializando DataTable de uso...');
+                this.usageDataTable = usageTable.DataTable({
+                    order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    },
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    columnDefs: [],
+                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+                    responsive: true
+                });
+
+                console.log('DataTable de uso inicializado exitosamente');
+
+                // Conectar botones de exportación personalizados
+                this.setupUsageExportButtons();
+            } catch (error) {
+                console.error('Error al inicializar DataTable de uso:', error);
+            }
+        } else {
+            console.warn('Tabla usageHistoryTable no encontrada en el DOM');
+        }
+    }
+
     initializeDataTables() {
         console.log('Intentando inicializar DataTables...');
 
@@ -1582,6 +1727,90 @@ class ItemDetailManager {
         } else {
             console.warn('Tabla maintenanceHistoryTable no encontrada en el DOM');
         }
+    }
+
+    // ===== CONFIGURAR BOTONES DE EXPORTACIÓN DE USO =====
+    setupUsageExportButtons() {
+        console.log('Configurando botones de exportación de uso...');
+        const exportButtons = document.querySelectorAll('#usageExportButtons a');
+        console.log('Botones de uso encontrados:', exportButtons.length);
+
+        exportButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const exportType = button.dataset.export;
+
+                console.log('Exportando uso como:', exportType);
+
+                if (!this.usageDataTable) {
+                    console.error('DataTable de uso no está inicializado');
+                    return;
+                }
+
+                // Configurar opciones de exportación
+                const exportOptions = {
+                    columns: [0, 1, 2, 3, 4, 5], // Todas las columnas
+                    format: {
+                        body: function (data, row, column, node) {
+                            // Extraer solo el texto de los badges y otros elementos HTML
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = data;
+                            return tempDiv.textContent || tempDiv.innerText || '';
+                        }
+                    }
+                };
+
+                // Exportar según el tipo
+                switch (exportType) {
+                    case 'excel':
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(
+                            this.usageDataTable.button(),
+                            null,
+                            this.usageDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: `Historial_Uso_${new Date().getTime()}`,
+                                filename: `Historial_Uso_${new Date().getTime()}`
+                            }
+                        );
+                        break;
+
+                    case 'pdf':
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(
+                            this.usageDataTable.button(),
+                            null,
+                            this.usageDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: 'Historial de Uso del Equipo',
+                                filename: `Historial_Uso_${new Date().getTime()}`,
+                                orientation: 'landscape',
+                                pageSize: 'LEGAL'
+                            }
+                        );
+                        break;
+
+                    case 'print':
+                        $.fn.dataTable.ext.buttons.print.action.call(
+                            this.usageDataTable.button(),
+                            null,
+                            this.usageDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: '<h2>Historial de Uso del Equipo</h2>',
+                                customize: function (win) {
+                                    $(win.document.body).css('font-size', '10pt');
+                                    $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
+                                }
+                            }
+                        );
+                        break;
+                }
+            });
+        });
     }
 
     // ===== CONFIGURAR BOTONES DE EXPORTACIÓN =====

@@ -513,11 +513,18 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Historial de Uso</h5>
           <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="mdi mdi-download me-1"></i>Exportar
-            </button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="mdi mdi-download me-1"></i>Exportar
+              </button>
+              <ul class="dropdown-menu" id="usageExportButtons">
+                <li><a class="dropdown-item" href="#" data-export="excel"><i class="mdi mdi-file-excel-outline me-1"></i>Excel</a></li>
+                <li><a class="dropdown-item" href="#" data-export="pdf"><i class="mdi mdi-file-pdf-box me-1"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="#" data-export="print"><i class="mdi mdi-printer-outline me-1"></i>Imprimir</a></li>
+              </ul>
+            </div>
             <button class="btn btn-sm btn-primary" id="registerUsageBtn">
-              <i class="mdi mdi-calendar-plus me-1"></i>Registrar Uso
+              <i class="mdi mdi-calendar-plus me-1"></i>Registrar Uso del Equipo
             </button>
           </div>
         </div>
@@ -535,54 +542,38 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Concierto Rock City</td>
-                  <td>10/03/2025</td>
-                  <td>Arena Ciudad</td>
-                  <td>8 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Funcionamiento correcto</td>
-                </tr>
-                <tr>
-                  <td>Boda García-Mendez</td>
-                  <td>28/02/2025</td>
-                  <td>Hotel Palace</td>
-                  <td>6 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Se detectó zumbido a volumen alto</td>
-                </tr>
-                <tr>
-                  <td>Conferencia Anual Tecnología</td>
-                  <td>15/02/2025</td>
-                  <td>Centro Convenciones</td>
-                  <td>4 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Sin incidencias</td>
-                </tr>
-                <tr>
-                  <td>Festival de Verano</td>
-                  <td>22/01/2025</td>
-                  <td>Parque Central</td>
-                  <td>10 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Funcionamiento normal</td>
-                </tr>
+                @foreach($usageRecords as $record)
+                  @php
+                    $badgeClass = match($record->assignment_status) {
+                      'ASIGNADO' => 'bg-label-info',
+                      'EN_USO' => 'bg-label-primary',
+                      'DEVUELTO' => 'bg-label-success',
+                      'CANCELADO' => 'bg-label-danger',
+                      default => 'bg-label-secondary'
+                    };
+                    $statusText = match($record->assignment_status) {
+                      'ASIGNADO' => 'Asignado',
+                      'EN_USO' => 'En Uso',
+                      'DEVUELTO' => 'Devuelto',
+                      'CANCELADO' => 'Cancelado',
+                      default => $record->assignment_status
+                    };
+                  @endphp
+                  <tr data-usage-id="{{ $record->id }}">
+                    <td>{{ $record->event->name ?? 'Sin evento' }}</td>
+                    <td>{{ $record->event->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
+                    <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
+                    <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
+                    <td>
+                      <span class="badge {{ $badgeClass }}" data-status="{{ $record->assignment_status }}">
+                        {{ $statusText }}
+                      </span>
+                    </td>
+                    <td>{{ $record->notes ?? 'Sin notas' }}</td>
+                  </tr>
+                @endforeach
               </tbody>
             </table>
-          </div>
-
-          <!-- Paginación -->
-          <div class="d-flex justify-content-between align-items-center mt-4">
-            <div class="text-muted">Mostrando 4 de 28 registros</div>
-            <nav>
-              <ul class="pagination pagination-sm mb-0">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-              </ul>
-            </nav>
           </div>
         </div>
       </div>
@@ -806,6 +797,68 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-success" id="confirmCompleteMaintenanceBtn">Completar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Uso del Equipo -->
+<div class="modal fade" id="registerUsageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Registrar Uso del Equipo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="usageForm">
+          <h6 class="mb-3 text-muted">Información del Evento</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="eventName">Nombre del Evento</label>
+              <input type="text" class="form-control" id="eventName" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="eventDate">Fecha del Evento</label>
+              <input type="date" class="form-control" id="eventDate" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="eventVenue">Ubicación</label>
+            <input type="text" class="form-control" id="eventVenue" required placeholder="Ej: Arena Ciudad, Hotel Palace">
+          </div>
+
+          <hr class="my-4">
+          <h6 class="mb-3 text-muted">Información de Asignación</h6>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="usageHours">Horas de Uso</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="usageHours" step="0.5" min="0" placeholder="0.0">
+                <span class="input-group-text">hrs</span>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="assignmentStatus">Estado</label>
+              <select class="form-select" id="assignmentStatus" required>
+                <option value="">Seleccionar estado</option>
+                <option value="ASIGNADO">Asignado</option>
+                <option value="EN_USO">En Uso</option>
+                <option value="DEVUELTO">Devuelto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="usageNotes">Notas</label>
+            <textarea class="form-control" id="usageNotes" rows="3" placeholder="Observaciones, incidencias, etc."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="saveUsageBtn">Guardar</button>
       </div>
     </div>
   </div>
