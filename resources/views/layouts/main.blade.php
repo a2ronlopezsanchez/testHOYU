@@ -170,7 +170,7 @@
                 @if (trim($__env->yieldContent('subleve')) == "Disponibilidad")
                   active
                 @endif">
-                  <a href="{{route('inventory.disponibilidad')}}" class="menu-link">
+                  <a href="{{route('dashboard')}}" class="menu-link">
                     <div data-i18n="Disponibilidad">Disponibilidad</div>
                   </a>
                 </li>
