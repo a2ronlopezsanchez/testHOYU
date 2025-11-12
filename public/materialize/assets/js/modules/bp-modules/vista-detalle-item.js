@@ -1091,9 +1091,9 @@ class ItemDetailManager {
         const usageData = {
             event_name: document.getElementById('eventName').value,
             event_date: document.getElementById('eventDate').value,
-            event_venue: document.getElementById('eventVenue').value,
+            event_venue: document.getElementById('eventVenue').value || null,
             hours_used: parseFloat(document.getElementById('usageHours').value) || null,
-            assignment_status: document.getElementById('assignmentStatus').value,
+            assignment_status: document.getElementById('assignmentStatus').value || null,
             notes: document.getElementById('usageNotes').value || null
         };
 

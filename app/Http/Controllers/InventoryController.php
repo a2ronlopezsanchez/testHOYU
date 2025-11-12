@@ -1693,9 +1693,9 @@ class InventoryController extends Controller
             $validated = $request->validate([
                 'event_name' => 'required|string|max:255',
                 'event_date' => 'required|date',
-                'event_venue' => 'required|string|max:255',
+                'event_venue' => 'nullable|string|max:255',
                 'hours_used' => 'nullable|numeric|min:0',
-                'assignment_status' => 'required|in:ASIGNADO,EN_USO,DEVUELTO,CANCELADO',
+                'assignment_status' => 'nullable|in:ASIGNADO,EN_USO,DEVUELTO,CANCELADO',
                 'notes' => 'nullable|string|max:1000'
             ]);
 
@@ -1708,18 +1708,18 @@ class InventoryController extends Controller
                 'name' => $validated['event_name'],
                 'start_date' => $validated['event_date'],
                 'end_date' => $validated['event_date'], // Misma fecha por defecto
-                'venue_address' => $validated['event_venue'],
+                'venue_address' => $validated['event_venue'] ?? 'Sin ubicación especificada',
                 'status' => 'ACTIVO',
                 'created_by' => auth()->id()
             ]);
 
-            // Crear el registro de asignación
+            // Crear el registro de asignación con estado por defecto DEVUELTO (Finalizado)
             $assignment = EventAssignment::create([
                 'event_id' => $event->id,
                 'inventory_item_id' => $inventoryItem->id,
                 'assigned_from' => $validated['event_date'],
                 'assigned_until' => $validated['event_date'],
-                'assignment_status' => $validated['assignment_status'],
+                'assignment_status' => $validated['assignment_status'] ?? 'DEVUELTO',
                 'hours_used' => $validated['hours_used'] ?? null,
                 'notes' => $validated['notes'] ?? null
             ]);

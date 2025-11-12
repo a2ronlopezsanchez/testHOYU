@@ -824,8 +824,8 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label" for="eventVenue">Ubicación</label>
-            <input type="text" class="form-control" id="eventVenue" required placeholder="Ej: Arena Ciudad, Hotel Palace">
+            <label class="form-label" for="eventVenue">Ubicación <span class="text-muted">(Opcional)</span></label>
+            <input type="text" class="form-control" id="eventVenue" placeholder="Ej: Arena Ciudad, Hotel Palace">
           </div>
 
           <hr class="my-4">
@@ -840,9 +840,9 @@
               </div>
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label" for="assignmentStatus">Estado</label>
-              <select class="form-select" id="assignmentStatus" required>
-                <option value="">Seleccionar estado</option>
+              <label class="form-label" for="assignmentStatus">Estado <span class="text-muted">(Opcional)</span></label>
+              <select class="form-select" id="assignmentStatus">
+                <option value="">Por defecto: Devuelto (Finalizado)</option>
                 <option value="ASIGNADO">Asignado</option>
                 <option value="EN_USO">En Uso</option>
                 <option value="DEVUELTO">Devuelto</option>
