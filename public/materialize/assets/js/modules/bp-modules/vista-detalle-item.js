@@ -1245,6 +1245,9 @@ class ItemDetailManager {
 
         // Insertar al inicio de la tabla
         tbody.insertBefore(newRow, tbody.firstChild);
+
+        // Actualizar alertas y fechas de inspección
+        this.updateMaintenanceMetrics();
     }
 
     // ===== ABRIR MODAL DE COMPLETAR MANTENIMIENTO =====
@@ -1340,6 +1343,138 @@ class ItemDetailManager {
         const actionsCell = row.querySelector('td:last-child');
         if (actionsCell) {
             actionsCell.innerHTML = '<span class="text-muted">-</span>';
+        }
+
+        // Actualizar alertas y fechas de inspección
+        this.updateMaintenanceMetrics();
+    }
+
+    // ===== ACTUALIZAR MÉTRICAS DE MANTENIMIENTO =====
+    updateMaintenanceMetrics() {
+        // Obtener todas las filas de mantenimiento
+        const rows = document.querySelectorAll('#maintenanceHistoryTable tbody tr[data-maintenance-id]');
+
+        let lastInspectionDate = 'Sin registros';
+        let nextInspectionDate = 'Sin programar';
+        let nextInspectionOverdue = false;
+        let hasOverdueMaintenance = false;
+        let overdueDays = 0;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let completedMaintenances = [];
+        let pendingMaintenances = [];
+
+        // Procesar todas las filas
+        rows.forEach(row => {
+            const statusBadge = row.querySelector('.badge');
+            const status = statusBadge ? statusBadge.dataset.status : null;
+            const dateCell = row.querySelector('td:nth-child(2)'); // Segunda columna es la fecha
+            const dateText = dateCell ? dateCell.textContent.trim() : null;
+
+            if (dateText && status) {
+                // Convertir fecha de formato dd/mm/yyyy a objeto Date
+                const dateParts = dateText.split('/');
+                if (dateParts.length === 3) {
+                    const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                    if (status === 'COMPLETADO') {
+                        completedMaintenances.push({ date: date, dateText: dateText });
+                    } else if (status === 'PROGRAMADO' || status === 'VENCIDO') {
+                        pendingMaintenances.push({ date: date, dateText: dateText, status: status });
+                    }
+                }
+            }
+        });
+
+        // Calcular última inspección (último completado)
+        if (completedMaintenances.length > 0) {
+            completedMaintenances.sort((a, b) => b.date - a.date);
+            lastInspectionDate = completedMaintenances[0].dateText;
+        }
+
+        // Calcular próxima inspección (siguiente pendiente más cercano)
+        if (pendingMaintenances.length > 0) {
+            pendingMaintenances.sort((a, b) => a.date - b.date);
+            const nextMaintenance = pendingMaintenances[0];
+            nextInspectionDate = nextMaintenance.dateText;
+
+            // Verificar si está vencida
+            if (nextMaintenance.date < today) {
+                nextInspectionOverdue = true;
+            }
+
+            // Verificar si hay mantenimientos vencidos
+            const overdueList = pendingMaintenances.filter(m => m.status === 'VENCIDO');
+            if (overdueList.length > 0) {
+                hasOverdueMaintenance = true;
+                // Calcular días de atraso del más antiguo
+                const oldestOverdue = overdueList[0];
+                const diffTime = today - oldestOverdue.date;
+                overdueDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            }
+        }
+
+        // Actualizar la última inspección
+        const lastInspectionEl = document.getElementById('lastInspection');
+        if (lastInspectionEl) {
+            lastInspectionEl.textContent = lastInspectionDate;
+        }
+
+        // Actualizar la próxima inspección
+        const nextInspectionEl = document.getElementById('nextInspection');
+        if (nextInspectionEl) {
+            nextInspectionEl.textContent = nextInspectionDate;
+            // Cambiar color según si está vencida
+            if (nextInspectionOverdue) {
+                nextInspectionEl.className = 'fw-medium text-danger';
+            } else {
+                nextInspectionEl.className = 'fw-medium text-primary';
+            }
+        }
+
+        // Mostrar/ocultar alerta de mantenimiento vencido
+        this.updateOverdueAlert(hasOverdueMaintenance, overdueDays);
+    }
+
+    // ===== ACTUALIZAR ALERTA DE MANTENIMIENTO VENCIDO =====
+    updateOverdueAlert(hasOverdue, days) {
+        // Buscar si ya existe la alerta
+        let alert = document.querySelector('.alert-danger.maintenance-overdue-alert');
+
+        if (hasOverdue) {
+            if (!alert) {
+                // Crear la alerta si no existe
+                const alertHtml = `
+                    <div class="alert alert-danger alert-dismissible fade show maintenance-overdue-alert" role="alert">
+                        <i class="mdi mdi-alert-circle me-2"></i>
+                        <strong>¡Mantenimiento Vencido!</strong> La inspección está atrasada por <span class="overdue-days">${days}</span> ${days == 1 ? 'día' : 'días'}.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+
+                // Insertar al inicio del container
+                const container = document.querySelector('.container-xxl.flex-grow-1.container-p-y');
+                if (container) {
+                    container.insertAdjacentHTML('afterbegin', alertHtml);
+                }
+            } else {
+                // Actualizar días si ya existe
+                const daysSpan = alert.querySelector('.overdue-days');
+                if (daysSpan) {
+                    daysSpan.textContent = days;
+                }
+                // Actualizar texto singular/plural
+                const alertText = alert.innerHTML;
+                const newText = alertText.replace(/(día|días)/, days == 1 ? 'día' : 'días');
+                alert.innerHTML = newText;
+            }
+        } else {
+            // Remover la alerta si ya no hay vencidos
+            if (alert) {
+                alert.remove();
+            }
         }
     }
 

@@ -1323,7 +1323,52 @@ class InventoryController extends Controller
             ->orderBy('scheduled_date', 'desc')
             ->get();
 
-        return view('inventory.detalle', compact('itemParent', 'availability', 'inventoryItem', 'maintenanceRecords'));
+        // Calcular última inspección (último mantenimiento COMPLETADO)
+        $lastInspection = MaintenanceRecord::where('inventory_item_id', $id)
+            ->where('maintenance_status', 'COMPLETADO')
+            ->orderBy('completion_date', 'desc')
+            ->first();
+        $lastInspectionDate = $lastInspection ? $lastInspection->completion_date->format('d/m/Y') : 'Sin registros';
+
+        // Calcular próxima inspección (siguiente mantenimiento NO completado, ordenado por fecha más cercana)
+        $nextInspection = MaintenanceRecord::where('inventory_item_id', $id)
+            ->whereIn('maintenance_status', ['PROGRAMADO', 'VENCIDO'])
+            ->orderBy('scheduled_date', 'asc')
+            ->first();
+
+        $nextInspectionDate = $nextInspection ? $nextInspection->scheduled_date->format('d/m/Y') : 'Sin programar';
+        $nextInspectionOverdue = false;
+
+        if ($nextInspection && $nextInspection->scheduled_date->isPast()) {
+            $nextInspectionOverdue = true;
+        }
+
+        // Verificar si hay mantenimientos vencidos y calcular días de atraso
+        $overdueMaintenances = MaintenanceRecord::where('inventory_item_id', $id)
+            ->where('maintenance_status', 'VENCIDO')
+            ->orderBy('scheduled_date', 'asc')
+            ->get();
+
+        $overdueDays = null;
+        $hasOverdueMaintenance = $overdueMaintenances->count() > 0;
+
+        if ($hasOverdueMaintenance) {
+            // Obtener el más antiguo (primera fecha vencida)
+            $oldestOverdue = $overdueMaintenances->first();
+            $overdueDays = now()->diffInDays($oldestOverdue->scheduled_date);
+        }
+
+        return view('inventory.detalle', compact(
+            'itemParent',
+            'availability',
+            'inventoryItem',
+            'maintenanceRecords',
+            'lastInspectionDate',
+            'nextInspectionDate',
+            'nextInspectionOverdue',
+            'hasOverdueMaintenance',
+            'overdueDays'
+        ));
     }
 
     /**

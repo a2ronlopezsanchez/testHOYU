@@ -13,6 +13,15 @@
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
 
+  <!-- Alerta de Mantenimiento Vencido -->
+  @if($hasOverdueMaintenance)
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="mdi mdi-alert-circle me-2"></i>
+    <strong>¡Mantenimiento Vencido!</strong> La inspección está atrasada por {{ $overdueDays }} {{ $overdueDays == 1 ? 'día' : 'días' }}.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  @endif
+
   <!-- Header del Item -->
   <div class="card mb-4">
     <div class="card-body">
@@ -393,11 +402,11 @@
                 <h6 class="mb-3">Mantenimiento</h6>
                 <div class="d-flex justify-content-between mb-2">
                   <span class="text-muted">Última inspección:</span>
-                  <span id="lastInspection">05/03/2025</span>
+                  <span id="lastInspection">{{ $lastInspectionDate }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                   <span class="text-muted">Próxima inspección:</span>
-                  <span class="fw-medium text-primary" id="nextInspection">05/06/2025</span>
+                  <span class="fw-medium {{ $nextInspectionOverdue ? 'text-danger' : 'text-primary' }}" id="nextInspection">{{ $nextInspectionDate }}</span>
                 </div>
 
                 <div class="mb-2">
