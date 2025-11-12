@@ -1390,7 +1390,8 @@ class ItemDetailManager {
         let rows;
         if (this.maintenanceDataTable) {
             // Obtener todas las filas del DataTable (incluyendo las no visibles por paginación)
-            rows = this.maintenanceDataTable.rows().nodes();
+            // Convertir a array porque rows().nodes() no tiene forEach directamente
+            rows = Array.from(this.maintenanceDataTable.rows().nodes());
         } else {
             // Fallback a DOM directo
             rows = document.querySelectorAll('#maintenanceHistoryTable tbody tr[data-maintenance-id]');
