@@ -1652,6 +1652,13 @@ class ItemDetailManager {
             }
 
             try {
+                // Verificar el contenido del tbody ANTES de hacer cualquier cosa
+                const tbody = usageTable.find('tbody');
+                const allRows = tbody.find('tr');
+                console.log('=== DEBUGGING USAGE TABLE ===');
+                console.log('Total de filas <tr> en tbody:', allRows.length);
+                console.log('Contenido HTML del tbody:', tbody.html().substring(0, 500));
+
                 // Remover fila de "no records" si existe antes de inicializar DataTable
                 const noRecordsRow = usageTable.find('tbody tr.no-records');
                 if (noRecordsRow.length) {
