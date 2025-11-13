@@ -1371,6 +1371,13 @@ class InventoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Debug: Log para verificar la carga de registros
+        \Log::info('Cargando usageRecords para inventory_item_id: ' . $id);
+        \Log::info('Total usageRecords encontrados: ' . $usageRecords->count());
+        if ($usageRecords->count() > 0) {
+            \Log::info('Primer registro:', $usageRecords->first()->toArray());
+        }
+
         return view('inventory.detalle', compact(
             'itemParent',
             'availability',
@@ -1695,12 +1702,15 @@ class InventoryController extends Controller
                 'event_date' => 'required|date',
                 'event_venue' => 'nullable|string|max:255',
                 'hours_used' => 'nullable|numeric|min:0',
-                'assignment_status' => 'nullable|in:ASIGNADO,EN_USO,FINALIZADO,CANCELADO',
+                'assignment_status' => 'nullable|in:ASIGNADO,EN_USO,DEVUELTO,CANCELADO',
                 'notes' => 'nullable|string|max:1000'
             ]);
 
             // Buscar el InventoryItem
             $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Debug: Log del ID que se está usando
+            \Log::info('Registrando uso para inventory_item_id: ' . $inventoryItem->id);
 
             // Crear el evento (simplificado - solo los campos básicos necesarios)
             $event = Event::create([
@@ -1713,16 +1723,19 @@ class InventoryController extends Controller
                 'created_by' => auth()->id()
             ]);
 
-            // Crear el registro de asignación con estado por defecto FINALIZADO (Finalizado)
+            // Crear el registro de asignación con estado por defecto DEVUELTO (Finalizado)
             $assignment = EventAssignment::create([
                 'event_id' => $event->id,
                 'inventory_item_id' => $inventoryItem->id,
                 'assigned_from' => $validated['event_date'],
                 'assigned_until' => $validated['event_date'],
-                'assignment_status' => $validated['assignment_status'] ?? 'FINALIZADO',
+                'assignment_status' => $validated['assignment_status'] ?? 'DEVUELTO',
                 'hours_used' => $validated['hours_used'] ?? null,
                 'notes' => $validated['notes'] ?? null
             ]);
+
+            // Debug: Log del assignment creado
+            \Log::info('EventAssignment creado:', $assignment->toArray());
 
             // Cargar la relación del evento
             $assignment->load('event');
