@@ -1637,8 +1637,10 @@ class ItemDetailManager {
         if (usageTable.length) {
             // Verificar si ya está inicializado
             if ($.fn.DataTable.isDataTable('#usageHistoryTable')) {
-                console.log('DataTable de uso ya inicializado, destruyendo...');
-                usageTable.DataTable().destroy();
+                console.log('DataTable de uso ya inicializado');
+                this.usageDataTable = usageTable.DataTable();
+                this.setupUsageExportButtons();
+                return;
             }
 
             try {
@@ -1652,7 +1654,9 @@ class ItemDetailManager {
                     lengthMenu: [5, 10, 25, 50, 100],
                     columnDefs: [],
                     dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
-                    responsive: true
+                    responsive: true,
+                    retrieve: true, // Permite recuperar una instancia existente sin error
+                    destroy: false // No destruir datos existentes
                 });
 
                 console.log('DataTable de uso inicializado exitosamente');
@@ -1692,8 +1696,10 @@ class ItemDetailManager {
         if (maintenanceTable.length) {
             // Verificar si ya está inicializado
             if ($.fn.DataTable.isDataTable('#maintenanceHistoryTable')) {
-                console.log('DataTable ya inicializado, destruyendo...');
-                maintenanceTable.DataTable().destroy();
+                console.log('DataTable ya inicializado');
+                this.maintenanceDataTable = maintenanceTable.DataTable();
+                this.setupMaintenanceExportButtons();
+                return;
             }
 
             try {
@@ -1714,7 +1720,9 @@ class ItemDetailManager {
                         }
                     ],
                     dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
-                    responsive: true
+                    responsive: true,
+                    retrieve: true, // Permite recuperar una instancia existente sin error
+                    destroy: false // No destruir datos existentes
                 });
 
                 console.log('DataTable inicializado exitosamente');
