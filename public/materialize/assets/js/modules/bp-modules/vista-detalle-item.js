@@ -2178,39 +2178,33 @@ class ItemDetailManager {
             noDataRow.parentElement.remove();
         }
 
-        // Verificar si la fecha del evento es hoy o futura
+        // Mapeo de estados
+        const statusMap = {
+            'ASIGNADO': { text: 'Asignado', class: 'bg-info' },
+            'EN_USO': { text: 'En Uso', class: 'bg-warning' },
+            'CANCELADO': { text: 'Cancelado', class: 'bg-secondary' }
+        };
+        const status = statusMap[usageData.assignment_status] || { text: usageData.assignment_status, class: 'bg-secondary' };
+
+        // Formatear fecha
         const eventDate = new Date(usageData.event_date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const formattedDate = eventDate.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
 
-        if (eventDate >= today) {
-            // Mapeo de estados
-            const statusMap = {
-                'ASIGNADO': { text: 'Asignado', class: 'bg-info' },
-                'EN_USO': { text: 'En Uso', class: 'bg-warning' },
-                'CANCELADO': { text: 'Cancelado', class: 'bg-secondary' }
-            };
-            const status = statusMap[usageData.assignment_status] || { text: usageData.assignment_status, class: 'bg-secondary' };
+        // Crear nueva fila
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${usageData.event_name}</td>
+            <td>${formattedDate}</td>
+            <td>${usageData.venue_address || 'Sin ubicación'}</td>
+            <td><span class="badge ${status.class}">${status.text}</span></td>
+        `;
 
-            // Formatear fecha
-            const formattedDate = eventDate.toLocaleDateString('es-MX', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-
-            // Crear nueva fila
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${usageData.event_name}</td>
-                <td>${formattedDate}</td>
-                <td>${usageData.venue_address || 'Sin ubicación'}</td>
-                <td><span class="badge ${status.class}">${status.text}</span></td>
-            `;
-
-            // Insertar al principio de la tabla
-            upcomingEventsTable.insertBefore(newRow, upcomingEventsTable.firstChild);
-        }
+        // Insertar al principio de la tabla
+        upcomingEventsTable.insertBefore(newRow, upcomingEventsTable.firstChild);
     }
 }
 

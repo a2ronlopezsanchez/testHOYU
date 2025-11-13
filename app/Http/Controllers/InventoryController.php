@@ -1376,14 +1376,13 @@ class InventoryController extends Controller
         $totalHours = EventAssignment::where('inventory_item_id', $id)->sum('hours_used') ?? 0;
         $totalMaintenances = MaintenanceRecord::where('inventory_item_id', $id)->count();
 
-        // Próximos eventos programados (no devueltos y de hoy en adelante)
+        // Próximos eventos programados (todos los que no sean DEVUELTO)
         $upcomingEvents = EventAssignment::where('event_assignments.inventory_item_id', $id)
             ->where('event_assignments.assignment_status', '!=', 'DEVUELTO')
             ->join('events', 'event_assignments.event_id', '=', 'events.id')
-            ->where('events.start_date', '>=', now()->startOfDay())
             ->select('event_assignments.*')
             ->with('event')
-            ->orderBy('events.start_date', 'asc')
+            ->orderBy('events.start_date', 'desc')
             ->get();
 
         return view('inventory.detalle', compact(
