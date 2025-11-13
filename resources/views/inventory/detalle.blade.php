@@ -546,43 +546,28 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($usageRecords as $record)
-                  @php
-                    $badgeClass = match($record->assignment_status) {
-                      'ASIGNADO' => 'bg-label-info',
-                      'EN_USO' => 'bg-label-primary',
-                      'DEVUELTO' => 'bg-label-success',
-                      'CANCELADO' => 'bg-label-danger',
-                      default => 'bg-label-secondary'
-                    };
-                    $statusText = match($record->assignment_status) {
-                      'ASIGNADO' => 'Asignado',
-                      'EN_USO' => 'En Uso',
-                      'DEVUELTO' => 'Devuelto',
-                      'CANCELADO' => 'Cancelado',
-                      default => $record->assignment_status
-                    };
-                  @endphp
+                @foreach($usageRecords as $record)
                   <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
                     <td>{{ $record->event->name ?? 'Sin evento' }}</td>
-                    <td>{{ optional($record->event)->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
+                    <td>{{ $record->event && $record->event->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
                     <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
                     <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
                     <td>
-                      <span class="badge {{ $badgeClass }}" data-status="{{ $record->assignment_status }}">
-                        {{ $statusText }}
-                      </span>
+                      @if($record->assignment_status == 'ASIGNADO')
+                        <span class="badge bg-label-info" data-status="ASIGNADO">Asignado</span>
+                      @elseif($record->assignment_status == 'EN_USO')
+                        <span class="badge bg-label-primary" data-status="EN_USO">En Uso</span>
+                      @elseif($record->assignment_status == 'DEVUELTO')
+                        <span class="badge bg-label-success" data-status="DEVUELTO">Devuelto</span>
+                      @elseif($record->assignment_status == 'CANCELADO')
+                        <span class="badge bg-label-danger" data-status="CANCELADO">Cancelado</span>
+                      @else
+                        <span class="badge bg-label-secondary" data-status="{{ $record->assignment_status }}">{{ $record->assignment_status }}</span>
+                      @endif
                     </td>
                     <td>{{ $record->notes ?? 'Sin notas' }}</td>
                   </tr>
-                @empty
-                  <tr class="no-records">
-                    <td colspan="6" class="text-center text-muted py-4">
-                      <i class="mdi mdi-information-outline me-1"></i>
-                      No hay registros de uso para este equipo
-                    </td>
-                  </tr>
-                @endforelse
+                @endforeach
               </tbody>
             </table>
           </div>
