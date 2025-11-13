@@ -529,6 +529,10 @@
           </div>
         </div>
         <div class="card-body">
+          {{-- Debug: Mostrar cantidad de registros --}}
+          <div class="mb-3">
+            <small class="text-muted">Total de registros de uso: {{ $usageRecords->count() }}</small>
+          </div>
           <div class="table-responsive">
             <table class="table table-hover" id="usageHistoryTable">
               <thead>
@@ -542,7 +546,7 @@
                 </tr>
               </thead>
               <tbody>
-                @foreach($usageRecords as $record)
+                @forelse($usageRecords as $record)
                   @php
                     $badgeClass = match($record->assignment_status) {
                       'ASIGNADO' => 'bg-label-info',
@@ -559,7 +563,7 @@
                       default => $record->assignment_status
                     };
                   @endphp
-                  <tr data-usage-id="{{ $record->id }}">
+                  <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
                     <td>{{ $record->event->name ?? 'Sin evento' }}</td>
                     <td>{{ $record->event->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
                     <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
@@ -571,7 +575,14 @@
                     </td>
                     <td>{{ $record->notes ?? 'Sin notas' }}</td>
                   </tr>
-                @endforeach
+                @empty
+                  <tr class="no-records">
+                    <td colspan="6" class="text-center text-muted py-4">
+                      <i class="mdi mdi-information-outline me-1"></i>
+                      No hay registros de uso para este equipo
+                    </td>
+                  </tr>
+                @endforelse
               </tbody>
             </table>
           </div>

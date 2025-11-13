@@ -1289,12 +1289,20 @@ class ItemDetailManager {
         if (this.usageDataTable) {
             const row = this.usageDataTable.row.add(rowData).draw(false);
             $(row.node()).attr('data-usage-id', usageData.id);
+            $(row.node()).addClass('usage-record-row');
         } else {
             // Fallback si DataTable no está inicializado
             const tbody = document.querySelector('#usageHistoryTable tbody');
 
+            // Eliminar fila de "no records" si existe
+            const noRecordsRow = tbody.querySelector('tr.no-records');
+            if (noRecordsRow) {
+                noRecordsRow.remove();
+            }
+
             const newRow = document.createElement('tr');
             newRow.dataset.usageId = usageData.id;
+            newRow.classList.add('usage-record-row');
             newRow.innerHTML = rowData.map(data => `<td>${data}</td>`).join('');
             tbody.insertBefore(newRow, tbody.firstChild);
         }
@@ -1644,6 +1652,17 @@ class ItemDetailManager {
             }
 
             try {
+                // Remover fila de "no records" si existe antes de inicializar DataTable
+                const noRecordsRow = usageTable.find('tbody tr.no-records');
+                if (noRecordsRow.length) {
+                    console.log('Removiendo fila de "no records"');
+                    noRecordsRow.remove();
+                }
+
+                // Verificar cuántas filas reales hay en la tabla
+                const recordRows = usageTable.find('tbody tr.usage-record-row');
+                console.log('Filas de registros encontradas en la tabla:', recordRows.length);
+
                 console.log('Inicializando DataTable de uso...');
                 this.usageDataTable = usageTable.DataTable({
                     order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
@@ -1659,7 +1678,7 @@ class ItemDetailManager {
                     destroy: false // No destruir datos existentes
                 });
 
-                console.log('DataTable de uso inicializado exitosamente');
+                console.log('DataTable de uso inicializado exitosamente con', this.usageDataTable.rows().count(), 'filas');
 
                 // Conectar botones de exportación personalizados
                 this.setupUsageExportButtons();
