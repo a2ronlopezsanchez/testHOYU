@@ -1156,7 +1156,7 @@ class InventoryController extends Controller
                 $query->whereDate('assigned_from', '<=', $dateToCheck)
                     ->whereDate('assigned_until', '>=', $dateToCheck);
             })
-            ->whereNotIn('assignment_status', ['DEVUELTO', 'CANCELADO'])
+            ->whereNotIn('assignment_status', ['FINALIZADO', 'CANCELADO'])
             ->with(['event', 'item'])
             ->get();
         
@@ -1497,7 +1497,7 @@ class InventoryController extends Controller
                         $query->whereDate('assigned_from', '<=', $dateToCheck)
                             ->whereDate('assigned_until', '>=', $dateToCheck);
                     })
-                    ->whereNotIn('assignment_status', ['DEVUELTO', 'CANCELADO'])
+                    ->whereNotIn('assignment_status', ['FINALIZADO', 'CANCELADO'])
                     ->with(['event'])
                     ->first();
                 
@@ -1695,7 +1695,7 @@ class InventoryController extends Controller
                 'event_date' => 'required|date',
                 'event_venue' => 'nullable|string|max:255',
                 'hours_used' => 'nullable|numeric|min:0',
-                'assignment_status' => 'nullable|in:ASIGNADO,EN_USO,DEVUELTO,CANCELADO',
+                'assignment_status' => 'nullable|in:ASIGNADO,EN_USO,FINALIZADO,CANCELADO',
                 'notes' => 'nullable|string|max:1000'
             ]);
 
@@ -1713,13 +1713,13 @@ class InventoryController extends Controller
                 'created_by' => auth()->id()
             ]);
 
-            // Crear el registro de asignación con estado por defecto DEVUELTO (Finalizado)
+            // Crear el registro de asignación con estado por defecto FINALIZADO (Finalizado)
             $assignment = EventAssignment::create([
                 'event_id' => $event->id,
                 'inventory_item_id' => $inventoryItem->id,
                 'assigned_from' => $validated['event_date'],
                 'assigned_until' => $validated['event_date'],
-                'assignment_status' => $validated['assignment_status'] ?? 'DEVUELTO',
+                'assignment_status' => $validated['assignment_status'] ?? 'FINALIZADO',
                 'hours_used' => $validated['hours_used'] ?? null,
                 'notes' => $validated['notes'] ?? null
             ]);
