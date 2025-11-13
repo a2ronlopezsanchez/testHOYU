@@ -1371,12 +1371,20 @@ class InventoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Debug: Log para verificar la carga de registros
-        \Log::info('Cargando usageRecords para inventory_item_id: ' . $id);
-        \Log::info('Total usageRecords encontrados: ' . $usageRecords->count());
-        if ($usageRecords->count() > 0) {
-            \Log::info('Primer registro:', $usageRecords->first()->toArray());
-        }
+        // Calcular estadísticas de uso
+        $totalEvents = EventAssignment::where('inventory_item_id', $id)->count();
+        $totalHours = EventAssignment::where('inventory_item_id', $id)->sum('hours_used') ?? 0;
+        $totalMaintenances = MaintenanceRecord::where('inventory_item_id', $id)->count();
+
+        // Próximos eventos programados (no devueltos y de hoy en adelante)
+        $upcomingEvents = EventAssignment::where('event_assignments.inventory_item_id', $id)
+            ->where('event_assignments.assignment_status', '!=', 'DEVUELTO')
+            ->join('events', 'event_assignments.event_id', '=', 'events.id')
+            ->where('events.start_date', '>=', now()->startOfDay())
+            ->select('event_assignments.*')
+            ->with('event')
+            ->orderBy('events.start_date', 'asc')
+            ->get();
 
         return view('inventory.detalle', compact(
             'itemParent',
@@ -1388,7 +1396,11 @@ class InventoryController extends Controller
             'nextInspectionOverdue',
             'hasOverdueMaintenance',
             'overdueDays',
-            'usageRecords'
+            'usageRecords',
+            'totalEvents',
+            'totalHours',
+            'totalMaintenances',
+            'upcomingEvents'
         ));
     }
 

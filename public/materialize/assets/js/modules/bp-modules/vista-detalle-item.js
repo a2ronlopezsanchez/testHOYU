@@ -1132,6 +1132,9 @@ class ItemDetailManager {
                 // Agregar registro a la tabla
                 this.addUsageRowToTable(result.data);
 
+                // Actualizar estadísticas
+                this.updateUsageStatistics(result.data);
+
                 // Mostrar mensaje de éxito
                 Swal.fire({
                     icon: 'success',
@@ -1222,6 +1225,9 @@ class ItemDetailManager {
             if (result.success) {
                 // Agregar nueva fila a la tabla sin recargar
                 this.addMaintenanceRowToTable(result.data);
+
+                // Actualizar estadísticas de mantenimiento
+                this.updateMaintenanceStatistics();
 
                 // Resetear formulario
                 form.reset();
@@ -2127,6 +2133,84 @@ class ItemDetailManager {
         // Por ahora solo mostramos un mensaje
         // En producción, aquí cargarías y mostrarías la lista de documentos
         this.showToast('info', 'Vista de documentos actualizada');
+    }
+
+    // ===== ACTUALIZAR ESTADÍSTICAS DE USO =====
+    updateUsageStatistics(usageData = null) {
+        // Actualizar Total de Eventos (incrementar en 1)
+        const totalEventsEl = document.getElementById('totalEvents');
+        if (totalEventsEl && usageData) {
+            const currentTotal = parseInt(totalEventsEl.textContent) || 0;
+            totalEventsEl.textContent = currentTotal + 1;
+        }
+
+        // Actualizar Horas de Uso (sumar las horas del nuevo registro)
+        const totalHoursEl = document.getElementById('totalHours');
+        if (totalHoursEl && usageData && usageData.hours_used) {
+            const currentHours = parseFloat(totalHoursEl.textContent.replace(' hrs', '')) || 0;
+            const newTotal = currentHours + parseFloat(usageData.hours_used);
+            totalHoursEl.textContent = newTotal.toFixed(1) + ' hrs';
+        }
+
+        // Actualizar tabla de próximos eventos si el status no es DEVUELTO
+        if (usageData && usageData.assignment_status !== 'DEVUELTO') {
+            this.addUpcomingEvent(usageData);
+        }
+    }
+
+    // ===== ACTUALIZAR CONTEO DE MANTENIMIENTOS =====
+    updateMaintenanceStatistics() {
+        const totalMaintenancesEl = document.getElementById('totalMaintenances');
+        if (totalMaintenancesEl) {
+            const currentTotal = parseInt(totalMaintenancesEl.textContent) || 0;
+            totalMaintenancesEl.textContent = currentTotal + 1;
+        }
+    }
+
+    // ===== AGREGAR EVENTO A PRÓXIMOS EVENTOS =====
+    addUpcomingEvent(usageData) {
+        const upcomingEventsTable = document.getElementById('upcomingEventsTable');
+        if (!upcomingEventsTable) return;
+
+        // Eliminar mensaje de "no hay eventos" si existe
+        const noDataRow = upcomingEventsTable.querySelector('td[colspan="4"]');
+        if (noDataRow) {
+            noDataRow.parentElement.remove();
+        }
+
+        // Verificar si la fecha del evento es hoy o futura
+        const eventDate = new Date(usageData.event_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (eventDate >= today) {
+            // Mapeo de estados
+            const statusMap = {
+                'ASIGNADO': { text: 'Asignado', class: 'bg-info' },
+                'EN_USO': { text: 'En Uso', class: 'bg-warning' },
+                'CANCELADO': { text: 'Cancelado', class: 'bg-secondary' }
+            };
+            const status = statusMap[usageData.assignment_status] || { text: usageData.assignment_status, class: 'bg-secondary' };
+
+            // Formatear fecha
+            const formattedDate = eventDate.toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            // Crear nueva fila
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${usageData.event_name}</td>
+                <td>${formattedDate}</td>
+                <td>${usageData.venue_address || 'Sin ubicación'}</td>
+                <td><span class="badge ${status.class}">${status.text}</span></td>
+            `;
+
+            // Insertar al principio de la tabla
+            upcomingEventsTable.insertBefore(newRow, upcomingEventsTable.firstChild);
+        }
     }
 }
 

@@ -318,7 +318,7 @@
                       <i class="mdi mdi-calendar"></i>
                     </div>
                     <div class="stat-content">
-                      <h3 class="stat-value" id="totalEvents">28</h3>
+                      <h3 class="stat-value" id="totalEvents">{{ $totalEvents }}</h3>
                       <p class="stat-label">Total de Eventos</p>
                     </div>
                   </div>
@@ -329,7 +329,7 @@
                       <i class="mdi mdi-clock-outline"></i>
                     </div>
                     <div class="stat-content">
-                      <h3 class="stat-value" id="totalHours">187 hrs</h3>
+                      <h3 class="stat-value" id="totalHours">{{ number_format($totalHours, 1) }} hrs</h3>
                       <p class="stat-label">Horas de Uso</p>
                     </div>
                   </div>
@@ -340,7 +340,7 @@
                       <i class="mdi mdi-wrench"></i>
                     </div>
                     <div class="stat-content">
-                      <h3 class="stat-value" id="totalMaintenances">3</h3>
+                      <h3 class="stat-value" id="totalMaintenances">{{ $totalMaintenances }}</h3>
                       <p class="stat-label">Mantenimientos</p>
                     </div>
                   </div>
@@ -360,18 +360,28 @@
                       </tr>
                     </thead>
                     <tbody id="upcomingEventsTable">
-                      <tr>
-                        <td>Conferencia Empresarial</td>
-                        <td>20/04/2025</td>
-                        <td>Hotel Business</td>
-                        <td><span class="badge bg-label-success">Confirmado</span></td>
-                      </tr>
-                      <tr>
-                        <td>Boda Rodríguez-López</td>
-                        <td>08/05/2025</td>
-                        <td>Hacienda Vista Verde</td>
-                        <td><span class="badge bg-label-success">Confirmado</span></td>
-                      </tr>
+                      @forelse($upcomingEvents as $upcoming)
+                        <tr>
+                          <td>{{ $upcoming->event->name ?? 'Sin nombre' }}</td>
+                          <td>{{ $upcoming->event && $upcoming->event->start_date ? $upcoming->event->start_date->format('d/m/Y') : '-' }}</td>
+                          <td>{{ $upcoming->event->venue_address ?? 'Sin ubicación' }}</td>
+                          <td>
+                            @php
+                              $statusMap = [
+                                'ASIGNADO' => ['text' => 'Asignado', 'class' => 'bg-info'],
+                                'EN_USO' => ['text' => 'En Uso', 'class' => 'bg-warning'],
+                                'CANCELADO' => ['text' => 'Cancelado', 'class' => 'bg-secondary']
+                              ];
+                              $status = $statusMap[$upcoming->assignment_status] ?? ['text' => $upcoming->assignment_status, 'class' => 'bg-secondary'];
+                            @endphp
+                            <span class="badge {{ $status['class'] }}">{{ $status['text'] }}</span>
+                          </td>
+                        </tr>
+                      @empty
+                        <tr>
+                          <td colspan="4" class="text-center text-muted">No hay eventos próximos programados</td>
+                        </tr>
+                      @endforelse
                     </tbody>
                   </table>
                 </div>
