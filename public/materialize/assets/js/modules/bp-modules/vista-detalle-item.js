@@ -100,7 +100,7 @@ class ItemDetailManager {
 
         // NO llamar updateUI() porque los datos ya están en el HTML desde Blade
         // Solo actualizar las tablas dinámicas que no están pobladas desde Blade
-        this.updateUpcomingEventsTable();
+        //this.updateUpcomingEventsTable();
         // NO llamar updateUsageHistoryTable() - los datos vienen del servidor vía Blade
         // this.updateUsageHistoryTable();
 
