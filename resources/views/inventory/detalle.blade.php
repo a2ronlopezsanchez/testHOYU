@@ -565,24 +565,12 @@
               <tbody>
                 @foreach($usageRecords as $record)
                   <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
-                    <td>{{ $record->event->name ?? 'Sin evento' }}</td>
-                    <td>{{ $record->event && $record->event->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
-                    <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
-                    <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
-                    <td>
-                      @if($record->assignment_status == 'ASIGNADO')
-                        <span class="badge bg-label-info" data-status="ASIGNADO">Asignado</span>
-                      @elseif($record->assignment_status == 'EN_USO')
-                        <span class="badge bg-label-primary" data-status="EN_USO">En Uso</span>
-                      @elseif($record->assignment_status == 'DEVUELTO')
-                        <span class="badge bg-label-success" data-status="DEVUELTO">Devuelto</span>
-                      @elseif($record->assignment_status == 'CANCELADO')
-                        <span class="badge bg-label-danger" data-status="CANCELADO">Cancelado</span>
-                      @else
-                        <span class="badge bg-label-secondary" data-status="{{ $record->assignment_status }}">{{ $record->assignment_status }}</span>
-                      @endif
-                    </td>
-                    <td>{{ $record->notes ?? 'Sin notas' }}</td>
+                    <td>EVENTO</td>
+                    <td>FECHA</td>
+                    <td>UBICACION</td>
+                    <td>HORAS</td>
+                    <td>ESTADO</td>
+                    <td>NOTAS</td>
                   </tr>
                 @endforeach
               </tbody>
