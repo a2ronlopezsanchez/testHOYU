@@ -551,7 +551,7 @@
           </div>
 
           <div class="table-responsive">
-            <table class="table table-hover" id="usageHistoryTable-DISABLED">
+            <table class="table table-hover" id="usageHistoryTable">
               <thead>
                 <tr>
                   <th>Evento</th>

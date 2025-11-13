@@ -1681,8 +1681,9 @@ class ItemDetailManager {
                     columnDefs: [],
                     dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
                     responsive: true,
-                    retrieve: true, // Permite recuperar una instancia existente sin error
-                    destroy: false // No destruir datos existentes
+                    deferRender: true, // No renderizar todas las filas inmediatamente
+                    retrieve: true // Permite recuperar una instancia existente sin error
+                    // NO usar destroy - queremos mantener los datos del servidor
                 });
 
                 console.log('DataTable de uso inicializado exitosamente con', this.usageDataTable.rows().count(), 'filas');
