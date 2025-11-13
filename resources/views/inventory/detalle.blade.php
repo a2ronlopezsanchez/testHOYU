@@ -529,27 +529,6 @@
           </div>
         </div>
         <div class="card-body">
-          {{-- Debug: Mostrar cantidad de registros --}}
-          <div class="mb-3">
-            <small class="text-muted">Total de registros de uso: {{ $usageRecords->count() }}</small>
-          </div>
-
-          {{-- DEBUG: Mostrar datos fuera de la tabla --}}
-          <div class="alert alert-info mb-3">
-            <h5>DEBUG - Datos de usageRecords:</h5>
-            @foreach($usageRecords as $index => $record)
-              <div class="border p-2 mb-2">
-                <strong>Registro {{ $index + 1 }}:</strong><br>
-                - ID: {{ $record->id }}<br>
-                - Event Name: {{ $record->event->name ?? 'NULL' }}<br>
-                - Event ID: {{ $record->event_id }}<br>
-                - Status: {{ $record->assignment_status }}<br>
-                - Hours: {{ $record->hours_used ?? 'NULL' }}<br>
-                - Notes: {{ $record->notes ?? 'NULL' }}
-              </div>
-            @endforeach
-          </div>
-
           <div class="table-responsive">
             <table class="table table-hover" id="usageHistoryTable">
               <thead>
@@ -565,12 +544,23 @@
               <tbody>
                 @foreach($usageRecords as $record)
                   <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
-                    <td>EVENTO</td>
-                    <td>FECHA</td>
-                    <td>UBICACION</td>
-                    <td>HORAS</td>
-                    <td>ESTADO</td>
-                    <td>NOTAS</td>
+                    <td>{{ $record->event->name ?? 'Sin evento' }}</td>
+                    <td>{{ $record->event && $record->event->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
+                    <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
+                    <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
+                    <td>
+                      @php
+                        $statusMap = [
+                          'ASIGNADO' => ['text' => 'Asignado', 'class' => 'bg-info'],
+                          'EN_USO' => ['text' => 'En Uso', 'class' => 'bg-warning'],
+                          'DEVUELTO' => ['text' => 'Devuelto', 'class' => 'bg-success'],
+                          'CANCELADO' => ['text' => 'Cancelado', 'class' => 'bg-secondary']
+                        ];
+                        $status = $statusMap[$record->assignment_status] ?? ['text' => $record->assignment_status, 'class' => 'bg-secondary'];
+                      @endphp
+                      <span class="badge {{ $status['class'] }}">{{ $status['text'] }}</span>
+                    </td>
+                    <td>{{ $record->notes ?? 'Sin notas' }}</td>
                   </tr>
                 @endforeach
               </tbody>
