@@ -100,7 +100,8 @@ class ItemDetailManager {
 
         // NO llamar updateUI() porque los datos ya están en el HTML desde Blade
         // Solo actualizar las tablas dinámicas que no están pobladas desde Blade
-        //this.updateUpcomingEventsTable();
+        // NO llamar updateUpcomingEventsTable() - los datos vienen del servidor vía Blade
+        // this.updateUpcomingEventsTable();
         // NO llamar updateUsageHistoryTable() - los datos vienen del servidor vía Blade
         // this.updateUsageHistoryTable();
 
@@ -558,18 +559,22 @@ class ItemDetailManager {
 
     // ===== MOSTRAR ALERTA DE MANTENIMIENTO VENCIDO =====
     showMaintenanceOverdueAlert(daysOverdue) {
-        const alertHtml = `
+        // DESHABILITADO: La alerta ya se muestra desde Blade con datos del backend
+        // para evitar duplicados
+        return;
+
+        /* const alertHtml = `
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="mdi mdi-alert-circle me-2"></i>
                 <strong>¡Mantenimiento Vencido!</strong> La inspección está atrasada por ${daysOverdue} días.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `;
-        
+
         const container = document.querySelector('.container-xxl.flex-grow-1');
         if (container) {
             container.insertAdjacentHTML('afterbegin', alertHtml);
-        }
+        } */
     }
 
     // ===== PARSEAR FECHA =====
@@ -1089,14 +1094,22 @@ class ItemDetailManager {
             return;
         }
 
+        const eventVenueValue = document.getElementById('eventVenue').value;
+        console.log('=== DEBUG eventVenue ===');
+        console.log('Valor del campo eventVenue:', eventVenueValue);
+        console.log('Tipo:', typeof eventVenueValue);
+        console.log('Longitud:', eventVenueValue.length);
+
         const usageData = {
             event_name: document.getElementById('eventName').value,
             event_date: document.getElementById('eventDate').value,
-            event_venue: document.getElementById('eventVenue').value || null,
+            event_venue: eventVenueValue || null,
             hours_used: parseFloat(document.getElementById('usageHours').value) || null,
             assignment_status: document.getElementById('assignmentStatus').value || null,
             notes: document.getElementById('usageNotes').value || null
         };
+
+        console.log('usageData a enviar:', usageData);
 
         // Cerrar modal antes de la llamada AJAX
         const modal = bootstrap.Modal.getInstance(document.getElementById('registerUsageModal'));
@@ -1588,7 +1601,11 @@ class ItemDetailManager {
 
     // ===== ACTUALIZAR ALERTA DE MANTENIMIENTO VENCIDO =====
     updateOverdueAlert(hasOverdue, days) {
-        // Buscar si ya existe la alerta
+        // DESHABILITADO: La alerta ya se muestra desde Blade con datos del backend
+        // para evitar duplicados
+        return;
+
+        /* // Buscar si ya existe la alerta
         let alert = document.querySelector('.alert-danger.maintenance-overdue-alert');
 
         if (hasOverdue) {
@@ -1623,7 +1640,7 @@ class ItemDetailManager {
             if (alert) {
                 alert.remove();
             }
-        }
+        } */
     }
 
     // ===== INICIALIZAR DATATABLES =====
