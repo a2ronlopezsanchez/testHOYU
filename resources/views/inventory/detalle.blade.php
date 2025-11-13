@@ -533,6 +533,23 @@
           <div class="mb-3">
             <small class="text-muted">Total de registros de uso: {{ $usageRecords->count() }}</small>
           </div>
+
+          {{-- DEBUG: Mostrar datos fuera de la tabla --}}
+          <div class="alert alert-info mb-3">
+            <h5>DEBUG - Datos de usageRecords:</h5>
+            @foreach($usageRecords as $index => $record)
+              <div class="border p-2 mb-2">
+                <strong>Registro {{ $index + 1 }}:</strong><br>
+                - ID: {{ $record->id }}<br>
+                - Event Name: {{ $record->event->name ?? 'NULL' }}<br>
+                - Event ID: {{ $record->event_id }}<br>
+                - Status: {{ $record->assignment_status }}<br>
+                - Hours: {{ $record->hours_used ?? 'NULL' }}<br>
+                - Notes: {{ $record->notes ?? 'NULL' }}
+              </div>
+            @endforeach
+          </div>
+
           <div class="table-responsive">
             <table class="table table-hover" id="usageHistoryTable">
               <thead>
