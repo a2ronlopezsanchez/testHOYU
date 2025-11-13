@@ -572,16 +572,12 @@
                     }
                   @endphp
                   <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
-                    <td>{{ $record->event->name ?? 'Sin evento' }}</td>
-                    <td>{{ optional($record->event)->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
-                    <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
-                    <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
-                    <td>
-                      <span class="badge {{ $badgeClass }}" data-status="{{ $record->assignment_status }}">
-                        {{ $statusText }}
-                      </span>
-                    </td>
-                    <td>{{ $record->notes ?? 'Sin notas' }}</td>
+                    <td>TEST {{ $record->id }}</td>
+                    <td>TEST FECHA</td>
+                    <td>TEST UBICACION</td>
+                    <td>TEST HORAS</td>
+                    <td>TEST ESTADO</td>
+                    <td>TEST NOTAS</td>
                   </tr>
                 @empty
                   <tr class="no-records">
