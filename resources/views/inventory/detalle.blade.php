@@ -548,36 +548,32 @@
               <tbody>
                 @forelse($usageRecords as $record)
                   @php
-                    try {
-                        $badgeClass = match($record->assignment_status) {
-                          'ASIGNADO' => 'bg-label-info',
-                          'EN_USO' => 'bg-label-primary',
-                          'DEVUELTO' => 'bg-label-success',
-                          'CANCELADO' => 'bg-label-danger',
-                          default => 'bg-label-secondary'
-                        };
-                        $statusText = match($record->assignment_status) {
-                          'ASIGNADO' => 'Asignado',
-                          'EN_USO' => 'En Uso',
-                          'DEVUELTO' => 'Devuelto',
-                          'CANCELADO' => 'Cancelado',
-                          default => $record->assignment_status
-                        };
-
-                        // Debug: Log cada record procesado
-                        \Log::info('Procesando record ID: ' . $record->id);
-                    } catch (\Exception $e) {
-                        \Log::error('Error procesando usage record: ' . $e->getMessage());
-                        continue;
-                    }
+                    $badgeClass = match($record->assignment_status) {
+                      'ASIGNADO' => 'bg-label-info',
+                      'EN_USO' => 'bg-label-primary',
+                      'DEVUELTO' => 'bg-label-success',
+                      'CANCELADO' => 'bg-label-danger',
+                      default => 'bg-label-secondary'
+                    };
+                    $statusText = match($record->assignment_status) {
+                      'ASIGNADO' => 'Asignado',
+                      'EN_USO' => 'En Uso',
+                      'DEVUELTO' => 'Devuelto',
+                      'CANCELADO' => 'Cancelado',
+                      default => $record->assignment_status
+                    };
                   @endphp
                   <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
-                    <td>TEST {{ $record->id }}</td>
-                    <td>TEST FECHA</td>
-                    <td>TEST UBICACION</td>
-                    <td>TEST HORAS</td>
-                    <td>TEST ESTADO</td>
-                    <td>TEST NOTAS</td>
+                    <td>{{ $record->event->name ?? 'Sin evento' }}</td>
+                    <td>{{ optional($record->event)->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
+                    <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
+                    <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
+                    <td>
+                      <span class="badge {{ $badgeClass }}" data-status="{{ $record->assignment_status }}">
+                        {{ $statusText }}
+                      </span>
+                    </td>
+                    <td>{{ $record->notes ?? 'Sin notas' }}</td>
                   </tr>
                 @empty
                   <tr class="no-records">
