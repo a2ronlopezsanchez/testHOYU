@@ -79,4 +79,13 @@ class ItemParent extends Model
     {
         return $this->hasMany(InventoryItem::class, 'item_parent_id');
     }
+
+    /**
+     * Imágenes del producto
+     * Vista: Tab "Multimedia" > Galería de imágenes
+     */
+    public function images()
+    {
+        return $this->hasMany(ItemImage::class, 'item_id')->orderBy('order');
+    }
 }
