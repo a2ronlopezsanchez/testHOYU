@@ -1277,7 +1277,8 @@ class InventoryController extends Controller
             $itemParent = ItemParent::with([
                 'category',
                 'brand',
-                'items.location'
+                'items.location',
+                'images'
             ])->findOrFail($id);
 
             // Detectar modo: edit (editar parent), new-from-parent (crear nueva unidad), o edit-unit (editar unidad específica)
