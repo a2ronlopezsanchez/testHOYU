@@ -11,7 +11,7 @@ use App\Models\EventAssignment;
 use App\Models\Event;
 use App\Models\Specification;
 use App\Models\MaintenanceRecord;
-use App\Models\InventoryItemImage;
+use App\Models\ItemImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -1803,8 +1803,8 @@ class InventoryController extends Controller
             $order = $inventoryItem->images()->count();
 
             // Guardar en la base de datos
-            $image = InventoryItemImage::create([
-                'inventory_item_id' => $inventoryItem->id,
+            $image = ItemImage::create([
+                'item_id' => $inventoryItem->id,
                 'url' => $result->getSecurePath(),
                 'public_id' => $result->getPublicId(),
                 'is_primary' => $order === 0, // La primera imagen es la principal
@@ -1844,7 +1844,7 @@ class InventoryController extends Controller
     {
         try {
             // Buscar la imagen
-            $image = InventoryItemImage::where('inventory_item_id', $itemId)
+            $image = ItemImage::where('item_id', $itemId)
                 ->where('id', $imageId)
                 ->firstOrFail();
 
@@ -1856,7 +1856,7 @@ class InventoryController extends Controller
 
             // Si era la imagen principal, establecer otra como principal
             if ($image->is_primary) {
-                $newPrimary = InventoryItemImage::where('inventory_item_id', $itemId)
+                $newPrimary = ItemImage::where('item_id', $itemId)
                     ->orderBy('order')
                     ->first();
 
@@ -1885,11 +1885,11 @@ class InventoryController extends Controller
     {
         try {
             // Desmarcar todas las imágenes como principal
-            InventoryItemImage::where('inventory_item_id', $itemId)
+            ItemImage::where('item_id', $itemId)
                 ->update(['is_primary' => false]);
 
             // Marcar la nueva imagen como principal
-            $image = InventoryItemImage::where('inventory_item_id', $itemId)
+            $image = ItemImage::where('item_id', $itemId)
                 ->where('id', $imageId)
                 ->firstOrFail();
 

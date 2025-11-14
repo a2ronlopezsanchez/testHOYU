@@ -97,14 +97,6 @@ class InventoryItem extends Model
     }
 
     /**
-     * Imágenes del item
-     */
-    public function images()
-    {
-        return $this->hasMany(InventoryItemImage::class, 'inventory_item_id')->orderBy('order');
-    }
-
-    /**
      * Especificaciones técnicas del item
      * Vista: Tab "Especificaciones" > Lista de especificaciones
      */
@@ -115,7 +107,7 @@ class InventoryItem extends Model
 
     public function images()
     {
-        return $this->hasMany(ItemImage::class, 'item_id');
+        return $this->hasMany(ItemImage::class, 'item_id')->orderBy('order');
     }
 
     /**
