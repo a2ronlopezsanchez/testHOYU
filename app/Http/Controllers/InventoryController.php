@@ -1788,29 +1788,38 @@ class InventoryController extends Controller
     public function uploadImage(Request $request, $id)
     {
         try {
+            \Log::info('=== UPLOAD IMAGE DEBUG ===');
+            \Log::info('Request ID: ' . $id);
+            \Log::info('Has file: ' . ($request->hasFile('image') ? 'YES' : 'NO'));
+
             // Validar la imagen
             $request->validate([
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // max 5MB
             ]);
 
-            // Buscar el InventoryItem
-            $inventoryItem = InventoryItem::findOrFail($id);
+            // Buscar el ItemParent (no InventoryItem)
+            $itemParent = ItemParent::findOrFail($id);
+            \Log::info('ItemParent found: ' . $itemParent->id);
 
             // Subir la imagen a Cloudinary
             $uploadedFile = $request->file('image');
+            \Log::info('Uploading to Cloudinary...');
             $result = $uploadedFile->storeOnCloudinary('inventory_items');
+            \Log::info('Cloudinary result: ' . $result->getSecurePath());
 
             // Obtener el número de imágenes existentes para determinar el orden
-            $order = $inventoryItem->images()->count();
+            $order = $itemParent->images()->count();
 
             // Guardar en la base de datos
             $image = ItemImage::create([
-                'item_id' => $inventoryItem->id,
+                'item_id' => $itemParent->id,
                 'url' => $result->getSecurePath(),
                 'public_id' => $result->getPublicId(),
                 'is_primary' => $order === 0, // La primera imagen es la principal
                 'order' => $order
             ]);
+
+            \Log::info('Image saved to DB: ' . $image->id);
 
             return response()->json([
                 'success' => true,
@@ -1824,6 +1833,7 @@ class InventoryController extends Controller
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error: ' . json_encode($e->errors()));
             return response()->json([
                 'success' => false,
                 'message' => 'Archivo inválido',
@@ -1831,6 +1841,8 @@ class InventoryController extends Controller
             ], 422);
 
         } catch (\Exception $e) {
+            \Log::error('Upload error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Error al subir la imagen: ' . $e->getMessage()
