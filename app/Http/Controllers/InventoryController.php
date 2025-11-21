@@ -1812,9 +1812,9 @@ class InventoryController extends Controller
             ];
 
             // Verificar si las credenciales están configuradas
-            $cloudName = config('cloudinary.cloud_name');
-            if (empty($cloudName) || $cloudName === 'your_cloud_name') {
-                throw new \Exception('Credenciales de Cloudinary no configuradas. Por favor configura CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY y CLOUDINARY_API_SECRET en el archivo .env');
+            $cloudUrl = config('cloudinary.cloud_url');
+            if (empty($cloudUrl) || strpos($cloudUrl, 'your_cloud_name') !== false || strpos($cloudUrl, 'your_api_key') !== false) {
+                throw new \Exception('Credenciales de Cloudinary no configuradas. Por favor configura CLOUDINARY_URL en el archivo .env');
             }
 
             $result = Cloudinary::upload(
