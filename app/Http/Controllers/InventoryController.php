@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class InventoryController extends Controller
 {
@@ -1803,7 +1804,7 @@ class InventoryController extends Controller
             $uploadedFile = $request->file('image');
             \Log::info('Uploading to Cloudinary...');
 
-            $result = cloudinary()->upload(
+            $result = Cloudinary::upload(
                 $uploadedFile->getRealPath(),
                 [
                     'folder' => 'inventory_items',
