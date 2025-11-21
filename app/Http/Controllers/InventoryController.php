@@ -1779,4 +1779,142 @@ class InventoryController extends Controller
             ], 500);
         }
     }
+         /**
+     * Subir imagen a Cloudinary
+     */
+    public function uploadImage(Request $request, $id)
+    {
+        try {
+            \Log::info('=== UPLOAD IMAGE DEBUG ===');
+            \Log::info('Request ID: ' . $id);
+            \Log::info('Has file: ' . ($request->hasFile('image') ? 'YES' : 'NO'));
+
+            // Validar la imagen
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // max 5MB
+            ]);
+
+            // Buscar el ItemParent (no InventoryItem)
+            $itemParent = ItemParent::findOrFail($id);
+            \Log::info('ItemParent found: ' . $itemParent->id);
+
+            // Subir la imagen a Cloudinary
+            $uploadedFile = $request->file('image');
+            \Log::info('Uploading to Cloudinary...');
+            $result = $uploadedFile->storeOnCloudinary('inventory_items');
+            \Log::info('Cloudinary result: ' . $result->getSecurePath());
+
+            // Obtener el número de imágenes existentes para determinar el orden
+            $order = $itemParent->images()->count();
+
+            // Guardar en la base de datos
+            $image = ItemImage::create([
+                'item_id' => $itemParent->id,
+                'url' => $result->getSecurePath(),
+                'public_id' => $result->getPublicId(),
+                'is_primary' => $order === 0, // La primera imagen es la principal
+                'order' => $order
+            ]);
+
+            \Log::info('Image saved to DB: ' . $image->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Imagen subida correctamente',
+                'data' => [
+                    'id' => $image->id,
+                    'url' => $image->url,
+                    'is_primary' => $image->is_primary,
+                    'order' => $image->order
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error: ' . json_encode($e->errors()));
+            return response()->json([
+                'success' => false,
+                'message' => 'Archivo inválido',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            \Log::error('Upload error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir la imagen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Eliminar imagen de Cloudinary y base de datos
+     */
+    public function deleteImage($itemId, $imageId)
+    {
+        try {
+            // Buscar la imagen
+            $image = ItemImage::where('item_id', $itemId)
+                ->where('id', $imageId)
+                ->firstOrFail();
+
+            // Eliminar de Cloudinary
+            \Cloudinary::destroy($image->public_id);
+
+            // Eliminar de la base de datos
+            $image->delete();
+
+            // Si era la imagen principal, establecer otra como principal
+            if ($image->is_primary) {
+                $newPrimary = ItemImage::where('item_id', $itemId)
+                    ->orderBy('order')
+                    ->first();
+
+                if ($newPrimary) {
+                    $newPrimary->update(['is_primary' => true]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Imagen eliminada correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar la imagen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Establecer una imagen como principal
+     */
+    public function setPrimaryImage($itemId, $imageId)
+    {
+        try {
+            // Desmarcar todas las imágenes como principal
+            ItemImage::where('item_id', $itemId)
+                ->update(['is_primary' => false]);
+
+            // Marcar la nueva imagen como principal
+            $image = ItemImage::where('item_id', $itemId)
+                ->where('id', $imageId)
+                ->firstOrFail();
+
+            $image->update(['is_primary' => true]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Imagen principal actualizada'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la imagen principal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

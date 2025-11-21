@@ -106,6 +106,10 @@ Route::middleware('auth')->group(function () {
             Route::post('/unidad/{id}/mantenimiento', [App\Http\Controllers\InventoryController::class, 'registrarMantenimiento'])->name('unidad.mantenimiento');
             Route::patch('/unidad/mantenimiento/{id}/completar', [App\Http\Controllers\InventoryController::class, 'completarMantenimiento'])->name('mantenimiento.completar');
             Route::post('/unidad/{id}/uso', [App\Http\Controllers\InventoryController::class, 'registrarUso'])->name('unidad.uso');
+            // Rutas para imágenes
+            Route::post('/unidad/{id}/imagen', [App\Http\Controllers\InventoryController::class, 'uploadImage'])->name('unidad.imagen.upload');
+            Route::delete('/unidad/{itemId}/imagen/{imageId}', [App\Http\Controllers\InventoryController::class, 'deleteImage'])->name('unidad.imagen.delete');
+            Route::patch('/unidad/{itemId}/imagen/{imageId}/principal', [App\Http\Controllers\InventoryController::class, 'setPrimaryImage'])->name('unidad.imagen.principal');
             Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
         });
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

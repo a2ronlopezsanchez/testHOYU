@@ -685,46 +685,88 @@ class ItemFormManager {
     // ===== INICIALIZAR DROPZONE =====
     initializeDropzone() {
         const dropzoneElement = document.querySelector('#dropzone-multi');
-        
-        if (dropzoneElement) {
-            dropzoneInstance = new Dropzone(dropzoneElement, {
-                url: FORM_CONFIG.cloudinaryUrl,
-                paramName: 'file',
-                maxFilesize: 5, // MB
-                maxFiles: 10,
-                acceptedFiles: 'image/*',
-                addRemoveLinks: true,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                params: {
-                    upload_preset: FORM_CONFIG.cloudinaryPreset
-                },
-                init: function() {
-                    this.on('success', (file, response) => {
-                        file.cloudinaryId = response.public_id;
-                        file.cloudinaryUrl = response.secure_url;
-                        formData.imagenes.push({
-                            id: response.public_id,
-                            url: response.secure_url,
-                            thumbnail: response.eager[0].secure_url || response.secure_url
-                        });
-                        itemFormManager.updateImageGallery();
-                    });
-                    
-                    this.on('removedfile', (file) => {
-                        if (file.cloudinaryId) {
-                            formData.imagenes = formData.imagenes.filter(img => img.id !== file.cloudinaryId);
-                            itemFormManager.updateImageGallery();
-                        }
-                    });
-                    
-                    this.on('error', (file, errorMessage) => {
-                        itemFormManager.showAlert('Error al subir imagen: ' + errorMessage, 'error');
-                    });
-                }
-            });
+
+        if (!dropzoneElement) return;
+
+        // Obtener el ID del item
+        const itemParentId = window.bladeFormData?.itemParent?.id;
+
+        if (!itemParentId) {
+            console.warn('No se puede inicializar Dropzone sin item_parent_id');
+            return;
         }
+
+        dropzoneInstance = new Dropzone(dropzoneElement, {
+            url: `/inventory/unidad/${itemParentId}/imagen`,
+            paramName: 'image',
+            maxFilesize: 5, // MB
+            maxFiles: 10,
+            acceptedFiles: 'image/jpeg,image/png,image/jpg,image/gif',
+            addRemoveLinks: true,
+            dictRemoveFile: 'Eliminar',
+            dictCancelUpload: 'Cancelar',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            init: function() {
+                const myDropzone = this;
+
+                // Cargar imágenes existentes
+                itemFormManager.loadExistingImages(myDropzone);
+
+                this.on('success', (file, response) => {
+                    console.log('Imagen subida exitosamente:', response);
+
+                    if (response.success) {
+                        // Guardar datos de Cloudinary en el archivo
+                        file.imageId = response.data.id;
+                        file.cloudinaryUrl = response.data.url;
+                        file.isPrimary = response.data.is_primary;
+
+                        // Agregar a formData
+                        formData.imagenes.push({
+                            id: response.data.id,
+                            url: response.data.url,
+                            is_primary: response.data.is_primary,
+                            order: response.data.order
+                        });
+
+                        itemFormManager.updateImageGallery();
+                        itemFormManager.showAlert('Imagen subida correctamente', 'success');
+                    }
+                });
+
+                this.on('removedfile', (file) => {
+                    if (file.imageId) {
+                        // Eliminar del backend
+                        itemFormManager.deleteImageFromBackend(itemParentId, file.imageId);
+
+                        // Eliminar de formData
+                        formData.imagenes = formData.imagenes.filter(img => img.id !== file.imageId);
+                        itemFormManager.updateImageGallery();
+                    }
+                });
+
+                this.on('error', (file, errorMessage, xhr) => {
+                    console.error('Error al subir imagen:', errorMessage);
+                    let message = 'Error al subir imagen';
+
+                    if (typeof errorMessage === 'object' && errorMessage.message) {
+                        message = errorMessage.message;
+                    } else if (typeof errorMessage === 'string') {
+                        message = errorMessage;
+                    }
+
+                    itemFormManager.showAlert(message, 'error');
+                });
+
+                this.on('maxfilesexceeded', (file) => {
+                    itemFormManager.showAlert('Máximo 10 imágenes permitidas', 'warning');
+                    myDropzone.removeFile(file);
+                });
+            }
+        });
     }
     // ===== ACTUALIZAR VISTA PREVIA =====
     updatePreview() {
@@ -1596,24 +1638,35 @@ class ItemFormManager {
             formData.imagenes.forEach((imagen, index) => {
                 const imageCol = document.createElement('div');
                 imageCol.className = 'col-md-3 col-sm-6';
+                const isPrimaryBadge = imagen.is_primary ? '<span class="badge bg-primary position-absolute top-0 start-0 m-2">Principal</span>' : '';
+                const imageUrl = imagen.url || imagen.thumbnail;
+
                 imageCol.innerHTML = `
-                    <div class="card">
-                        <img src="${imagen.thumbnail}" class="card-img-top" alt="Imagen ${index + 1}">
+                    <div class="card position-relative">
+                        ${isPrimaryBadge}
+                        <img src="${imageUrl}" class="card-img-top" alt="Imagen ${index + 1}" style="height: 200px; object-fit: cover;">
                         <div class="card-body p-2">
                             <div class="d-flex justify-content-between align-items-center">
-                                <small>Imagen ${index + 1}</small>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="itemFormManager.removeImage(${index})">
-                                    <i class="mdi mdi-delete"></i>
-                                </button>
+                                <small class="text-muted">Imagen ${index + 1}</small>
+                                <div class="btn-group btn-group-sm">
+                                    ${!imagen.is_primary ? `
+                                        <button type="button" class="btn btn-outline-primary" onclick="itemFormManager.setPrimaryImage(${index})" title="Marcar como principal">
+                                            <i class="mdi mdi-star"></i>
+                                        </button>
+                                    ` : ''}
+                                    <button type="button" class="btn btn-outline-danger" onclick="itemFormManager.removeImage(${index})" title="Eliminar">
+                                        <i class="mdi mdi-delete"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
                 gallery.appendChild(imageCol);
-                
-                // Actualizar preview principal con la primera imagen
-                if (index === 0) {
-                    document.getElementById('previewMainImage').src = imagen.thumbnail;
+
+                // Actualizar preview principal con la imagen principal o la primera
+                if (imagen.is_primary || index === 0) {
+                    document.getElementById('previewMainImage').src = imageUrl;
                 }
             });
         }
@@ -1623,12 +1676,125 @@ class ItemFormManager {
             formData.imagenes.splice(index, 1);
             this.updateImageGallery();
             unsavedChanges = true;
-            
+
             // Si no hay imágenes, restaurar placeholder
             if (formData.imagenes.length === 0) {
                 document.getElementById('previewMainImage').src = '/public/materialize/assets/img/products/placeholder.png';
             }
         }
+
+        // ===== CARGAR IMÁGENES EXISTENTES EN DROPZONE =====
+        loadExistingImages(dropzoneInstance) {
+            const itemParent = window.bladeFormData?.itemParent;
+
+            if (!itemParent || !itemParent.images || itemParent.images.length === 0) {
+                console.log('No hay imágenes existentes para cargar');
+                return;
+            }
+
+            console.log('Cargando imágenes existentes:', itemParent.images);
+
+            itemParent.images.forEach((image, index) => {
+                // Crear un objeto mock file para Dropzone
+                const mockFile = {
+                    name: `imagen-${index + 1}.jpg`,
+                    size: 0,
+                    type: 'image/jpeg',
+                    status: Dropzone.ADDED,
+                    accepted: true,
+                    imageId: image.id,
+                    cloudinaryUrl: image.url,
+                    isPrimary: image.is_primary
+                };
+
+                // Agregar el archivo al Dropzone
+                dropzoneInstance.files.push(mockFile);
+                dropzoneInstance.emit('addedfile', mockFile);
+
+                // Agregar la thumbnail
+                dropzoneInstance.emit('thumbnail', mockFile, image.url);
+
+                // Marcar como completado
+                dropzoneInstance.emit('complete', mockFile);
+
+                // Agregar a formData
+                formData.imagenes.push({
+                    id: image.id,
+                    url: image.url,
+                    is_primary: image.is_primary,
+                    order: image.order || index
+                });
+            });
+
+            // Actualizar galería
+            this.updateImageGallery();
+        }
+
+        // ===== ELIMINAR IMAGEN DEL BACKEND =====
+        async deleteImageFromBackend(itemId, imageId) {
+            try {
+                const response = await fetch(`/inventory/unidad/${itemId}/imagen/${imageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('Imagen eliminada del backend');
+                } else {
+                    console.error('Error al eliminar imagen:', result.message);
+                    this.showAlert('Error al eliminar imagen: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error al eliminar imagen:', error);
+                this.showAlert('Error al eliminar imagen', 'error');
+            }
+        }
+
+        // ===== ESTABLECER IMAGEN COMO PRINCIPAL =====
+        async setPrimaryImage(index) {
+            const imagen = formData.imagenes[index];
+            const itemParentId = window.bladeFormData?.itemParent?.id;
+
+            if (!itemParentId || !imagen || !imagen.id) {
+                console.error('No se puede establecer imagen principal sin ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/inventory/unidad/${itemParentId}/imagen/${imagen.id}/principal`, {
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Actualizar formData - quitar is_primary de todas y establecer la nueva
+                    formData.imagenes.forEach((img, i) => {
+                        img.is_primary = (i === index);
+                    });
+
+                    // Actualizar galería
+                    this.updateImageGallery();
+                    this.showAlert('Imagen principal actualizada', 'success');
+                } else {
+                    console.error('Error al establecer imagen principal:', result.message);
+                    this.showAlert('Error al establecer imagen principal: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error al establecer imagen principal:', error);
+                this.showAlert('Error al establecer imagen principal', 'error');
+            }
+        }
+
         // ===== OBTENER VALOR DE TAGIFY =====
         getTagifyValue(tagifyInstance) {
             if (!tagifyInstance || !tagifyInstance.value || tagifyInstance.value.length === 0) {

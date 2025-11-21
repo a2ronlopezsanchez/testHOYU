@@ -13,6 +13,14 @@ class ItemImage extends Model
         'item_id',
         'name',
         'url',
+        'public_id',
+        'is_primary',
+        'order'
+    ];
+
+    protected $casts = [
+        'is_primary' => 'boolean',
+        'order' => 'integer'
     ];
 
     /**
