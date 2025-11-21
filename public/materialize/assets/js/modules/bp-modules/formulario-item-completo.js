@@ -736,6 +736,63 @@ class ItemFormManager {
                 console.log('Dropzone initialized with URL:', myDropzone.options.url);
                 console.log('CSRF Token:', myDropzone.options.headers['X-CSRF-TOKEN']);
 
+                // FORZAR petición XHR real - Sobrescribir método uploadFiles
+                myDropzone.uploadFiles = function(files) {
+                    console.log('=== CUSTOM UPLOADFILES DEBUG ===');
+                    console.log('Uploading files:', files);
+
+                    for (let file of files) {
+                        const formData = new FormData();
+                        formData.append(myDropzone.options.paramName, file);
+
+                        const xhr = new XMLHttpRequest();
+                        file.xhr = xhr;
+
+                        xhr.open(myDropzone.options.method || 'POST', myDropzone.options.url, true);
+
+                        // Agregar headers
+                        for (let headerName in myDropzone.options.headers) {
+                            xhr.setRequestHeader(headerName, myDropzone.options.headers[headerName]);
+                        }
+
+                        // Emitir evento sending
+                        myDropzone.emit('sending', file, xhr, formData);
+
+                        xhr.upload.addEventListener('progress', (e) => {
+                            if (e.lengthComputable) {
+                                const progress = (e.loaded / e.total) * 100;
+                                myDropzone.emit('uploadprogress', file, progress, e.loaded);
+                            }
+                        });
+
+                        xhr.addEventListener('load', () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                let response;
+                                try {
+                                    response = JSON.parse(xhr.responseText);
+                                } catch (e) {
+                                    response = xhr.responseText;
+                                }
+                                file.status = 'success';
+                                myDropzone.emit('success', file, response);
+                                myDropzone.emit('complete', file);
+                            } else {
+                                file.status = 'error';
+                                myDropzone.emit('error', file, xhr.responseText, xhr);
+                                myDropzone.emit('complete', file);
+                            }
+                        });
+
+                        xhr.addEventListener('error', () => {
+                            file.status = 'error';
+                            myDropzone.emit('error', file, 'Error de red', xhr);
+                            myDropzone.emit('complete', file);
+                        });
+
+                        xhr.send(formData);
+                    }
+                };
+
                 // Cargar imágenes existentes
                 itemFormManager.loadExistingImages(myDropzone);
 

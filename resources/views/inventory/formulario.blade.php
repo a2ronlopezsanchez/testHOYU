@@ -682,7 +682,7 @@
 
 @section('script')
 <!-- Vendors JS -->
-<script src="{{ asset('/materialize/assets/vendor/libs/dropzone/dropzone-official.js') }}"></script>
+<script src="{{ asset('/materialize/assets/vendor/libs/dropzone/dropzone.js') }}"></script>
 
 <!-- Pasar datos de Blade a JavaScript -->
 <script>
