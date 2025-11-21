@@ -1289,10 +1289,13 @@ class InventoryController extends Controller
                 $mode = 'new-from-parent';
             } elseif ($queryMode === 'edit-unit' && $unitId) {
                 $mode = 'edit-unit';
-                // Cargar el InventoryItem específico con sus specifications
+                // Cargar el InventoryItem específico con sus specifications e imágenes
                 $inventoryItem = InventoryItem::with([
                     'location',
-                    'specifications'
+                    'specifications',
+                    'images' => function($query) {
+                        $query->orderBy('order', 'asc');
+                    }
                 ])->findOrFail($unitId);
             } else {
                 $mode = 'edit';

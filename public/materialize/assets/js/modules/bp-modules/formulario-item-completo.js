@@ -870,8 +870,9 @@ class ItemFormManager {
 
                 this.on('removedfile', (file) => {
                     if (file.imageId) {
-                        // Eliminar del backend
-                        itemFormManager.deleteImageFromBackend(itemParentId, file.imageId);
+                        // Eliminar del backend usando el inventoryItemId
+                        console.log('Eliminando imagen del backend:', file.imageId);
+                        itemFormManager.deleteImageFromBackend(inventoryItemId, file.imageId);
 
                         // Eliminar de formData
                         formData.imagenes = formData.imagenes.filter(img => img.id !== file.imageId);
@@ -1834,16 +1835,17 @@ class ItemFormManager {
 
         // ===== CARGAR IMÁGENES EXISTENTES EN DROPZONE =====
         loadExistingImages(dropzoneInstance) {
-            const itemParent = window.bladeFormData?.itemParent;
+            // Buscar imágenes del InventoryItem específico
+            const inventoryItem = window.bladeFormData?.inventoryItem;
 
-            if (!itemParent || !itemParent.images || itemParent.images.length === 0) {
+            if (!inventoryItem || !inventoryItem.images || inventoryItem.images.length === 0) {
                 console.log('No hay imágenes existentes para cargar');
                 return;
             }
 
-            console.log('Cargando imágenes existentes:', itemParent.images);
+            console.log('Cargando imágenes existentes del InventoryItem:', inventoryItem.images);
 
-            itemParent.images.forEach((image, index) => {
+            inventoryItem.images.forEach((image, index) => {
                 // Crear un objeto mock file para Dropzone
                 const mockFile = {
                     name: `imagen-${index + 1}.jpg`,
