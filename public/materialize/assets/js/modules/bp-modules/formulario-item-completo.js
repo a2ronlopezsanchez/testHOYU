@@ -686,18 +686,28 @@ class ItemFormManager {
     initializeDropzone() {
         const dropzoneElement = document.querySelector('#dropzone-multi');
 
-        if (!dropzoneElement) return;
+        if (!dropzoneElement) {
+            console.log('Dropzone element not found');
+            return;
+        }
 
         // Obtener el ID del item
         const itemParentId = window.bladeFormData?.itemParent?.id;
+
+        console.log('=== DROPZONE INIT DEBUG ===');
+        console.log('window.bladeFormData:', window.bladeFormData);
+        console.log('itemParentId:', itemParentId);
 
         if (!itemParentId) {
             console.warn('No se puede inicializar Dropzone sin item_parent_id');
             return;
         }
 
+        const uploadUrl = `/inventory/unidad/${itemParentId}/imagen`;
+        console.log('Upload URL:', uploadUrl);
+
         dropzoneInstance = new Dropzone(dropzoneElement, {
-            url: `/inventory/unidad/${itemParentId}/imagen`,
+            url: uploadUrl,
             paramName: 'image',
             maxFilesize: 5, // MB
             maxFiles: 10,
@@ -715,8 +725,18 @@ class ItemFormManager {
                 // Cargar imágenes existentes
                 itemFormManager.loadExistingImages(myDropzone);
 
+                this.on('sending', (file, xhr, formData) => {
+                    console.log('=== DROPZONE SENDING DEBUG ===');
+                    console.log('URL:', myDropzone.options.url);
+                    console.log('File:', file);
+                    console.log('FormData:', formData);
+                });
+
                 this.on('success', (file, response) => {
+                    console.log('=== DROPZONE SUCCESS DEBUG ===');
                     console.log('Imagen subida exitosamente:', response);
+                    console.log('Response type:', typeof response);
+                    console.log('Response.success:', response.success);
 
                     if (response.success) {
                         // Guardar datos de Cloudinary en el archivo
