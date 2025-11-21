@@ -1788,7 +1788,7 @@ class InventoryController extends Controller
     {
         try {
             \Log::info('=== UPLOAD IMAGE DEBUG ===');
-            \Log::info('Request ID: ' . $id);
+            \Log::info('Request ID (inventory_item_id): ' . $id);
             \Log::info('Has file: ' . ($request->hasFile('image') ? 'YES' : 'NO'));
 
             // Validar la imagen
@@ -1796,9 +1796,9 @@ class InventoryController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // max 5MB
             ]);
 
-            // Buscar el ItemParent (no InventoryItem)
-            $itemParent = ItemParent::findOrFail($id);
-            \Log::info('ItemParent found: ' . $itemParent->id);
+            // Buscar el InventoryItem (unidad específica)
+            $inventoryItem = InventoryItem::findOrFail($id);
+            \Log::info('InventoryItem found: ' . $inventoryItem->id);
 
             // Subir la imagen a Cloudinary usando el facade
             $uploadedFile = $request->file('image');
@@ -1879,7 +1879,7 @@ class InventoryController extends Controller
             \Log::info('Cloudinary result: ' . json_encode($result));
 
             // Obtener el número de imágenes existentes para determinar el orden
-            $order = $itemParent->images()->count();
+            $order = $inventoryItem->images()->count();
 
             // Guardar en la base de datos
             // Manejar tanto objetos de Cloudinary como objetos stdClass del fallback manual
@@ -1891,7 +1891,7 @@ class InventoryController extends Controller
                 : $result->public_id;
 
             $image = ItemImage::create([
-                'item_id' => $itemParent->id,
+                'item_id' => $inventoryItem->id,
                 'url' => $imageUrl,
                 'public_id' => $publicId,
                 'is_primary' => $order === 0, // La primera imagen es la principal

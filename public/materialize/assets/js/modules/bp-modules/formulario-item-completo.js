@@ -691,19 +691,23 @@ class ItemFormManager {
             return;
         }
 
-        // Obtener el ID del item
-        const itemParentId = window.bladeFormData?.itemParent?.id;
+        // Obtener el ID del InventoryItem (unidad específica)
+        // Prioridad: 1. inventoryItem existente (edit-unit/edit), 2. currentInventoryItemId (autoguardado en new-from-parent)
+        let inventoryItemId = window.bladeFormData?.inventoryItem?.id || currentInventoryItemId;
 
         console.log('=== DROPZONE INIT DEBUG ===');
         console.log('window.bladeFormData:', window.bladeFormData);
-        console.log('itemParentId:', itemParentId);
+        console.log('currentInventoryItemId:', currentInventoryItemId);
+        console.log('inventoryItemId:', inventoryItemId);
 
-        if (!itemParentId) {
-            console.warn('No se puede inicializar Dropzone sin item_parent_id');
+        if (!inventoryItemId) {
+            console.warn('No se puede inicializar Dropzone sin inventory_item_id. Esperando autoguardado...');
+            // En modo new-from-parent, el dropzone se inicializará después del primer autoguardado
+            dropzoneElement.innerHTML = '<div class="dz-message text-muted">Guarda el formulario primero para poder subir imágenes</div>';
             return;
         }
 
-        const uploadUrl = `/inventory/unidad/${itemParentId}/imagen`;
+        const uploadUrl = `/inventory/unidad/${inventoryItemId}/imagen`;
         console.log('Upload URL:', uploadUrl);
 
         dropzoneInstance = new Dropzone(dropzoneElement, {
@@ -1133,9 +1137,16 @@ class ItemFormManager {
 
                 if (result.success) {
                     // Si es la primera vez que guardamos, almacenar el ID de base de datos
-                    if (!currentInventoryItemId && result.data && result.data.database_id) {
+                    const isFirstSave = !currentInventoryItemId && result.data && result.data.database_id;
+                    if (isFirstSave) {
                         currentInventoryItemId = result.data.database_id;
                         console.log('Borrador creado con ID:', currentInventoryItemId);
+
+                        // Inicializar Dropzone ahora que tenemos un inventory_item_id
+                        if (!dropzoneInstance) {
+                            console.log('Inicializando Dropzone después del primer guardado...');
+                            this.initializeDropzone();
+                        }
                     }
 
                     autoSaveStatus.textContent = 'Guardado hace un momento';
