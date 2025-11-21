@@ -1804,12 +1804,22 @@ class InventoryController extends Controller
             $uploadedFile = $request->file('image');
             \Log::info('Uploading to Cloudinary...');
 
+            // Configurar opciones de Cloudinary (deshabilitar SSL verify para desarrollo en Windows)
+            $uploadOptions = [
+                'folder' => 'inventory_items',
+                'resource_type' => 'image',
+                'secure' => true
+            ];
+
+            // Verificar si las credenciales están configuradas
+            $cloudName = config('cloudinary.cloud_name');
+            if (empty($cloudName) || $cloudName === 'your_cloud_name') {
+                throw new \Exception('Credenciales de Cloudinary no configuradas. Por favor configura CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY y CLOUDINARY_API_SECRET en el archivo .env');
+            }
+
             $result = Cloudinary::upload(
                 $uploadedFile->getRealPath(),
-                [
-                    'folder' => 'inventory_items',
-                    'resource_type' => 'image'
-                ]
+                $uploadOptions
             );
 
             \Log::info('Cloudinary result: ' . json_encode($result));
