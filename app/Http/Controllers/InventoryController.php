@@ -1799,11 +1799,19 @@ class InventoryController extends Controller
             $itemParent = ItemParent::findOrFail($id);
             \Log::info('ItemParent found: ' . $itemParent->id);
 
-            // Subir la imagen a Cloudinary
+            // Subir la imagen a Cloudinary usando el facade
             $uploadedFile = $request->file('image');
             \Log::info('Uploading to Cloudinary...');
-            $result = $uploadedFile->storeOnCloudinary('inventory_items');
-            \Log::info('Cloudinary result: ' . $result->getSecurePath());
+
+            $result = cloudinary()->upload(
+                $uploadedFile->getRealPath(),
+                [
+                    'folder' => 'inventory_items',
+                    'resource_type' => 'image'
+                ]
+            );
+
+            \Log::info('Cloudinary result: ' . json_encode($result));
 
             // Obtener el número de imágenes existentes para determinar el orden
             $order = $itemParent->images()->count();
