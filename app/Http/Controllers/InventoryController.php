@@ -11,6 +11,7 @@ use App\Models\EventAssignment;
 use App\Models\Event;
 use App\Models\Specification;
 use App\Models\MaintenanceRecord;
+use App\Models\ItemImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;

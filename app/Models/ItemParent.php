@@ -20,4 +20,5 @@ class ItemParent extends Model
     public function category(){ return $this->belongsTo(Category::class); }
     public function brand()   { return $this->belongsTo(Brand::class); }
     public function items()   { return $this->hasMany(InventoryItem::class, 'item_parent_id'); }
+    public function images()  { return $this->hasMany(ItemImage::class, 'item_id'); }
 }
