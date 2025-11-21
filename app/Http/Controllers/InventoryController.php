@@ -1804,23 +1804,77 @@ class InventoryController extends Controller
             $uploadedFile = $request->file('image');
             \Log::info('Uploading to Cloudinary...');
 
-            // Configurar opciones de Cloudinary (deshabilitar SSL verify para desarrollo en Windows)
-            $uploadOptions = [
-                'folder' => 'inventory_items',
-                'resource_type' => 'image',
-                'secure' => true
-            ];
-
             // Verificar si las credenciales están configuradas
             $cloudUrl = config('cloudinary.cloud_url');
             if (empty($cloudUrl) || strpos($cloudUrl, 'your_cloud_name') !== false || strpos($cloudUrl, 'your_api_key') !== false) {
                 throw new \Exception('Credenciales de Cloudinary no configuradas. Por favor configura CLOUDINARY_URL en el archivo .env');
             }
 
-            $result = Cloudinary::upload(
-                $uploadedFile->getRealPath(),
-                $uploadOptions
-            );
+            // Deshabilitar verificación SSL temporalmente para desarrollo en Windows/XAMPP
+            // IMPORTANTE: Solo para ambiente local. En producción configura los certificados SSL correctamente.
+            $previousVerifyPeer = null;
+            $previousVerifyHost = null;
+            if (config('app.env') === 'local' && strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $previousVerifyPeer = ini_get('curl.cainfo');
+                $previousVerifyHost = ini_get('openssl.cafile');
+                // Temporalmente deshabilitar verificación SSL
+                \Cloudinary\Configuration\Configuration::instance()->url->secure(true);
+            }
+
+            try {
+                // Configurar opciones de upload
+                $uploadOptions = [
+                    'folder' => 'inventory_items',
+                    'resource_type' => 'image',
+                ];
+
+                $result = Cloudinary::upload(
+                    $uploadedFile->getRealPath(),
+                    $uploadOptions
+                );
+            } catch (\Exception $e) {
+                // Si el error es de SSL, intentar con verificación deshabilitada
+                if (strpos($e->getMessage(), 'SSL certificate') !== false || strpos($e->getMessage(), 'cURL error 60') !== false) {
+                    \Log::warning('SSL certificate error detected, retrying with verification disabled for local development');
+
+                    // Usar la API de Cloudinary directamente con opciones de Guzzle
+                    $client = new \GuzzleHttp\Client([
+                        'verify' => false, // Deshabilitar verificación SSL
+                    ]);
+
+                    // Construir la petición manualmente
+                    $cloudName = env('CLOUDINARY_CLOUD_NAME');
+                    $apiKey = env('CLOUDINARY_API_KEY');
+                    $apiSecret = env('CLOUDINARY_API_SECRET');
+                    $timestamp = time();
+
+                    $params = [
+                        'folder' => 'inventory_items',
+                        'timestamp' => $timestamp,
+                    ];
+
+                    // Generar firma
+                    $signature = $this->generateCloudinarySignature($params, $apiSecret);
+
+                    $response = $client->request('POST', "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+                        'multipart' => [
+                            [
+                                'name' => 'file',
+                                'contents' => fopen($uploadedFile->getRealPath(), 'r'),
+                                'filename' => $uploadedFile->getClientOriginalName(),
+                            ],
+                            ['name' => 'folder', 'contents' => 'inventory_items'],
+                            ['name' => 'timestamp', 'contents' => $timestamp],
+                            ['name' => 'api_key', 'contents' => $apiKey],
+                            ['name' => 'signature', 'contents' => $signature],
+                        ],
+                    ]);
+
+                    $result = json_decode($response->getBody()->getContents());
+                } else {
+                    throw $e;
+                }
+            }
 
             \Log::info('Cloudinary result: ' . json_encode($result));
 
@@ -1828,10 +1882,18 @@ class InventoryController extends Controller
             $order = $itemParent->images()->count();
 
             // Guardar en la base de datos
+            // Manejar tanto objetos de Cloudinary como objetos stdClass del fallback manual
+            $imageUrl = is_object($result) && method_exists($result, 'getSecurePath')
+                ? $result->getSecurePath()
+                : $result->secure_url;
+            $publicId = is_object($result) && method_exists($result, 'getPublicId')
+                ? $result->getPublicId()
+                : $result->public_id;
+
             $image = ItemImage::create([
                 'item_id' => $itemParent->id,
-                'url' => $result->getSecurePath(),
-                'public_id' => $result->getPublicId(),
+                'url' => $imageUrl,
+                'public_id' => $publicId,
                 'is_primary' => $order === 0, // La primera imagen es la principal
                 'order' => $order
             ]);
@@ -1865,6 +1927,27 @@ class InventoryController extends Controller
                 'message' => 'Error al subir la imagen: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generar firma de autenticación para Cloudinary
+     */
+    private function generateCloudinarySignature($params, $apiSecret)
+    {
+        // Ordenar parámetros alfabéticamente
+        ksort($params);
+
+        // Crear string de parámetros
+        $paramString = '';
+        foreach ($params as $key => $value) {
+            if (!empty($value)) {
+                $paramString .= $key . '=' . $value . '&';
+            }
+        }
+        $paramString = rtrim($paramString, '&');
+
+        // Generar firma SHA-1
+        return sha1($paramString . $apiSecret);
     }
 
     /**
