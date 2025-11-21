@@ -708,6 +708,7 @@ class ItemFormManager {
 
         dropzoneInstance = new Dropzone(dropzoneElement, {
             url: uploadUrl,
+            method: 'post',
             paramName: 'image',
             maxFilesize: 5, // MB
             maxFiles: 10,
@@ -715,6 +716,8 @@ class ItemFormManager {
             addRemoveLinks: true,
             dictRemoveFile: 'Eliminar',
             dictCancelUpload: 'Cancelar',
+            autoProcessQueue: true, // Procesar automáticamente
+            uploadMultiple: false, // Una imagen a la vez
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 'X-Requested-With': 'XMLHttpRequest'
@@ -722,23 +725,42 @@ class ItemFormManager {
             init: function() {
                 const myDropzone = this;
 
+                console.log('Dropzone initialized with URL:', myDropzone.options.url);
+                console.log('CSRF Token:', myDropzone.options.headers['X-CSRF-TOKEN']);
+
                 // Cargar imágenes existentes
                 itemFormManager.loadExistingImages(myDropzone);
+
+                this.on('addedfile', (file) => {
+                    console.log('=== DROPZONE ADDEDFILE DEBUG ===');
+                    console.log('File added:', file.name);
+                    console.log('Dropzone processing?', myDropzone.options.autoProcessQueue);
+                });
 
                 this.on('sending', (file, xhr, formData) => {
                     console.log('=== DROPZONE SENDING DEBUG ===');
                     console.log('URL:', myDropzone.options.url);
                     console.log('File:', file);
+                    console.log('XHR:', xhr);
                     console.log('FormData:', formData);
                 });
 
                 this.on('success', (file, response) => {
                     console.log('=== DROPZONE SUCCESS DEBUG ===');
-                    console.log('Imagen subida exitosamente:', response);
+                    console.log('Raw response:', response);
                     console.log('Response type:', typeof response);
+
+                    // Verificar si la respuesta es un string (modo mock) o un objeto (respuesta real)
+                    if (typeof response === 'string') {
+                        console.error('⚠️ DROPZONE EN MODO MOCK - La respuesta es un string, no un objeto JSON');
+                        console.error('Esto significa que la petición HTTP NO se está haciendo realmente');
+                        itemFormManager.showAlert('Error: Dropzone no está enviando la petición al servidor', 'error');
+                        return;
+                    }
+
                     console.log('Response.success:', response.success);
 
-                    if (response.success) {
+                    if (response && response.success) {
                         // Guardar datos de Cloudinary en el archivo
                         file.imageId = response.data.id;
                         file.cloudinaryUrl = response.data.url;
@@ -1975,15 +1997,16 @@ class ItemFormManager {
 // ===== INICIALIZACIÓN =====
 let itemFormManager;
 
+// Configurar Dropzone globalmente ANTES de cualquier inicialización
+if (typeof Dropzone !== 'undefined') {
+    Dropzone.autoDiscover = false;
+    console.log('Dropzone.autoDiscover deshabilitado');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar el gestor del formulario
     itemFormManager = new ItemFormManager();
-    
-    // Configurar Dropzone globalmente
-    if (typeof Dropzone !== 'undefined') {
-        Dropzone.autoDiscover = false;
-    }
-    
+
     console.log('Formulario de Item Completo inicializado correctamente');
 });
 
