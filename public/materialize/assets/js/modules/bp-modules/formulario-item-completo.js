@@ -718,9 +718,17 @@ class ItemFormManager {
             dictCancelUpload: 'Cancelar',
             autoProcessQueue: true, // Procesar automáticamente
             uploadMultiple: false, // Una imagen a la vez
+            clickable: true, // Permitir clicks
+            createImageThumbnails: true,
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 'X-Requested-With': 'XMLHttpRequest'
+            },
+            // NO usar accept handler (evitar mocks)
+            accept: function(file, done) {
+                console.log('=== ACCEPT HANDLER ===');
+                console.log('Accepting file:', file.name);
+                done(); // Aceptar el archivo sin validación adicional
             },
             init: function() {
                 const myDropzone = this;
@@ -734,7 +742,21 @@ class ItemFormManager {
                 this.on('addedfile', (file) => {
                     console.log('=== DROPZONE ADDEDFILE DEBUG ===');
                     console.log('File added:', file.name);
+                    console.log('File status:', file.status);
                     console.log('Dropzone processing?', myDropzone.options.autoProcessQueue);
+                    console.log('Queue length:', myDropzone.getQueuedFiles().length);
+
+                    // Forzar procesamiento si autoProcessQueue está deshabilitado
+                    if (!myDropzone.options.autoProcessQueue) {
+                        console.log('Procesando manualmente...');
+                        myDropzone.processQueue();
+                    }
+                });
+
+                this.on('processing', (file) => {
+                    console.log('=== DROPZONE PROCESSING DEBUG ===');
+                    console.log('Processing file:', file.name);
+                    console.log('Upload URL:', myDropzone.options.url);
                 });
 
                 this.on('sending', (file, xhr, formData) => {
@@ -743,6 +765,12 @@ class ItemFormManager {
                     console.log('File:', file);
                     console.log('XHR:', xhr);
                     console.log('FormData:', formData);
+                });
+
+                this.on('uploadprogress', (file, progress, bytesSent) => {
+                    console.log('=== DROPZONE UPLOAD PROGRESS ===');
+                    console.log('Progress:', progress + '%');
+                    console.log('Bytes sent:', bytesSent);
                 });
 
                 this.on('success', (file, response) => {
@@ -791,7 +819,11 @@ class ItemFormManager {
                 });
 
                 this.on('error', (file, errorMessage, xhr) => {
+                    console.error('=== DROPZONE ERROR DEBUG ===');
                     console.error('Error al subir imagen:', errorMessage);
+                    console.error('XHR:', xhr);
+                    console.error('File status:', file.status);
+
                     let message = 'Error al subir imagen';
 
                     if (typeof errorMessage === 'object' && errorMessage.message) {
@@ -801,6 +833,13 @@ class ItemFormManager {
                     }
 
                     itemFormManager.showAlert(message, 'error');
+                });
+
+                this.on('complete', (file) => {
+                    console.log('=== DROPZONE COMPLETE DEBUG ===');
+                    console.log('File complete:', file.name);
+                    console.log('Status:', file.status);
+                    console.log('XHR:', file.xhr);
                 });
 
                 this.on('maxfilesexceeded', (file) => {
