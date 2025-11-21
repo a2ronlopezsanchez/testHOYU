@@ -25,6 +25,8 @@
                 <span id="formTitle">
                   @if($mode === 'edit')
                     Editar Item
+                  @elseif($mode === 'edit-unit')
+                    Editar Unidad
                   @elseif($mode === 'new-from-parent')
                     Añadir Nueva Unidad
                   @else
@@ -35,6 +37,8 @@
               <p class="mb-0 text-muted">
                 @if($mode === 'edit')
                   Modifique los campos necesarios y guarde los cambios
+                @elseif($mode === 'edit-unit')
+                  Modifique los campos de esta unidad específica.
                 @elseif($mode === 'new-from-parent')
                   Complete los campos para añadir una nueva unidad a este producto
                 @else
@@ -52,6 +56,8 @@
                 <span id="saveButtonText">
                   @if($mode === 'edit')
                     Actualizar Item
+                  @elseif($mode === 'edit-unit')
+                    Actualizar Unidad
                   @elseif($mode === 'new-from-parent')
                     Guardar Nueva Unidad
                   @else
@@ -324,7 +330,6 @@
                               <i class="mdi mdi-qrcode-scan"></i>
                             </button>
                           </div>
-                          <label for="itemRfidTag">Etiqueta RFID</label>
                         </div>
                       </div>
                       <div class="col-md-4">
@@ -685,8 +690,12 @@ window.bladeFormData = {
     mode: '{{ $mode }}',
     itemParent: @json($itemParent),
     // Si es edición y hay items, tomar el primero como referencia
+    // Si es edit-unit, usar el inventoryItem específico pasado desde el controlador
     // En modo new-from-parent, NO cargar ningún item existente
-    inventoryItem: @json($mode === 'edit' && $itemParent && $itemParent->items->first() ? $itemParent->items->first() : null)
+    inventoryItem: @json(
+        $mode === 'edit-unit' && isset($inventoryItem) ? $inventoryItem :
+        ($mode === 'edit' && $itemParent && $itemParent->items->first() ? $itemParent->items->first() : null)
+    )
 };
 console.log('Blade Form Data:', window.bladeFormData);
 </script>

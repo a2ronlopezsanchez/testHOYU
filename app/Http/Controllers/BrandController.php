@@ -91,12 +91,10 @@ class BrandController extends Controller
             'logo_url'       => ['nullable','string','max:255'],
             'is_active'      => ['required','boolean'],
         ]);
-
         // Auto-generar code si no viene en el request
         if (empty($data['code'])) {
             $data['code'] = $this->generateUniqueCode($data['name'], 'brands');
         }
-
         // Normaliza website (agrega https:// si no trae esquema)
         if (!empty($data['website']) && !preg_match('~^https?://~i', $data['website'])) {
             $data['website'] = 'https://' . $data['website'];
@@ -106,8 +104,7 @@ class BrandController extends Controller
 
         return response()->json(['message' => 'Marca creada', 'id' => $brand->id], 201);
     }
-
-    /**
+     /**
      * Genera un code único basado en el nombre
      * Intenta con 1 letra, luego 2, luego 3, etc.
      *
@@ -164,7 +161,6 @@ class BrandController extends Controller
         // Último recurso: timestamp
         return $baseName . time();
     }
-
     public function update(Request $request, Brand $brand)
     {
         $data = $request->validate([

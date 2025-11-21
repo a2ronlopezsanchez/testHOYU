@@ -8,10 +8,23 @@
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/cards-statistics.css') }}" />
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/vista-detalle-item.css') }}" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}">
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}">
 @endsection
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
+
+  <!-- Alerta de Mantenimiento Vencido -->
+  @if($hasOverdueMaintenance)
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="mdi mdi-alert-circle me-2"></i>
+    <strong>¡Mantenimiento Vencido!</strong> La inspección está atrasada por {{ $overdueDays }} {{ $overdueDays == 1 ? 'día' : 'días' }}.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  @endif
 
   <!-- Header del Item -->
   <div class="card mb-4">
@@ -176,13 +189,19 @@
                   <div class="info-item">
                     <span class="info-label">Garantía</span>
                     <div class="info-value">
+                      <!--
                       <span id="itemWarranty">
                         {{ $currentItem->warranty_provider ?? 'N/A' }}
                         @if($currentItem->warranty_expiration)
                           ({{ $currentItem->warranty_expiration }})
                         @endif
                       </span>
-                      <span class="badge bg-label-danger ms-2" id="warrantyStatus">Expirada</span>
+                        -->
+                      @if($currentItem->warranty_valid)
+                        <span class="badge bg-label-success ms-2" id="warrantyStatus">Vigente</span>
+                      @else
+                        <span class="badge bg-label-danger ms-2" id="warrantyStatus">Sin garantía</span>
+                      @endif
                     </div>
                   </div>
                 </div>
@@ -299,7 +318,7 @@
                       <i class="mdi mdi-calendar"></i>
                     </div>
                     <div class="stat-content">
-                      <h3 class="stat-value" id="totalEvents">28</h3>
+                      <h3 class="stat-value" id="totalEvents">{{ $totalEvents }}</h3>
                       <p class="stat-label">Total de Eventos</p>
                     </div>
                   </div>
@@ -310,7 +329,7 @@
                       <i class="mdi mdi-clock-outline"></i>
                     </div>
                     <div class="stat-content">
-                      <h3 class="stat-value" id="totalHours">187 hrs</h3>
+                      <h3 class="stat-value" id="totalHours">{{ number_format($totalHours, 1) }} hrs</h3>
                       <p class="stat-label">Horas de Uso</p>
                     </div>
                   </div>
@@ -321,7 +340,7 @@
                       <i class="mdi mdi-wrench"></i>
                     </div>
                     <div class="stat-content">
-                      <h3 class="stat-value" id="totalMaintenances">3</h3>
+                      <h3 class="stat-value" id="totalMaintenances">{{ $totalMaintenances }}</h3>
                       <p class="stat-label">Mantenimientos</p>
                     </div>
                   </div>
@@ -341,18 +360,28 @@
                       </tr>
                     </thead>
                     <tbody id="upcomingEventsTable">
-                      <tr>
-                        <td>Conferencia Empresarial</td>
-                        <td>20/04/2025</td>
-                        <td>Hotel Business</td>
-                        <td><span class="badge bg-label-success">Confirmado</span></td>
-                      </tr>
-                      <tr>
-                        <td>Boda Rodríguez-López</td>
-                        <td>08/05/2025</td>
-                        <td>Hacienda Vista Verde</td>
-                        <td><span class="badge bg-label-success">Confirmado</span></td>
-                      </tr>
+                      @forelse($upcomingEvents as $upcoming)
+                        <tr>
+                          <td>{{ $upcoming->event->name ?? 'Sin nombre' }}</td>
+                          <td>{{ $upcoming->event && $upcoming->event->start_date ? $upcoming->event->start_date->format('d/m/Y') : '-' }}</td>
+                          <td>{{ $upcoming->event->venue_address ?? 'Sin ubicación' }}</td>
+                          <td>
+                            @php
+                              $statusMap = [
+                                'ASIGNADO' => ['text' => 'Asignado', 'class' => 'bg-info'],
+                                'EN_USO' => ['text' => 'En Uso', 'class' => 'bg-warning'],
+                                'CANCELADO' => ['text' => 'Cancelado', 'class' => 'bg-secondary']
+                              ];
+                              $status = $statusMap[$upcoming->assignment_status] ?? ['text' => $upcoming->assignment_status, 'class' => 'bg-secondary'];
+                            @endphp
+                            <span class="badge {{ $status['class'] }}">{{ $status['text'] }}</span>
+                          </td>
+                        </tr>
+                      @empty
+                        <tr>
+                          <td colspan="4" class="text-center text-muted">No hay eventos próximos programados</td>
+                        </tr>
+                      @endforelse
                     </tbody>
                   </table>
                 </div>
@@ -387,18 +416,34 @@
                 <h6 class="mb-3">Mantenimiento</h6>
                 <div class="d-flex justify-content-between mb-2">
                   <span class="text-muted">Última inspección:</span>
-                  <span id="lastInspection">05/03/2025</span>
+                  <span id="lastInspection">{{ $lastInspectionDate }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                   <span class="text-muted">Próxima inspección:</span>
-                  <span class="fw-medium text-primary" id="nextInspection">05/06/2025</span>
+                  <span class="fw-medium {{ $nextInspectionOverdue ? 'text-danger' : 'text-primary' }}" id="nextInspection">{{ $nextInspectionDate }}</span>
                 </div>
 
                 <div class="mb-2">
-                  <span class="badge bg-label-success">En buen estado</span>
+                  @php
+                    $condition = strtoupper($currentItem->condition ?? 'BUENO');
+                    $badgeClass = 'bg-label-success';
+                    $progressPercent = 75;
+                    $progressClass = 'bg-success';
+
+                    if (in_array($condition, ['REGULAR', 'MEDIO'])) {
+                      $badgeClass = 'bg-label-warning';
+                      $progressPercent = 50;
+                      $progressClass = 'bg-warning';
+                    } elseif (in_array($condition, ['MALO', 'DEFICIENTE', 'DAÑADO'])) {
+                      $badgeClass = 'bg-label-danger';
+                      $progressPercent = 25;
+                      $progressClass = 'bg-danger';
+                    }
+                  @endphp
+                  <span class="badge {{ $badgeClass }}">{{ ucfirst(strtolower($currentItem->condition ?? 'Bueno')) }}</span>
                 </div>
                 <div class="progress" style="height: 8px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                  <div class="progress-bar {{ $progressClass }}" role="progressbar" style="width: {{ $progressPercent }}%"></div>
                 </div>
               </div>
 
@@ -478,11 +523,18 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Historial de Uso</h5>
           <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="mdi mdi-download me-1"></i>Exportar
-            </button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="mdi mdi-download me-1"></i>Exportar
+              </button>
+              <ul class="dropdown-menu" id="usageExportButtons">
+                <li><a class="dropdown-item" href="#" data-export="excel"><i class="mdi mdi-file-excel-outline me-1"></i>Excel</a></li>
+                <li><a class="dropdown-item" href="#" data-export="pdf"><i class="mdi mdi-file-pdf-box me-1"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="#" data-export="print"><i class="mdi mdi-printer-outline me-1"></i>Imprimir</a></li>
+              </ul>
+            </div>
             <button class="btn btn-sm btn-primary" id="registerUsageBtn">
-              <i class="mdi mdi-calendar-plus me-1"></i>Registrar Uso
+              <i class="mdi mdi-calendar-plus me-1"></i>Registrar Uso del Equipo
             </button>
           </div>
         </div>
@@ -500,54 +552,29 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Concierto Rock City</td>
-                  <td>10/03/2025</td>
-                  <td>Arena Ciudad</td>
-                  <td>8 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Funcionamiento correcto</td>
-                </tr>
-                <tr>
-                  <td>Boda García-Mendez</td>
-                  <td>28/02/2025</td>
-                  <td>Hotel Palace</td>
-                  <td>6 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Se detectó zumbido a volumen alto</td>
-                </tr>
-                <tr>
-                  <td>Conferencia Anual Tecnología</td>
-                  <td>15/02/2025</td>
-                  <td>Centro Convenciones</td>
-                  <td>4 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Sin incidencias</td>
-                </tr>
-                <tr>
-                  <td>Festival de Verano</td>
-                  <td>22/01/2025</td>
-                  <td>Parque Central</td>
-                  <td>10 hrs</td>
-                  <td><span class="badge bg-label-success">Finalizado</span></td>
-                  <td>Funcionamiento normal</td>
-                </tr>
+                @foreach($usageRecords as $record)
+                  <tr data-usage-id="{{ $record->id }}" class="usage-record-row">
+                    <td>{{ $record->event->name ?? 'Sin evento' }}</td>
+                    <td>{{ $record->event && $record->event->start_date ? $record->event->start_date->format('d/m/Y') : '-' }}</td>
+                    <td>{{ $record->event->venue_address ?? 'Sin ubicación' }}</td>
+                    <td>{{ $record->hours_used ? number_format($record->hours_used, 1) . ' hrs' : '-' }}</td>
+                    <td>
+                      @php
+                        $statusMap = [
+                          'ASIGNADO' => ['text' => 'Asignado', 'class' => 'bg-info'],
+                          'EN_USO' => ['text' => 'En Uso', 'class' => 'bg-warning'],
+                          'DEVUELTO' => ['text' => 'Devuelto', 'class' => 'bg-success'],
+                          'CANCELADO' => ['text' => 'Cancelado', 'class' => 'bg-secondary']
+                        ];
+                        $status = $statusMap[$record->assignment_status] ?? ['text' => $record->assignment_status, 'class' => 'bg-secondary'];
+                      @endphp
+                      <span class="badge {{ $status['class'] }}">{{ $status['text'] }}</span>
+                    </td>
+                    <td>{{ $record->notes ?? 'Sin notas' }}</td>
+                  </tr>
+                @endforeach
               </tbody>
             </table>
-          </div>
-
-          <!-- Paginación -->
-          <div class="d-flex justify-content-between align-items-center mt-4">
-            <div class="text-muted">Mostrando 4 de 28 registros</div>
-            <nav>
-              <ul class="pagination pagination-sm mb-0">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-              </ul>
-            </nav>
           </div>
         </div>
       </div>
@@ -559,9 +586,16 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Historial de Mantenimiento</h5>
           <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary">
-              <i class="mdi mdi-download me-1"></i>Exportar
-            </button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="mdi mdi-download me-1"></i>Exportar
+              </button>
+              <ul class="dropdown-menu" id="maintenanceExportButtons">
+                <li><a class="dropdown-item" href="#" data-export="excel"><i class="mdi mdi-file-excel-outline me-1"></i>Excel</a></li>
+                <li><a class="dropdown-item" href="#" data-export="pdf"><i class="mdi mdi-file-pdf-box me-1"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="#" data-export="print"><i class="mdi mdi-printer-outline me-1"></i>Imprimir</a></li>
+              </ul>
+            </div>
             <button class="btn btn-sm btn-primary" id="registerMaintenanceBtn">
               <i class="mdi mdi-wrench me-1"></i>Registrar Mantenimiento
             </button>
@@ -578,33 +612,52 @@
                   <th>Costo</th>
                   <th>Estado</th>
                   <th>Notas</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Revisión</td>
-                  <td>05/03/2025</td>
-                  <td>Miguel Ángel</td>
-                  <td>$0</td>
-                  <td><span class="badge bg-label-success">Completado</span></td>
-                  <td>Se verificó el zumbido reportado. Se recomienda revisar los circuitos internos en la próxima revisión.</td>
-                </tr>
-                <tr>
-                  <td>Limpieza</td>
-                  <td>10/01/2025</td>
-                  <td>Carlos Mendoza</td>
-                  <td>$25</td>
-                  <td><span class="badge bg-label-success">Completado</span></td>
-                  <td>Limpieza de componentes y carcasa.</td>
-                </tr>
-                <tr>
-                  <td>Reparación</td>
-                  <td>15/11/2024</td>
-                  <td>Roberto Sánchez</td>
-                  <td>$75</td>
-                  <td><span class="badge bg-label-success">Completado</span></td>
-                  <td>Sustitución de fusible y revisión de conexiones internas.</td>
-                </tr>
+                @foreach($maintenanceRecords as $record)
+                  <tr data-maintenance-id="{{ $record->id }}">
+                    <td>{{ $record->maintenance_type }}</td>
+                    <td>{{ $record->scheduled_date->format('d/m/Y') }}</td>
+                    <td>{{ $record->technician_name }}</td>
+                    <td>${{ number_format($record->total_cost, 2) }}</td>
+                    <td>
+                      @php
+                        $badgeClass = 'bg-label-secondary';
+                        if ($record->maintenance_status === 'COMPLETADO') {
+                          $badgeClass = 'bg-label-success';
+                        } elseif ($record->maintenance_status === 'PROGRAMADO') {
+                          $badgeClass = 'bg-label-primary';
+                        } elseif ($record->maintenance_status === 'VENCIDO') {
+                          $badgeClass = 'bg-label-danger';
+                        }
+                      @endphp
+                      <span class="badge {{ $badgeClass }}" data-status="{{ $record->maintenance_status }}">
+                        {{ ucfirst(strtolower($record->maintenance_status)) }}
+                      </span>
+                    </td>
+                    <td>{{ $record->work_description ?? 'Sin notas' }}</td>
+                    <td>
+                      @if($record->maintenance_status !== 'COMPLETADO')
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a class="dropdown-item complete-maintenance-btn" href="#" data-maintenance-id="{{ $record->id }}">
+                                <i class="mdi mdi-check me-2"></i>Completar
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      @else
+                        <span class="text-muted">-</span>
+                      @endif
+                    </td>
+                  </tr>
+                @endforeach
               </tbody>
             </table>
           </div>
@@ -726,11 +779,109 @@
     </div>
   </div>
 </div>
+
+<!-- Modal Completar Mantenimiento -->
+<div class="modal fade" id="completeMaintenanceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Completar Mantenimiento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center py-3">
+          <i class="mdi mdi-check-circle-outline mdi-48px text-success mb-3"></i>
+          <h5 class="mb-2">¿Completar este mantenimiento?</h5>
+          <p class="text-muted mb-0">Esta acción marcará el mantenimiento como completado y registrará la fecha de finalización.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="confirmCompleteMaintenanceBtn">Completar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Uso del Equipo -->
+<div class="modal fade" id="registerUsageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Registrar Uso del Equipo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="usageForm">
+          <h6 class="mb-3 text-muted">Información del Evento</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="eventName">Nombre del Evento</label>
+              <input type="text" class="form-control" id="eventName" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="eventDate">Fecha del Evento</label>
+              <input type="date" class="form-control" id="eventDate" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="eventVenue">Ubicación <span class="text-muted">(Opcional)</span></label>
+            <input type="text" class="form-control" id="eventVenue" placeholder="Ej: Arena Ciudad, Hotel Palace">
+          </div>
+
+          <hr class="my-4">
+          <h6 class="mb-3 text-muted">Información de Asignación</h6>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="usageHours">Horas de Uso</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="usageHours" step="0.5" min="0" placeholder="0.0">
+                <span class="input-group-text">hrs</span>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="assignmentStatus">Estado <span class="text-muted">(Opcional)</span></label>
+              <select class="form-select" id="assignmentStatus">
+                <option value="">Por defecto: Devuelto (Finalizado)</option>
+                <option value="ASIGNADO">Asignado</option>
+                <option value="EN_USO">En Uso</option>
+                <option value="DEVUELTO">Devuelto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="usageNotes">Notas</label>
+            <textarea class="form-control" id="usageNotes" rows="3" placeholder="Observaciones, incidencias, etc."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="saveUsageBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+<!-- DataTables JS -->
+<script src="{{ asset('/materialize/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+<!-- JSZip for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- pdfMake for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <!-- Pasar datos de Blade a JavaScript -->
 <script>
@@ -738,10 +889,11 @@ window.bladeItemData = {
     itemParent: @json($itemParent),
     availability: @json($availability),
     @if(isset($inventoryItem))
-    inventoryItem: @json($inventoryItem)
+    inventoryItem: @json($inventoryItem),
     @else
-    inventoryItem: null
+    inventoryItem: null,
     @endif
+    maintenanceRecords: @json($maintenanceRecords ?? [])
 };
 </script>
 

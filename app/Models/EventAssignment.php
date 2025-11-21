@@ -12,7 +12,7 @@ class EventAssignment extends Model
         'assignment_status',
         'delivered_at','delivered_by',
         'returned_at','returned_by','return_condition',
-        'rental_rate','total_cost',
+        'rental_rate','total_cost','hours_used',
         'notes','damage_report',
     ];
 
@@ -23,6 +23,7 @@ class EventAssignment extends Model
         'returned_at'   => 'datetime',
         'rental_rate'   => 'float',
         'total_cost'    => 'float',
+        'hours_used'    => 'float',
     ];
 
     public function event()

@@ -96,15 +96,18 @@ Route::middleware('auth')->group(function () {
         Route::get('inventory/dashboard/stats', [App\Http\Controllers\InventoryController::class, 'getDashboardStats']);
 
         Route::get('/catalogo', [App\Http\Controllers\ItemController::class,  'index'])->name('catalogo');
-
         // Vistas de Inventario
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/disponibilidad', [App\Http\Controllers\InventoryController::class, 'disponibilidad'])->name('disponibilidad');
             Route::get('/item/{id}', [App\Http\Controllers\InventoryController::class, 'detalle'])->name('detalle');
             Route::get('/unidad/{id}', [App\Http\Controllers\InventoryController::class, 'detalleUnidad'])->name('detalle.unidad');
+            Route::patch('/unidad/{id}/notas', [App\Http\Controllers\InventoryController::class, 'actualizarNotas'])->name('unidad.notas');
+            Route::post('/unidad/{id}/dar-de-baja', [App\Http\Controllers\InventoryController::class, 'darDeBaja'])->name('unidad.dar-de-baja');
+            Route::post('/unidad/{id}/mantenimiento', [App\Http\Controllers\InventoryController::class, 'registrarMantenimiento'])->name('unidad.mantenimiento');
+            Route::patch('/unidad/mantenimiento/{id}/completar', [App\Http\Controllers\InventoryController::class, 'completarMantenimiento'])->name('mantenimiento.completar');
+            Route::post('/unidad/{id}/uso', [App\Http\Controllers\InventoryController::class, 'registrarUso'])->name('unidad.uso');
             Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
         });
-
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

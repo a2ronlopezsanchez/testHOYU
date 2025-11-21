@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventoryItem extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $fillable = [
         'sku',
         'item_id',
@@ -46,6 +47,11 @@ class InventoryItem extends Model
         'location_url',
         'location_latitude',
         'location_longitude',
+        // Campos de dar de baja
+        'decommission_reason',
+        'decommission_notes',
+        'decommissioned_by',
+        'decommissioned_at',
     ];
 
     protected $casts = [
@@ -62,6 +68,7 @@ class InventoryItem extends Model
         'tags'                     => 'array',     // funciona para JSON en MySQL o text[] en Postgres
         'is_active'                => 'boolean',
         'is_draft'                 => 'boolean',  // Borrador (autoguardado) / Final
+        'decommissioned_at'        => 'datetime',
     ];
 
     public function parent()
@@ -101,6 +108,13 @@ class InventoryItem extends Model
     public function images()
     {
         return $this->hasMany(ItemImage::class, 'item_id');
+    }
+    /**
+     * Usuario que dio de baja el item
+     */
+    public function decommissionedByUser()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'decommissioned_by');
     }
 
     // ========================================

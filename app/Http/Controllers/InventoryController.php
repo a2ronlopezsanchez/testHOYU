@@ -8,7 +8,9 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\EventAssignment;
+use App\Models\Event;
 use App\Models\Specification;
+use App\Models\MaintenanceRecord;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -1154,7 +1156,7 @@ class InventoryController extends Controller
                 $query->whereDate('assigned_from', '<=', $dateToCheck)
                     ->whereDate('assigned_until', '>=', $dateToCheck);
             })
-            ->whereNotIn('assignment_status', ['DEVUELTO', 'CANCELADO'])
+            ->whereNotIn('assignment_status', ['FINALIZADO', 'CANCELADO'])
             ->with(['event', 'item'])
             ->get();
         
@@ -1267,6 +1269,7 @@ class InventoryController extends Controller
     public function formulario($id = null)
     {
         $itemParent = null;
+        $inventoryItem = null;
         $mode = 'new';
 
         if ($id) {
@@ -1276,16 +1279,25 @@ class InventoryController extends Controller
                 'items.location'
             ])->findOrFail($id);
 
-            // Detectar modo: edit (editar parent) o new-from-parent (crear nueva unidad)
+            // Detectar modo: edit (editar parent), new-from-parent (crear nueva unidad), o edit-unit (editar unidad específica)
             $queryMode = request()->query('mode');
+            $unitId = request()->query('unit_id');
+
             if ($queryMode === 'new-from-parent') {
                 $mode = 'new-from-parent';
+            } elseif ($queryMode === 'edit-unit' && $unitId) {
+                $mode = 'edit-unit';
+                // Cargar el InventoryItem específico con sus specifications
+                $inventoryItem = InventoryItem::with([
+                    'location',
+                    'specifications'
+                ])->findOrFail($unitId);
             } else {
                 $mode = 'edit';
             }
         }
 
-        return view('inventory.formulario', compact('itemParent', 'mode'));
+        return view('inventory.formulario', compact('itemParent', 'mode', 'inventoryItem'));
     }
 
     /**
@@ -1307,7 +1319,180 @@ class InventoryController extends Controller
         // Calcular disponibilidad actual del parent
         $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
 
-        return view('inventory.detalle', compact('itemParent', 'availability', 'inventoryItem'));
+        // Actualizar estados de mantenimientos vencidos antes de cargar
+        MaintenanceRecord::where('inventory_item_id', $id)
+            ->where('maintenance_status', 'PROGRAMADO')
+            ->whereDate('scheduled_date', '<', now()->toDateString())
+            ->update(['maintenance_status' => 'VENCIDO']);
+
+        // Cargar registros de mantenimiento para esta unidad
+        $maintenanceRecords = MaintenanceRecord::where('inventory_item_id', $id)
+            ->orderBy('scheduled_date', 'desc')
+            ->get();
+
+        // Calcular última inspección (último mantenimiento COMPLETADO)
+        $lastInspection = MaintenanceRecord::where('inventory_item_id', $id)
+            ->where('maintenance_status', 'COMPLETADO')
+            ->orderBy('completion_date', 'desc')
+            ->first();
+        $lastInspectionDate = $lastInspection ? $lastInspection->completion_date->format('d/m/Y') : 'Sin registros';
+
+        // Calcular próxima inspección (siguiente mantenimiento NO completado, ordenado por fecha más cercana)
+        $nextInspection = MaintenanceRecord::where('inventory_item_id', $id)
+            ->whereIn('maintenance_status', ['PROGRAMADO', 'VENCIDO'])
+            ->orderBy('scheduled_date', 'asc')
+            ->first();
+
+        $nextInspectionDate = $nextInspection ? $nextInspection->scheduled_date->format('d/m/Y') : 'Sin programar';
+        $nextInspectionOverdue = false;
+
+        if ($nextInspection && $nextInspection->scheduled_date->isPast()) {
+            $nextInspectionOverdue = true;
+        }
+
+        // Verificar si hay mantenimientos vencidos y calcular días de atraso
+        $overdueMaintenances = MaintenanceRecord::where('inventory_item_id', $id)
+            ->where('maintenance_status', 'VENCIDO')
+            ->orderBy('scheduled_date', 'asc')
+            ->get();
+
+        $overdueDays = null;
+        $hasOverdueMaintenance = $overdueMaintenances->count() > 0;
+
+        if ($hasOverdueMaintenance) {
+            // Obtener el más antiguo (primera fecha vencida)
+            $oldestOverdue = $overdueMaintenances->first();
+            $overdueDays = now()->diffInDays($oldestOverdue->scheduled_date);
+        }
+
+        // Cargar registros de uso (event_assignments) para esta unidad con su evento
+        $usageRecords = EventAssignment::where('inventory_item_id', $id)
+            ->with('event')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Calcular estadísticas de uso
+        $totalEvents = EventAssignment::where('inventory_item_id', $id)->count();
+        $totalHours = EventAssignment::where('inventory_item_id', $id)->sum('hours_used') ?? 0;
+        $totalMaintenances = MaintenanceRecord::where('inventory_item_id', $id)->count();
+
+        // Próximos eventos programados (todos los que no sean DEVUELTO)
+        $upcomingEvents = EventAssignment::where('event_assignments.inventory_item_id', $id)
+            ->where('event_assignments.assignment_status', '!=', 'DEVUELTO')
+            ->join('events', 'event_assignments.event_id', '=', 'events.id')
+            ->select('event_assignments.*')
+            ->with('event')
+            ->orderBy('events.start_date', 'desc')
+            ->get();
+
+        return view('inventory.detalle', compact(
+            'itemParent',
+            'availability',
+            'inventoryItem',
+            'maintenanceRecords',
+            'lastInspectionDate',
+            'nextInspectionDate',
+            'nextInspectionOverdue',
+            'hasOverdueMaintenance',
+            'overdueDays',
+            'usageRecords',
+            'totalEvents',
+            'totalHours',
+            'totalMaintenances',
+            'upcomingEvents'
+        ));
+    }
+
+    /**
+     * Actualizar las notas de una unidad específica (InventoryItem)
+     */
+    public function actualizarNotas(Request $request, $id)
+    {
+        try {
+            // Validar que se envió el campo notes
+            $validated = $request->validate([
+                'notes' => 'nullable|string|max:1000'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Actualizar las notas
+            $inventoryItem->notes = $validated['notes'];
+            $inventoryItem->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Notas actualizadas correctamente',
+                'notes' => $inventoryItem->notes
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar las notas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Dar de baja una unidad específica (InventoryItem)
+     */
+    public function darDeBaja(Request $request, $id)
+    {
+        try {
+            // Validar los datos
+            $validated = $request->validate([
+                'decommission_reason' => 'required|string|max:50',
+                'decommission_notes' => 'nullable|string|max:500'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Verificar que no esté ya dado de baja
+            if ($inventoryItem->trashed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este item ya está dado de baja'
+                ], 400);
+            }
+
+            // Actualizar campos de dar de baja
+            $inventoryItem->status = 'BAJA';
+            $inventoryItem->decommission_reason = $validated['decommission_reason'];
+            $inventoryItem->decommission_notes = $validated['decommission_notes'] ?? null;
+            $inventoryItem->decommissioned_by = auth()->id();
+            $inventoryItem->decommissioned_at = now();
+            $inventoryItem->save();
+
+            // Hacer soft delete
+            $inventoryItem->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item dado de baja correctamente',
+                'data' => [
+                    'decommission_reason' => $inventoryItem->decommission_reason,
+                    'decommission_notes' => $inventoryItem->decommission_notes,
+                    'decommissioned_by' => $inventoryItem->decommissioned_by,
+                    'decommissioned_at' => $inventoryItem->decommissioned_at->format('Y-m-d H:i:s')
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al dar de baja el item: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -1330,7 +1515,7 @@ class InventoryController extends Controller
                         $query->whereDate('assigned_from', '<=', $dateToCheck)
                             ->whereDate('assigned_until', '>=', $dateToCheck);
                     })
-                    ->whereNotIn('assignment_status', ['DEVUELTO', 'CANCELADO'])
+                    ->whereNotIn('assignment_status', ['FINALIZADO', 'CANCELADO'])
                     ->with(['event'])
                     ->first();
                 
@@ -1400,6 +1585,197 @@ class InventoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener detalles de unidades: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Registrar un nuevo mantenimiento para una unidad
+     */
+    public function registrarMantenimiento(Request $request, $id)
+    {
+        try {
+            // Validar los datos
+            $validated = $request->validate([
+                'maintenance_type' => 'required|string|max:50',
+                'scheduled_date' => 'required|date',
+                'technician_name' => 'required|string|max:100',
+                'total_cost' => 'nullable|numeric|min:0',
+                'work_description' => 'nullable|string|max:1000'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Determinar el estado según la fecha programada
+            $scheduledDate = Carbon::parse($validated['scheduled_date']);
+            $today = Carbon::today();
+
+            if ($scheduledDate->isFuture()) {
+                $status = 'PROGRAMADO';
+            } elseif ($scheduledDate->isPast()) {
+                $status = 'VENCIDO';
+            } else {
+                $status = 'PROGRAMADO';
+            }
+
+            // Crear el registro de mantenimiento
+            $maintenance = MaintenanceRecord::create([
+                'inventory_item_id' => $inventoryItem->id,
+                'maintenance_type' => $validated['maintenance_type'],
+                'scheduled_date' => $validated['scheduled_date'],
+                'actual_date' => now(),
+                'technician_name' => $validated['technician_name'],
+                'total_cost' => $validated['total_cost'] ?? 0,
+                'work_description' => $validated['work_description'] ?? null,
+                'maintenance_status' => $status,
+                'created_by' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mantenimiento registrado correctamente',
+                'data' => [
+                    'id' => $maintenance->id,
+                    'maintenance_type' => $maintenance->maintenance_type,
+                    'scheduled_date' => $maintenance->scheduled_date->format('d/m/Y'),
+                    'technician_name' => $maintenance->technician_name,
+                    'total_cost' => number_format($maintenance->total_cost, 2),
+                    'maintenance_status' => $maintenance->maintenance_status,
+                    'work_description' => $maintenance->work_description
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el mantenimiento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Completar un mantenimiento existente
+     */
+    public function completarMantenimiento(Request $request, $id)
+    {
+        try {
+            // Buscar el registro de mantenimiento
+            $maintenance = MaintenanceRecord::findOrFail($id);
+
+            // Verificar que no esté ya completado
+            if ($maintenance->maintenance_status === 'COMPLETADO') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este mantenimiento ya está completado'
+                ], 400);
+            }
+
+            // Actualizar el estado y la fecha de completado
+            $maintenance->maintenance_status = 'COMPLETADO';
+            $maintenance->completion_date = now();
+            $maintenance->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mantenimiento completado correctamente',
+                'data' => [
+                    'id' => $maintenance->id,
+                    'maintenance_status' => $maintenance->maintenance_status,
+                    'completion_date' => $maintenance->completion_date->format('d/m/Y')
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al completar el mantenimiento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Registrar un nuevo uso del equipo (event_assignment)
+     */
+    public function registrarUso(Request $request, $id)
+    {
+        try {
+            // Validar los datos
+            $validated = $request->validate([
+                'event_name' => 'required|string|max:255',
+                'event_date' => 'required|date',
+                'event_venue' => 'nullable|string|max:255',
+                'hours_used' => 'nullable|numeric|min:0',
+                'assignment_status' => 'nullable|in:ASIGNADO,EN_USO,DEVUELTO,CANCELADO',
+                'notes' => 'nullable|string|max:1000'
+            ]);
+
+            // Buscar el InventoryItem
+            $inventoryItem = InventoryItem::findOrFail($id);
+
+            // Debug: Log del ID que se está usando
+            \Log::info('Registrando uso para inventory_item_id: ' . $inventoryItem->id);
+
+            // Crear el evento (simplificado - solo los campos básicos necesarios)
+            $event = Event::create([
+                'event_code' => 'EVT-' . strtoupper(Str::random(8)),
+                'name' => $validated['event_name'],
+                'start_date' => $validated['event_date'],
+                'end_date' => $validated['event_date'], // Misma fecha por defecto
+                'venue_address' => $validated['event_venue'] ?? 'Sin ubicación especificada',
+                'status' => 'ACTIVO',
+                'created_by' => auth()->id()
+            ]);
+
+            // Crear el registro de asignación con estado por defecto DEVUELTO (Finalizado)
+            $assignment = EventAssignment::create([
+                'event_id' => $event->id,
+                'inventory_item_id' => $inventoryItem->id,
+                'assigned_from' => $validated['event_date'],
+                'assigned_until' => $validated['event_date'],
+                'assignment_status' => $validated['assignment_status'] ?? 'DEVUELTO',
+                'hours_used' => $validated['hours_used'] ?? null,
+                'notes' => $validated['notes'] ?? null
+            ]);
+
+            // Debug: Log del assignment creado
+            \Log::info('EventAssignment creado:', $assignment->toArray());
+
+            // Cargar la relación del evento
+            $assignment->load('event');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Uso del equipo registrado correctamente',
+                'data' => [
+                    'id' => $assignment->id,
+                    'event_name' => $assignment->event->name,
+                    'event_date' => $assignment->event->start_date->format('d/m/Y'),
+                    'venue_address' => $assignment->event->venue_address,
+                    'hours_used' => $assignment->hours_used,
+                    'assignment_status' => $assignment->assignment_status,
+                    'notes' => $assignment->notes
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el uso del equipo: ' . $e->getMessage()
             ], 500);
         }
     }

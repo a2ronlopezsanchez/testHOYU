@@ -86,17 +86,14 @@ class CategoryController extends Controller
             'sort_order'  => ['nullable', 'integer'],
             'is_active'   => ['required', 'boolean'],
         ]);
-
         // Auto-generar code si no viene en el request
         if (empty($data['code'])) {
             $data['code'] = $this->generateUniqueCode($data['name'], 'categories');
         }
-
         $cat = Category::create($data);
 
         return response()->json(['message' => 'Categoría creada', 'id' => $cat->id], 201);
     }
-
     /**
      * Genera un code único basado en el nombre
      * Intenta con 1 letra, luego 2, luego 3, etc.
@@ -154,7 +151,6 @@ class CategoryController extends Controller
         // Último recurso: timestamp
         return $baseName . time();
     }
-
     public function update(Request $request, Category $category)
     {
         $data = $request->validate([

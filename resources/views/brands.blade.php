@@ -73,6 +73,12 @@
               <label>Nombre *</label>
             </div>
           </div>
+          <div class="col-md-6 mb-3">
+            <div class="form-floating form-floating-outline">
+              <input type="text" class="form-control" id="full_name" placeholder="Nombre completo">
+              <label>Nombre completo</label>
+            </div>
+          </div>
           <!-- Campo code oculto: se genera automáticamente en el servidor -->
           <div class="col-md-6 mb-3" style="display: none;">
             <div class="form-floating form-floating-outline">
@@ -82,12 +88,7 @@
           </div>
         </div>
 
-        <div class="mb-3">
-          <div class="form-floating form-floating-outline">
-            <input type="text" class="form-control" id="full_name" placeholder="Nombre completo">
-            <label>Nombre completo</label>
-          </div>
-        </div>
+        
 
         <div class="row">
           <div class="col-md-6 mb-3">

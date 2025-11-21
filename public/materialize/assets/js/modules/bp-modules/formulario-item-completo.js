@@ -83,10 +83,10 @@ class ItemFormManager {
     }
 
     async init() {
-        this.checkEditMode();
+        await this.initializeTagify(); // ✅ Inicializar Tagify PRIMERO
+        this.checkEditMode(); // ✅ Luego cargar datos (que usará Tagify)
         this.checkNewUnitMode();
         this.setupEventListeners();
-        await this.initializeTagify(); // Ahora es async para cargar ubicaciones
         this.initializeDropzone();
         this.calculateProgress();
         this.setupAutoSave();
@@ -97,7 +97,7 @@ class ItemFormManager {
     // ===== VERIFICAR MODO DE EDICIÓN =====
     checkEditMode() {
         // Primero verificar si hay datos de Blade
-        if (window.bladeFormData && window.bladeFormData.mode === 'edit' && window.bladeFormData.itemParent) {
+        if (window.bladeFormData && (window.bladeFormData.mode === 'edit' || window.bladeFormData.mode === 'edit-unit') && window.bladeFormData.itemParent) {
             isEditing = true;
             editingItemId = window.bladeFormData.itemParent.id;
             this.loadItemDataFromBlade(window.bladeFormData);
@@ -130,29 +130,56 @@ class ItemFormManager {
             console.log('✅ Item cargado para edición. ID:', currentInventoryItemId);
         }
 
+        // Logs detallados de los valores
+        console.log('📦 inventoryItem completo:', inventoryItem);
+        console.log('🏢 itemParent completo:', itemParent);
+        console.log('🎨 inventoryItem.color:', inventoryItem?.color);
+        console.log('📍 inventoryItem.location:', inventoryItem?.location);
+        console.log('🔄 inventoryItem.status:', inventoryItem?.status);
+        console.log('📅 inventoryItem.purchase_date:', inventoryItem?.purchase_date);
+
+        // Determinar qué especificaciones usar: del inventoryItem si existen, sino del parent
+        let specifications = [];
+        if (bladeData.mode === 'edit-unit' && inventoryItem?.specifications && inventoryItem.specifications.length > 0) {
+            // En modo edit-unit, priorizar specifications del inventoryItem
+            specifications = inventoryItem.specifications.map(spec => ({
+                name: spec.name || spec.key,
+                value: spec.value
+            }));
+            console.log('✅ Usando specifications del InventoryItem:', specifications);
+        } else {
+            // En otros modos, usar specifications del parent
+            specifications = this.parseSpecifications(itemParent.specifications);
+            console.log('✅ Usando specifications del ItemParent:', specifications);
+        }
+
         // Convertir datos de Blade al formato esperado por populateForm()
         const formattedData = {
             // Información básica
             sku: inventoryItem?.sku || '',
-            nombreProducto: itemParent.name || '',
+            // En modo edit-unit, usar nombre del inventoryItem; en otros modos, usar el del parent
+            nombreProducto: (bladeData.mode === 'edit-unit' && inventoryItem?.name) ? inventoryItem.name : itemParent.name || '',
             id: inventoryItem?.item_id || '',
             categoria: itemParent.category?.name || '',
             familia: itemParent.family || '',
             subFamilia: itemParent.sub_family || '',
             marca: itemParent.brand?.name || '',
             modelo: itemParent.model || '',
-            nombrePublico: itemParent.public_name || '',
+            // En modo edit-unit, usar nombre público del inventoryItem; en otros modos, usar el del parent
+            nombrePublico: (bladeData.mode === 'edit-unit' && inventoryItem?.public_name) ? inventoryItem.public_name : itemParent.public_name || '',
             descripcion: itemParent.description || inventoryItem?.description || '',
 
             // Identificadores
             numeroSerie: inventoryItem?.serial_number || '',
             identificadorRfid: inventoryItem?.rfid_tag || '',
-            color: itemParent.color || '',
+            // Color del inventoryItem si existe, sino del parent
+            color: inventoryItem?.color || itemParent.color || '',
             unitSet: inventoryItem?.unit_set || 'UNIT',
             totalUnits: inventoryItem?.total_units || 1,
 
             // Información financiera
-            fechaCompra: inventoryItem?.purchase_date || '',
+            // Convertir fecha de formato ISO a YYYY-MM-DD
+            fechaCompra: inventoryItem?.purchase_date ? inventoryItem.purchase_date.split('T')[0] : '',
             garantiaVigente: inventoryItem?.warranty_valid ? 'SI' : 'NO',
             precioOriginal: inventoryItem?.original_price || 0,
             precioRentaIdeal: inventoryItem?.ideal_rental_price || 0,
@@ -166,15 +193,21 @@ class ItemFormManager {
             condicion: inventoryItem?.condition || 'BUENO',
             notas: inventoryItem?.notes || '',
 
-            // Especificaciones
-            especificaciones: this.parseSpecifications(itemParent.specifications)
+            // Especificaciones (del inventoryItem o del parent según el modo)
+            especificaciones: specifications
         };
+
+        // Log para debug
+        console.log('📋 Datos formateados para poblar formulario:', formattedData);
+        console.log('🎨 Color:', formattedData.color);
+        console.log('📍 Ubicación:', formattedData.ubicacion);
+        console.log('🔄 Status:', formattedData.status);
 
         // Poblar el formulario con los datos
         this.populateForm(formattedData);
 
-        // Si estamos en modo edición, bloquear campos que no se deben modificar
-        if (bladeData.mode === 'edit') {
+        // Si estamos en modo edición o edit-unit, bloquear campos que no se deben modificar
+        if (bladeData.mode === 'edit' || bladeData.mode === 'edit-unit') {
             this.lockFieldsInEditMode();
         }
     }
@@ -426,8 +459,8 @@ class ItemFormManager {
         // Cambio de tabs
         document.querySelectorAll('#formTabs .nav-link').forEach(tab => {
             tab.addEventListener('shown.bs.tab', () => {
-                // Si hay cambios sin guardar, guardar automáticamente
-                if (unsavedChanges) {
+                // Si hay cambios sin guardar Y el guardado automático está activado, guardar automáticamente
+                if (unsavedChanges && autoSaveEnabled) {
                     this.autoSaveOnTabChange();
                 }
                 this.calculateProgress();
@@ -601,10 +634,10 @@ class ItemFormManager {
         if (statusInput) {
             tagifyInstances.status = new Tagify(statusInput, {
                 ...tagifyConfig,
-                whitelist: ['ACTIVO', 'INACTIVO', 'DESCOMPUESTO', 'EN REPARACION', 'EXTRAVIADO', 'BAJA'],
-                enforceWhitelist: true
+                whitelist: ['DISPONIBLE', 'ACTIVO', 'INACTIVO', 'DESCOMPUESTO', 'EN REPARACION', 'EN_REPARACION', 'EXTRAVIADO', 'BAJA', 'EN_EVENTO', 'MANTENIMIENTO'],
+                enforceWhitelist: false  // Permitir valores personalizados
             });
-            
+
             tagifyInstances.status.on('change', () => {
                 unsavedChanges = true;
                 this.enableSaveButton();
@@ -618,7 +651,7 @@ class ItemFormManager {
             tagifyInstances.location = new Tagify(locationInput, {
                 ...tagifyConfig,
                 whitelist: [],
-                enforceWhitelist: true
+                enforceWhitelist: false  // Permitir valores personalizados (ubicaciones no en la whitelist)
             });
 
             // Cargar ubicaciones desde el servidor
@@ -723,24 +756,68 @@ class ItemFormManager {
     calculateProgress() {
         const allFields = document.querySelectorAll('#itemCompleteForm input, #itemCompleteForm select, #itemCompleteForm textarea');
         const requiredFields = document.querySelectorAll('#itemCompleteForm input[required], #itemCompleteForm select[required]');
-        
+
+        // IDs y nombres a excluir del conteo
+        const excludedIds = ['autoSaveToggle', 'rfidName', 'rfidCategory', 'rfidBrand', 'rfidSerial', 'rfidPurchase', 'rfidCondition'];
+        const processedRadioGroups = new Set(); // Para trackear grupos de radio ya procesados
+
         let filledFields = 0;
         let filledRequired = 0;
-        
+        let totalFieldsCount = 0;
+
         allFields.forEach(field => {
+            // Excluir campos específicos
+            if (excludedIds.includes(field.id)) {
+                return;
+            }
+
+            // Para radio buttons, solo contar el grupo una vez
+            if (field.type === 'radio') {
+                const radioName = field.name;
+
+                // Si ya procesamos este grupo de radio, saltar
+                if (processedRadioGroups.has(radioName)) {
+                    return;
+                }
+
+                // Marcar este grupo como procesado
+                processedRadioGroups.add(radioName);
+
+                // Contar el grupo como 1 campo
+                totalFieldsCount++;
+
+                // Verificar si algún radio del grupo está seleccionado
+                const radioGroup = document.querySelectorAll(`input[name="${radioName}"]`);
+                const isGroupFilled = Array.from(radioGroup).some(radio => radio.checked);
+
+                if (isGroupFilled) {
+                    filledFields++;
+                }
+
+                return;
+            }
+
+            // Para otros campos normales
+            totalFieldsCount++;
             if (this.isFieldFilled(field)) {
                 filledFields++;
             }
         });
-        
+
         requiredFields.forEach(field => {
+            // Excluir campos específicos
+            if (excludedIds.includes(field.id)) {
+                return;
+            }
+
             if (this.isFieldFilled(field)) {
                 filledRequired++;
             }
         });
-        
+
         // Verificar también campos Tagify
         Object.keys(tagifyInstances).forEach(key => {
+            totalFieldsCount++;
             if (tagifyInstances[key].value.length > 0) {
                 filledFields++;
                 if (FORM_CONFIG.requiredFields.includes(tagifyInstances[key].DOM.originalInput.id)) {
@@ -748,16 +825,15 @@ class ItemFormManager {
                 }
             }
         });
-        
-        const totalFields = allFields.length + Object.keys(tagifyInstances).length;
-        const progressPercentage = Math.round((filledFields / totalFields) * 100);
-        
+
+        const progressPercentage = Math.round((filledFields / totalFieldsCount) * 100);
+
         // Actualizar UI
         document.getElementById('formProgress').style.width = progressPercentage + '%';
         document.getElementById('progressText').textContent = progressPercentage + '% completado';
         document.getElementById('fieldsCompleted').textContent = filledFields;
-        document.getElementById('totalFields').textContent = totalFields;
-        
+        document.getElementById('totalFields').textContent = totalFieldsCount;
+
         // El botón de guardar siempre estará habilitado
         // La validación se realiza al hacer clic en el botón
         const saveBtn = document.getElementById('saveFormBtn');
@@ -816,7 +892,8 @@ class ItemFormManager {
             if (!autoSaveEnabled) return;
             
             autoSaveTimer = setInterval(() => {
-                if (unsavedChanges) {
+                // Si hay cambios sin guardar Y el guardado automático está activado, guardar automáticamente
+                if (unsavedChanges && autoSaveEnabled) {
                     this.autoSave();
                 }
             }, FORM_CONFIG.autoSaveInterval);
@@ -1590,24 +1667,33 @@ class ItemFormManager {
             document.getElementById('itemSerialNumber').value = data.numeroSerie || '';
             document.getElementById('itemRfidTag').value = data.identificadorRfid || '';
             if (data.color && tagifyInstances.color) {
+                console.log('🎨 Agregando tag de color:', data.color);
                 tagifyInstances.color.addTags([data.color]);
+            } else if (data.color) {
+                console.warn('⚠️ Color tiene valor pero tagifyInstances.color no está inicializado:', data.color);
             }
             document.getElementById('itemUnitSet').value = data.unitSet || 'UNIT';
             document.getElementById('itemTotalUnits').value = data.totalUnits || 1;
-            
+
             // Información financiera
             document.getElementById('itemPurchaseDate').value = data.fechaCompra || '';
             document.getElementById('itemWarranty').value = data.garantiaVigente || 'NO';
             document.getElementById('itemOriginalPrice').value = data.precioOriginal || 0;
             document.getElementById('itemIdealRentPrice').value = data.precioRentaIdeal || 0;
             document.getElementById('itemMinRentPrice').value = data.precioRentaMinimo || 0;
-            
+
             // Ubicación y estado
             if (data.ubicacion && tagifyInstances.location) {
+                console.log('📍 Agregando tag de ubicación:', data.ubicacion);
                 tagifyInstances.location.addTags([data.ubicacion]);
+            } else if (data.ubicacion) {
+                console.warn('⚠️ Ubicación tiene valor pero tagifyInstances.location no está inicializado:', data.ubicacion);
             }
             if (data.status && tagifyInstances.status) {
+                console.log('🔄 Agregando tag de status:', data.status);
                 tagifyInstances.status.addTags([data.status]);
+            } else if (data.status) {
+                console.warn('⚠️ Status tiene valor pero tagifyInstances.status no está inicializado:', data.status);
             }
             document.getElementById('itemRack').value = data.rack || '';
             document.getElementById('itemPanel').value = data.panel || '';

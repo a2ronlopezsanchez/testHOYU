@@ -32,6 +32,9 @@ class ItemDetailManager {
         this.initializeCharts();
         this.checkMaintenanceStatus();
         this.calculateDepreciation();
+        // No inicializar DataTables aquí - se inicializará cuando se muestre el tab correspondiente
+        this.dataTablesInitialized = false;
+        this.usageDataTablesInitialized = false;
     }
 
     // ===== CARGAR DATOS DEL ITEM =====
@@ -60,6 +63,7 @@ class ItemDetailManager {
         // Convertir datos de Blade al formato que espera el JS
         currentItemData = {
             id: itemParent.id,
+            inventoryItemId: inventoryItem?.id || null, // ID del InventoryItem específico
             item_id: itemParent.item_id,
             sku: item.sku || 'N/A',
             name: itemParent.public_name || itemParent.name,
@@ -91,14 +95,26 @@ class ItemDetailManager {
 
         // Datos de historial (por ahora vacíos, se pueden cargar con AJAX)
         usageHistoryData = [];
-        maintenanceHistoryData = [];
+        maintenanceHistoryData = bladeData.maintenanceRecords || [];
         upcomingEventsData = [];
 
         // NO llamar updateUI() porque los datos ya están en el HTML desde Blade
         // Solo actualizar las tablas dinámicas que no están pobladas desde Blade
-        this.updateUpcomingEventsTable();
-        this.updateUsageHistoryTable();
-        this.updateMaintenanceHistoryTable();
+        // NO llamar updateUpcomingEventsTable() - los datos vienen del servidor vía Blade
+        // this.updateUpcomingEventsTable();
+        // NO llamar updateUsageHistoryTable() - los datos vienen del servidor vía Blade
+        // this.updateUsageHistoryTable();
+
+        // NO actualizar updateMaintenanceHistoryTable() porque ya está renderizada en el HTML
+        // En su lugar, calcular métricas desde el DOM después de que cargue
+        // Usar setTimeout para asegurar que el DOM esté listo
+        setTimeout(() => {
+            // Solo actualizar métricas si los elementos existen
+            const lastInspectionEl = document.getElementById('lastInspection');
+            if (lastInspectionEl) {
+                this.updateMaintenanceMetrics();
+            }
+        }, 100);
     }
 
     // ===== TRADUCIR ESTADO DE BD A FORMATO UI =====
@@ -543,18 +559,22 @@ class ItemDetailManager {
 
     // ===== MOSTRAR ALERTA DE MANTENIMIENTO VENCIDO =====
     showMaintenanceOverdueAlert(daysOverdue) {
-        const alertHtml = `
+        // DESHABILITADO: La alerta ya se muestra desde Blade con datos del backend
+        // para evitar duplicados
+        return;
+
+        /* const alertHtml = `
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="mdi mdi-alert-circle me-2"></i>
                 <strong>¡Mantenimiento Vencido!</strong> La inspección está atrasada por ${daysOverdue} días.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `;
-        
+
         const container = document.querySelector('.container-xxl.flex-grow-1');
         if (container) {
             container.insertAdjacentHTML('afterbegin', alertHtml);
-        }
+        } */
     }
 
     // ===== PARSEAR FECHA =====
@@ -635,6 +655,21 @@ class ItemDetailManager {
             saveMaintenanceBtn.addEventListener('click', () => this.saveMaintenance());
         }
 
+        // Event delegation para botones de completar mantenimiento
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.complete-maintenance-btn')) {
+                e.preventDefault();
+                const maintenanceId = e.target.closest('.complete-maintenance-btn').dataset.maintenanceId;
+                this.openCompleteMaintenanceModal(maintenanceId);
+            }
+        });
+
+        // Botón de confirmar completar mantenimiento
+        const confirmCompleteMaintenanceBtn = document.getElementById('confirmCompleteMaintenanceBtn');
+        if (confirmCompleteMaintenanceBtn) {
+            confirmCompleteMaintenanceBtn.addEventListener('click', () => this.confirmCompleteMaintenance());
+        }
+
                 // Botón de subir documento (en el tab de documentos)
         const uploadDocumentBtn = document.getElementById('uploadDocumentBtn');
         if (uploadDocumentBtn) {
@@ -651,8 +686,11 @@ class ItemDetailManager {
         const tabs = document.querySelectorAll('#detailTabs .nav-link');
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                currentTab = e.target.getAttribute('href').replace('#', '');
-                this.handleTabChange(currentTab);
+                const href = e.target.getAttribute('href') || e.target.closest('.nav-link')?.getAttribute('href');
+                if (href) {
+                    currentTab = href.replace('#', '');
+                    this.handleTabChange(currentTab);
+                }
             });
         });
     }
@@ -660,14 +698,28 @@ class ItemDetailManager {
     // ===== MANEJAR CAMBIO DE TAB =====
     handleTabChange(tabName) {
         console.log(`Tab changed to: ${tabName}`);
-        
+
         // Acciones específicas según el tab
         switch (tabName) {
             case 'usage':
                 this.loadUsageHistory();
+                // Inicializar DataTables de uso solo la primera vez que se muestra el tab
+                if (!this.usageDataTablesInitialized) {
+                    setTimeout(() => {
+                        this.initializeUsageDataTable();
+                        this.usageDataTablesInitialized = true;
+                    }, 100);
+                }
                 break;
             case 'maintenance':
                 this.loadMaintenanceHistory();
+                // Inicializar DataTables solo la primera vez que se muestra el tab
+                if (!this.dataTablesInitialized) {
+                    setTimeout(() => {
+                        this.initializeDataTables();
+                        this.dataTablesInitialized = true;
+                    }, 100);
+                }
                 break;
             case 'documents':
                 this.loadDocuments();
@@ -697,8 +749,13 @@ class ItemDetailManager {
     handleEdit() {
         if (!currentItemData) return;
 
-        // Redirigir a la página de edición usando rutas de Laravel
-        window.location.href = `/inventory/formulario/${currentItemData.id}`;
+        // Si hay un inventoryItemId, estamos editando una unidad específica
+        if (currentItemData.inventoryItemId) {
+            window.location.href = `/inventory/formulario/${currentItemData.id}?mode=edit-unit&unit_id=${currentItemData.inventoryItemId}`;
+        } else {
+            // Si no, editamos el parent
+            window.location.href = `/inventory/formulario/${currentItemData.id}?mode=edit`;
+        }
     }
 
     // ===== MANEJAR COMPARTIR =====
@@ -730,8 +787,14 @@ class ItemDetailManager {
     }
 
     // ===== EDITAR NOTAS ===== 
-    handleEditNotes() {
+    async handleEditNotes() {
         if (!currentItemData) return;
+
+        // Verificar que tengamos el inventoryItemId
+        if (!currentItemData.inventoryItemId) {
+            this.showToast('error', 'No se puede editar: ID de unidad no encontrado');
+            return;
+        }
 
         Swal.fire({
             title: 'Editar Notas del Item',
@@ -750,26 +813,55 @@ class ItemDetailManager {
                 cancelButton: 'btn btn-outline-secondary'
             },
             buttonsStyling: false,
-            preConfirm: () => {
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
                 const notes = document.getElementById('swal-notes-textarea').value.trim();
-                return { notes };
-            }
+
+                try {
+                    // Obtener CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                    // Hacer petición al backend
+                    const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/notas`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ notes })
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.message || 'Error al guardar las notas');
+                    }
+
+                    return { notes: result.notes };
+
+                } catch (error) {
+                    Swal.showValidationMessage(`Error: ${error.message}`);
+                    return false;
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {
             if (result.isConfirmed) {
-                // Actualizar notas
+                // Actualizar notas en memoria
                 currentItemData.notes = result.value.notes;
-                
+
                 // Actualizar UI
+                const notesContainer = document.getElementById('itemNotes');
+                const notesText = document.querySelector('#itemNotes #itemNotesText');
+
                 if (currentItemData.notes) {
-                    document.getElementById('itemNotes').style.display = 'flex';
-                    document.querySelector('#itemNotes p').textContent = currentItemData.notes;
+                    if (notesContainer) notesContainer.style.display = 'flex';
+                    if (notesText) notesText.textContent = currentItemData.notes;
                 } else {
-                    document.getElementById('itemNotes').style.display = 'none';
+                    if (notesContainer) notesContainer.style.display = 'none';
                 }
-                
-                // En producción, aquí harías un AJAX para guardar
-                console.log('Saving notes:', result.value.notes);
-                
+
                 this.showToast('success', 'Notas actualizadas correctamente');
             }
         });
@@ -901,23 +993,82 @@ class ItemDetailManager {
     }
 
     // ===== DAR DE BAJA ITEM =====
-    decommissionItem(data) {
-        // En producción, esto sería una llamada AJAX
-        console.log('Decommissioning item:', data);
+    async decommissionItem(data) {
+        // Verificar que tengamos el inventoryItemId
+        if (!currentItemData.inventoryItemId) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se puede dar de baja: ID de unidad no encontrado',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: { confirmButton: 'btn btn-primary' },
+                buttonsStyling: false
+            });
+            return;
+        }
 
+        // Mostrar loading
         Swal.fire({
-            title: 'Item dado de baja',
-            text: 'El item ha sido dado de baja exitosamente',
-            icon: 'success',
-            confirmButtonText: 'Entendido',
-            customClass: {
-                confirmButton: 'btn btn-primary'
-            },
-            buttonsStyling: false
-        }).then(() => {
-            // Redirigir al catálogo usando ruta de Laravel
-            window.location.href = '/inventory/disponibilidad';
+            title: 'Procesando...',
+            text: 'Dando de baja el item',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
         });
+
+        try {
+            // Obtener CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            // Hacer petición al backend
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/dar-de-baja`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    decommission_reason: data.reason,
+                    decommission_notes: data.comments
+                })
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Error al dar de baja el item');
+            }
+
+            // Mostrar éxito
+            Swal.fire({
+                title: 'Item dado de baja',
+                text: 'El item ha sido dado de baja exitosamente',
+                icon: 'success',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-primary'
+                },
+                buttonsStyling: false
+            }).then(() => {
+                // Redirigir al catálogo
+                window.location.href = '/inventory/disponibilidad';
+            });
+
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: `Error al dar de baja el item: ${error.message}`,
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-primary'
+                },
+                buttonsStyling: false
+            });
+        }
     }
 
     // ===== ABRIR MODAL DE REGISTRO DE USO =====
@@ -935,45 +1086,95 @@ class ItemDetailManager {
     }
 
     // ===== GUARDAR REGISTRO DE USO =====
-    saveUsage() {
+    async saveUsage() {
         const form = document.getElementById('usageForm');
-        
+
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return;
         }
 
+        const eventVenueValue = document.getElementById('eventVenue').value;
+        console.log('=== DEBUG eventVenue ===');
+        console.log('Valor del campo eventVenue:', eventVenueValue);
+        console.log('Tipo:', typeof eventVenueValue);
+        console.log('Longitud:', eventVenueValue.length);
+
         const usageData = {
-            id: usageHistoryData.length + 1,
-            eventName: document.getElementById('eventName').value,
-            date: this.formatDate(new Date(document.getElementById('eventDate').value)),
-            location: document.getElementById('eventLocation').value,
-            hours: parseInt(document.getElementById('usageHours').value),
-            status: 'Programado',
-            notes: document.getElementById('usageNotes').value || 'Sin notas'
+            event_name: document.getElementById('eventName').value,
+            event_date: document.getElementById('eventDate').value,
+            event_venue: document.getElementById('eventLocation').value|| null,
+            hours_used: parseFloat(document.getElementById('usageHours').value) || null,
+            assignment_status: document.getElementById('assignmentStatus').value || null,
+            notes: document.getElementById('usageNotes').value || null
         };
 
-        // En producción, esto sería una llamada AJAX
-        console.log('Saving usage:', usageData);
+        console.log('usageData a enviar:', usageData);
 
-        // Agregar a los datos
-        usageHistoryData.unshift(usageData);
-        
-        // Actualizar tabla
-        this.updateUsageHistoryTable();
-        
-        // Actualizar estadísticas
-        currentItemData.usageCount++;
-        currentItemData.totalHours += usageData.hours;
-        document.getElementById('totalEvents').textContent = currentItemData.usageCount;
-        document.getElementById('totalHours').textContent = `${currentItemData.totalHours} hrs`;
-
-        // Cerrar modal
+        // Cerrar modal antes de la llamada AJAX
         const modal = bootstrap.Modal.getInstance(document.getElementById('registerUsageModal'));
         modal.hide();
 
-        // Mostrar mensaje de éxito
-        this.showToast('success', 'Uso registrado exitosamente');
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Guardando uso del equipo...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const inventoryItemId = currentItemData.inventoryItemId;
+            const response = await fetch(`/inventory/unidad/${inventoryItemId}/uso`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(usageData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Cerrar loading
+                Swal.close();
+
+                // Agregar registro a la tabla
+                this.addUsageRowToTable(result.data);
+
+                // Actualizar estadísticas
+                this.updateUsageStatistics(result.data);
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Uso Registrado',
+                    text: 'El uso del equipo se registró correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Limpiar formulario
+                form.reset();
+                form.classList.remove('was-validated');
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Error al registrar el uso del equipo'
+                });
+            }
+        } catch (error) {
+            console.error('Error al guardar el uso:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al registrar el uso del equipo'
+            });
+        }
     }
 
     // ===== ABRIR MODAL DE REGISTRO DE MANTENIMIENTO =====
@@ -991,46 +1192,768 @@ class ItemDetailManager {
     }
 
     // ===== GUARDAR REGISTRO DE MANTENIMIENTO =====
-    saveMaintenance() {
+    async saveMaintenance() {
         const form = document.getElementById('maintenanceForm');
-        
+
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return;
         }
 
         const maintenanceData = {
-            id: maintenanceHistoryData.length + 1,
-            type: document.getElementById('maintenanceType').value,
-            date: this.formatDate(new Date(document.getElementById('maintenanceDate').value)),
-            technician: document.getElementById('technician').value,
-            cost: parseFloat(document.getElementById('maintenanceCost').value) || 0,
-            status: 'Completado',
-            notes: document.getElementById('maintenanceNotes').value || 'Sin notas'
+            maintenance_type: document.getElementById('maintenanceType').value,
+            scheduled_date: document.getElementById('maintenanceDate').value,
+            technician_name: document.getElementById('technician').value,
+            total_cost: parseFloat(document.getElementById('maintenanceCost').value) || 0,
+            work_description: document.getElementById('maintenanceNotes').value || null
         };
 
-        // En producción, esto sería una llamada AJAX
-        console.log('Saving maintenance:', maintenanceData);
-
-        // Agregar a los datos
-        maintenanceHistoryData.unshift(maintenanceData);
-        
-        // Actualizar tabla
-        this.updateMaintenanceHistoryTable();
-        
-        // Actualizar estadísticas
-        document.getElementById('totalMaintenances').textContent = maintenanceHistoryData.length;
-        
-        // Actualizar última inspección
-        currentItemData.lastInspection = maintenanceData.date;
-        document.getElementById('lastInspection').textContent = maintenanceData.date;
-
-        // Cerrar modal
+        // Cerrar modal antes de la llamada AJAX
         const modal = bootstrap.Modal.getInstance(document.getElementById('registerMaintenanceModal'));
         modal.hide();
 
-        // Mostrar mensaje de éxito
-        this.showToast('success', 'Mantenimiento registrado exitosamente');
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Guardando mantenimiento...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Hacer llamada AJAX
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/mantenimiento`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(maintenanceData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Agregar nueva fila a la tabla sin recargar
+                this.addMaintenanceRowToTable(result.data);
+
+                // Actualizar estadísticas de mantenimiento
+                this.updateMaintenanceStatistics();
+
+                // Resetear formulario
+                form.reset();
+                form.classList.remove('was-validated');
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    title: 'Mantenimiento registrado',
+                    text: result.message,
+                    icon: 'success',
+                    confirmButtonText: 'Entendido',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            } else {
+                throw new Error(result.message || 'Error al registrar el mantenimiento');
+            }
+
+        } catch (error) {
+            console.error('Error saving maintenance:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'No se pudo registrar el mantenimiento',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
+            });
+        }
+    }
+
+    // ===== AGREGAR FILA DE MANTENIMIENTO A LA TABLA =====
+    addUsageRowToTable(usageData) {
+        // Determinar clase de badge según el estado
+        let badgeClass = 'bg-label-secondary';
+        let statusText = usageData.assignment_status;
+        if (usageData.assignment_status === 'ASIGNADO') {
+            badgeClass = 'bg-label-info';
+            statusText = 'Asignado';
+        } else if (usageData.assignment_status === 'EN_USO') {
+            badgeClass = 'bg-label-primary';
+            statusText = 'En Uso';
+        } else if (usageData.assignment_status === 'DEVUELTO') {
+            badgeClass = 'bg-label-success';
+            statusText = 'Devuelto';
+        } else if (usageData.assignment_status === 'CANCELADO') {
+            badgeClass = 'bg-label-danger';
+            statusText = 'Cancelado';
+        }
+
+        // Crear el HTML de la fila
+        const rowData = [
+            usageData.event_name,
+            usageData.event_date,
+            usageData.venue_address || 'Sin ubicación',
+            usageData.hours_used ? `${usageData.hours_used} hrs` : '-',
+            `<span class="badge ${badgeClass}" data-status="${usageData.assignment_status}">${statusText}</span>`,
+            usageData.notes || 'Sin notas'
+        ];
+
+        // Agregar fila al DataTable si existe, sino al tbody directamente
+        if (this.usageDataTable) {
+            const row = this.usageDataTable.row.add(rowData).draw(false);
+            $(row.node()).attr('data-usage-id', usageData.id);
+            $(row.node()).addClass('usage-record-row');
+        } else {
+            // Fallback si DataTable no está inicializado
+            const tbody = document.querySelector('#usageHistoryTable tbody');
+
+            // Eliminar fila de "no records" si existe
+            const noRecordsRow = tbody.querySelector('tr.no-records');
+            if (noRecordsRow) {
+                noRecordsRow.remove();
+            }
+
+            const newRow = document.createElement('tr');
+            newRow.dataset.usageId = usageData.id;
+            newRow.classList.add('usage-record-row');
+            newRow.innerHTML = rowData.map(data => `<td>${data}</td>`).join('');
+            tbody.insertBefore(newRow, tbody.firstChild);
+        }
+    }
+
+    addMaintenanceRowToTable(maintenanceData) {
+        // Determinar clase de badge según el estado
+        let badgeClass = 'bg-label-secondary';
+        let statusText = maintenanceData.maintenance_status;
+        if (maintenanceData.maintenance_status === 'COMPLETADO') {
+            badgeClass = 'bg-label-success';
+            statusText = 'Completado';
+        } else if (maintenanceData.maintenance_status === 'PROGRAMADO') {
+            badgeClass = 'bg-label-primary';
+            statusText = 'Programado';
+        } else if (maintenanceData.maintenance_status === 'VENCIDO') {
+            badgeClass = 'bg-label-danger';
+            statusText = 'Vencido';
+        }
+
+        // Crear el HTML de la fila
+        const rowData = [
+            maintenanceData.maintenance_type,
+            maintenanceData.scheduled_date,
+            maintenanceData.technician_name,
+            `$${maintenanceData.total_cost}`,
+            `<span class="badge ${badgeClass}" data-status="${maintenanceData.maintenance_status}">${statusText}</span>`,
+            maintenanceData.work_description || 'Sin notas',
+            maintenanceData.maintenance_status !== 'COMPLETADO' ?
+                `<div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item complete-maintenance-btn" href="#" data-maintenance-id="${maintenanceData.id}">
+                                <i class="mdi mdi-check me-2"></i>Completar
+                            </a>
+                        </li>
+                    </ul>
+                </div>`
+                : '<span class="text-muted">-</span>'
+        ];
+
+        // Agregar fila al DataTable si existe, sino al tbody directamente
+        if (this.maintenanceDataTable) {
+            const row = this.maintenanceDataTable.row.add(rowData).draw(false);
+            $(row.node()).attr('data-maintenance-id', maintenanceData.id);
+        } else {
+            // Fallback si DataTable no está inicializado
+            const tbody = document.querySelector('#maintenanceHistoryTable tbody');
+            const emptyRow = tbody.querySelector('td[colspan="7"]');
+            if (emptyRow) {
+                emptyRow.closest('tr').remove();
+            }
+
+            const newRow = document.createElement('tr');
+            newRow.dataset.maintenanceId = maintenanceData.id;
+            newRow.innerHTML = rowData.map(data => `<td>${data}</td>`).join('');
+            tbody.insertBefore(newRow, tbody.firstChild);
+        }
+
+        // Actualizar alertas y fechas de inspección
+        this.updateMaintenanceMetrics();
+    }
+
+    // ===== ABRIR MODAL DE COMPLETAR MANTENIMIENTO =====
+    openCompleteMaintenanceModal(maintenanceId) {
+        // Guardar el ID del mantenimiento que se va a completar
+        this.currentMaintenanceId = maintenanceId;
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('completeMaintenanceModal'));
+        modal.show();
+    }
+
+    // ===== CONFIRMAR COMPLETAR MANTENIMIENTO =====
+    async confirmCompleteMaintenance() {
+        if (!this.currentMaintenanceId) return;
+
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('completeMaintenanceModal'));
+        modal.hide();
+
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Completando mantenimiento...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Hacer llamada AJAX
+            const response = await fetch(`/inventory/unidad/mantenimiento/${this.currentMaintenanceId}/completar`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Actualizar la fila en la tabla
+                this.updateMaintenanceRowStatus(this.currentMaintenanceId, result.data);
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    title: 'Mantenimiento completado',
+                    text: result.message,
+                    icon: 'success',
+                    confirmButtonText: 'Entendido',
+                    customClass: {
+                        confirmButton: 'btn btn-success'
+                    },
+                    buttonsStyling: false
+                });
+            } else {
+                throw new Error(result.message || 'Error al completar el mantenimiento');
+            }
+
+        } catch (error) {
+            console.error('Error completing maintenance:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'No se pudo completar el mantenimiento',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                customClass: {
+                    confirmButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
+            });
+        } finally {
+            this.currentMaintenanceId = null;
+        }
+    }
+
+    // ===== ACTUALIZAR ESTADO DE FILA DE MANTENIMIENTO =====
+    updateMaintenanceRowStatus(maintenanceId, data) {
+        // Si estamos usando DataTable
+        if (this.maintenanceDataTable) {
+            const row = this.maintenanceDataTable.row(`[data-maintenance-id="${maintenanceId}"]`);
+            if (row.length > 0) {
+                const rowData = row.data();
+                // Actualizar la columna de estado (índice 4)
+                rowData[4] = '<span class="badge bg-label-success" data-status="COMPLETADO">Completado</span>';
+                // Actualizar la columna de acciones (índice 6)
+                rowData[6] = '<span class="text-muted">-</span>';
+                row.data(rowData).draw(false);
+            }
+        } else {
+            // Fallback para DOM directo
+            const rowElement = document.querySelector(`tr[data-maintenance-id="${maintenanceId}"]`);
+            if (!rowElement) return;
+
+            // Actualizar badge de estado
+            const statusBadge = rowElement.querySelector('.badge');
+            if (statusBadge) {
+                statusBadge.className = 'badge bg-label-success';
+                statusBadge.textContent = 'Completado';
+                statusBadge.dataset.status = 'COMPLETADO';
+            }
+
+            // Reemplazar dropdown con guión
+            const actionsCell = rowElement.querySelector('td:last-child');
+            if (actionsCell) {
+                actionsCell.innerHTML = '<span class="text-muted">-</span>';
+            }
+        }
+
+        // Actualizar alertas y fechas de inspección
+        this.updateMaintenanceMetrics();
+    }
+
+    // ===== ACTUALIZAR MÉTRICAS DE MANTENIMIENTO =====
+    updateMaintenanceMetrics() {
+        // Obtener todas las filas de mantenimiento (desde DataTable o DOM)
+        let rows;
+        if (this.maintenanceDataTable) {
+            // Obtener todas las filas del DataTable (incluyendo las no visibles por paginación)
+            // Convertir a array porque rows().nodes() no tiene forEach directamente
+            rows = Array.from(this.maintenanceDataTable.rows().nodes());
+        } else {
+            // Fallback a DOM directo
+            rows = document.querySelectorAll('#maintenanceHistoryTable tbody tr[data-maintenance-id]');
+        }
+
+        let lastInspectionDate = 'Sin registros';
+        let nextInspectionDate = 'Sin programar';
+        let nextInspectionOverdue = false;
+        let hasOverdueMaintenance = false;
+        let overdueDays = 0;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let completedMaintenances = [];
+        let pendingMaintenances = [];
+
+        // Procesar todas las filas
+        rows.forEach(row => {
+            const statusBadge = row.querySelector('.badge');
+            const status = statusBadge ? statusBadge.dataset.status : null;
+            const dateCell = row.querySelector('td:nth-child(2)'); // Segunda columna es la fecha
+            const dateText = dateCell ? dateCell.textContent.trim() : null;
+
+            if (dateText && status) {
+                // Convertir fecha de formato dd/mm/yyyy a objeto Date
+                const dateParts = dateText.split('/');
+                if (dateParts.length === 3) {
+                    const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                    if (status === 'COMPLETADO') {
+                        completedMaintenances.push({ date: date, dateText: dateText });
+                    } else if (status === 'PROGRAMADO' || status === 'VENCIDO') {
+                        pendingMaintenances.push({ date: date, dateText: dateText, status: status });
+                    }
+                }
+            }
+        });
+
+        // Calcular última inspección (último completado)
+        if (completedMaintenances.length > 0) {
+            completedMaintenances.sort((a, b) => b.date - a.date);
+            lastInspectionDate = completedMaintenances[0].dateText;
+        }
+
+        // Calcular próxima inspección (siguiente pendiente más cercano)
+        if (pendingMaintenances.length > 0) {
+            pendingMaintenances.sort((a, b) => a.date - b.date);
+            const nextMaintenance = pendingMaintenances[0];
+            nextInspectionDate = nextMaintenance.dateText;
+
+            // Verificar si está vencida
+            if (nextMaintenance.date < today) {
+                nextInspectionOverdue = true;
+            }
+
+            // Verificar si hay mantenimientos vencidos
+            const overdueList = pendingMaintenances.filter(m => m.status === 'VENCIDO');
+            if (overdueList.length > 0) {
+                hasOverdueMaintenance = true;
+                // Calcular días de atraso del más antiguo
+                const oldestOverdue = overdueList[0];
+                const diffTime = today - oldestOverdue.date;
+                overdueDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            }
+        }
+
+        // Actualizar la última inspección
+        const lastInspectionEl = document.getElementById('lastInspection');
+        if (lastInspectionEl && lastInspectionDate) {
+            lastInspectionEl.textContent = lastInspectionDate;
+        }
+
+        // Actualizar la próxima inspección
+        const nextInspectionEl = document.getElementById('nextInspection');
+        if (nextInspectionEl && nextInspectionDate) {
+            nextInspectionEl.textContent = nextInspectionDate;
+            // Cambiar color según si está vencida
+            if (nextInspectionOverdue) {
+                nextInspectionEl.className = 'fw-medium text-danger';
+            } else {
+                nextInspectionEl.className = 'fw-medium text-primary';
+            }
+        }
+
+        // Mostrar/ocultar alerta de mantenimiento vencido
+        this.updateOverdueAlert(hasOverdueMaintenance, overdueDays);
+    }
+
+    // ===== ACTUALIZAR ALERTA DE MANTENIMIENTO VENCIDO =====
+    updateOverdueAlert(hasOverdue, days) {
+        // DESHABILITADO: La alerta ya se muestra desde Blade con datos del backend
+        // para evitar duplicados
+        return;
+
+        /* // Buscar si ya existe la alerta
+        let alert = document.querySelector('.alert-danger.maintenance-overdue-alert');
+
+        if (hasOverdue) {
+            if (!alert) {
+                // Crear la alerta si no existe
+                const alertHtml = `
+                    <div class="alert alert-danger alert-dismissible fade show maintenance-overdue-alert" role="alert">
+                        <i class="mdi mdi-alert-circle me-2"></i>
+                        <strong>¡Mantenimiento Vencido!</strong> La inspección está atrasada por <span class="overdue-days">${days}</span> ${days == 1 ? 'día' : 'días'}.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+
+                // Insertar al inicio del container
+                const container = document.querySelector('.container-xxl.flex-grow-1.container-p-y');
+                if (container) {
+                    container.insertAdjacentHTML('afterbegin', alertHtml);
+                }
+            } else {
+                // Actualizar días si ya existe
+                const daysSpan = alert.querySelector('.overdue-days');
+                if (daysSpan) {
+                    daysSpan.textContent = days;
+                }
+                // Actualizar texto singular/plural
+                const alertText = alert.innerHTML;
+                const newText = alertText.replace(/(día|días)/, days == 1 ? 'día' : 'días');
+                alert.innerHTML = newText;
+            }
+        } else {
+            // Remover la alerta si ya no hay vencidos
+            if (alert) {
+                alert.remove();
+            }
+        } */
+    }
+
+    // ===== INICIALIZAR DATATABLES =====
+    initializeUsageDataTable() {
+        console.log('Intentando inicializar DataTable de uso...');
+
+        // Esperar a que jQuery y DataTables estén disponibles
+        if (typeof $ === 'undefined') {
+            console.warn('jQuery no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeUsageDataTable(), 500);
+            return;
+        }
+
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.warn('DataTables no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeUsageDataTable(), 500);
+            return;
+        }
+
+        console.log('jQuery y DataTables disponibles para tabla de uso');
+
+        // Inicializar DataTable en la tabla de uso
+        const usageTable = $('#usageHistoryTable');
+        console.log('Tabla de uso encontrada:', usageTable.length);
+
+        if (usageTable.length) {
+            // Verificar si ya está inicializado
+            if ($.fn.DataTable.isDataTable('#usageHistoryTable')) {
+                console.log('DataTable de uso ya inicializado');
+                this.usageDataTable = usageTable.DataTable();
+                this.setupUsageExportButtons();
+                return;
+            }
+
+            try {
+                // Verificar el contenido del tbody ANTES de hacer cualquier cosa
+                const tbody = usageTable.find('tbody');
+                const allRows = tbody.find('tr');
+                console.log('=== DEBUGGING USAGE TABLE ===');
+                console.log('Total de filas <tr> en tbody:', allRows.length);
+                console.log('Contenido HTML del tbody:', tbody.html().substring(0, 500));
+
+                // Remover fila de "no records" si existe antes de inicializar DataTable
+                const noRecordsRow = usageTable.find('tbody tr.no-records');
+                if (noRecordsRow.length) {
+                    console.log('Removiendo fila de "no records"');
+                    noRecordsRow.remove();
+                }
+
+                // Verificar cuántas filas reales hay en la tabla
+                const recordRows = usageTable.find('tbody tr.usage-record-row');
+                console.log('Filas de registros encontradas en la tabla:', recordRows.length);
+
+                console.log('Inicializando DataTable de uso...');
+                this.usageDataTable = usageTable.DataTable({
+                    order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    },
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    columnDefs: [],
+                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+                    responsive: true,
+                    deferRender: true, // No renderizar todas las filas inmediatamente
+                    retrieve: true // Permite recuperar una instancia existente sin error
+                    // NO usar destroy - queremos mantener los datos del servidor
+                });
+
+                console.log('DataTable de uso inicializado exitosamente con', this.usageDataTable.rows().count(), 'filas');
+
+                // Conectar botones de exportación personalizados
+                this.setupUsageExportButtons();
+            } catch (error) {
+                console.error('Error al inicializar DataTable de uso:', error);
+            }
+        } else {
+            console.warn('Tabla usageHistoryTable no encontrada en el DOM');
+        }
+    }
+
+    initializeDataTables() {
+        console.log('Intentando inicializar DataTables...');
+
+        // Esperar a que jQuery y DataTables estén disponibles
+        if (typeof $ === 'undefined') {
+            console.warn('jQuery no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeDataTables(), 500);
+            return;
+        }
+
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.warn('DataTables no está disponible, reintentando en 500ms...');
+            setTimeout(() => this.initializeDataTables(), 500);
+            return;
+        }
+
+        console.log('jQuery y DataTables disponibles');
+
+        // Inicializar DataTable en la tabla de mantenimiento
+        const maintenanceTable = $('#maintenanceHistoryTable');
+        console.log('Tabla encontrada:', maintenanceTable.length);
+
+        if (maintenanceTable.length) {
+            // Verificar si ya está inicializado
+            if ($.fn.DataTable.isDataTable('#maintenanceHistoryTable')) {
+                console.log('DataTable ya inicializado');
+                this.maintenanceDataTable = maintenanceTable.DataTable();
+                this.setupMaintenanceExportButtons();
+                return;
+            }
+
+            try {
+                console.log('Inicializando DataTable...');
+                this.maintenanceDataTable = maintenanceTable.DataTable({
+                    order: [[1, 'desc']], // Ordenar por fecha (columna 1) descendente
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    },
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    columnDefs: [
+                        {
+                            // Columna de Acciones (última columna) - no ordenable ni exportable
+                            targets: -1,
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+                    responsive: true,
+                    retrieve: true, // Permite recuperar una instancia existente sin error
+                    destroy: false // No destruir datos existentes
+                });
+
+                console.log('DataTable inicializado exitosamente');
+
+                // Conectar botones de exportación personalizados
+                this.setupMaintenanceExportButtons();
+            } catch (error) {
+                console.error('Error al inicializar DataTable:', error);
+            }
+        } else {
+            console.warn('Tabla maintenanceHistoryTable no encontrada en el DOM');
+        }
+    }
+
+    // ===== CONFIGURAR BOTONES DE EXPORTACIÓN DE USO =====
+    setupUsageExportButtons() {
+        console.log('Configurando botones de exportación de uso...');
+        const exportButtons = document.querySelectorAll('#usageExportButtons a');
+        console.log('Botones de uso encontrados:', exportButtons.length);
+
+        exportButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const exportType = button.dataset.export;
+
+                console.log('Exportando uso como:', exportType);
+
+                if (!this.usageDataTable) {
+                    console.error('DataTable de uso no está inicializado');
+                    return;
+                }
+
+                // Configurar opciones de exportación
+                const exportOptions = {
+                    columns: [0, 1, 2, 3, 4, 5], // Todas las columnas
+                    format: {
+                        body: function (data, row, column, node) {
+                            // Extraer solo el texto de los badges y otros elementos HTML
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = data;
+                            return tempDiv.textContent || tempDiv.innerText || '';
+                        }
+                    }
+                };
+
+                // Exportar según el tipo
+                switch (exportType) {
+                    case 'excel':
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(
+                            this.usageDataTable.button(),
+                            null,
+                            this.usageDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: `Historial_Uso_${new Date().getTime()}`,
+                                filename: `Historial_Uso_${new Date().getTime()}`
+                            }
+                        );
+                        break;
+
+                    case 'pdf':
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(
+                            this.usageDataTable.button(),
+                            null,
+                            this.usageDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: 'Historial de Uso del Equipo',
+                                filename: `Historial_Uso_${new Date().getTime()}`,
+                                orientation: 'landscape',
+                                pageSize: 'LEGAL'
+                            }
+                        );
+                        break;
+
+                    case 'print':
+                        $.fn.dataTable.ext.buttons.print.action.call(
+                            this.usageDataTable.button(),
+                            null,
+                            this.usageDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: '<h2>Historial de Uso del Equipo</h2>',
+                                customize: function (win) {
+                                    $(win.document.body).css('font-size', '10pt');
+                                    $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
+                                }
+                            }
+                        );
+                        break;
+                }
+            });
+        });
+    }
+
+    // ===== CONFIGURAR BOTONES DE EXPORTACIÓN =====
+    setupMaintenanceExportButtons() {
+        console.log('Configurando botones de exportación...');
+        const exportButtons = document.querySelectorAll('#maintenanceExportButtons a');
+        console.log('Botones encontrados:', exportButtons.length);
+
+        exportButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const exportType = button.dataset.export;
+
+                console.log('Exportando como:', exportType);
+
+                if (!this.maintenanceDataTable) {
+                    console.error('DataTable no está inicializado');
+                    return;
+                }
+
+                // Configurar opciones de exportación
+                const exportOptions = {
+                    columns: [0, 1, 2, 3, 4, 5], // Excluir columna de Acciones (índice 6)
+                    format: {
+                        body: function (data, row, column, node) {
+                            // Extraer solo el texto de los badges y otros elementos HTML
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = data;
+                            return tempDiv.textContent || tempDiv.innerText || '';
+                        }
+                    }
+                };
+
+                // Exportar según el tipo
+                switch (exportType) {
+                    case 'excel':
+                        $.fn.dataTable.ext.buttons.excelHtml5.action.call(
+                            this.maintenanceDataTable.button(),
+                            null,
+                            this.maintenanceDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: `Historial_Mantenimiento_${new Date().getTime()}`,
+                                filename: `Historial_Mantenimiento_${new Date().getTime()}`
+                            }
+                        );
+                        break;
+
+                    case 'pdf':
+                        $.fn.dataTable.ext.buttons.pdfHtml5.action.call(
+                            this.maintenanceDataTable.button(),
+                            null,
+                            this.maintenanceDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: 'Historial de Mantenimiento',
+                                filename: `Historial_Mantenimiento_${new Date().getTime()}`,
+                                orientation: 'landscape',
+                                pageSize: 'LEGAL'
+                            }
+                        );
+                        break;
+
+                    case 'print':
+                        $.fn.dataTable.ext.buttons.print.action.call(
+                            this.maintenanceDataTable.button(),
+                            null,
+                            this.maintenanceDataTable,
+                            null,
+                            {
+                                exportOptions: exportOptions,
+                                title: '<h2>Historial de Mantenimiento</h2>',
+                                customize: function (win) {
+                                    $(win.document.body).css('font-size', '10pt');
+                                    $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
+                                }
+                            }
+                        );
+                        break;
+                }
+            });
+        });
     }
 
     // ===== MOSTRAR TOAST =====
@@ -1227,6 +2150,78 @@ class ItemDetailManager {
         // Por ahora solo mostramos un mensaje
         // En producción, aquí cargarías y mostrarías la lista de documentos
         this.showToast('info', 'Vista de documentos actualizada');
+    }
+
+    // ===== ACTUALIZAR ESTADÍSTICAS DE USO =====
+    updateUsageStatistics(usageData = null) {
+        // Actualizar Total de Eventos (incrementar en 1)
+        const totalEventsEl = document.getElementById('totalEvents');
+        if (totalEventsEl && usageData) {
+            const currentTotal = parseInt(totalEventsEl.textContent) || 0;
+            totalEventsEl.textContent = currentTotal + 1;
+        }
+
+        // Actualizar Horas de Uso (sumar las horas del nuevo registro)
+        const totalHoursEl = document.getElementById('totalHours');
+        if (totalHoursEl && usageData && usageData.hours_used) {
+            const currentHours = parseFloat(totalHoursEl.textContent.replace(' hrs', '')) || 0;
+            const newTotal = currentHours + parseFloat(usageData.hours_used);
+            totalHoursEl.textContent = newTotal.toFixed(1) + ' hrs';
+        }
+
+        // Actualizar tabla de próximos eventos si el status no es DEVUELTO
+        if (usageData && usageData.assignment_status !== 'DEVUELTO') {
+            this.addUpcomingEvent(usageData);
+        }
+    }
+
+    // ===== ACTUALIZAR CONTEO DE MANTENIMIENTOS =====
+    updateMaintenanceStatistics() {
+        const totalMaintenancesEl = document.getElementById('totalMaintenances');
+        if (totalMaintenancesEl) {
+            const currentTotal = parseInt(totalMaintenancesEl.textContent) || 0;
+            totalMaintenancesEl.textContent = currentTotal + 1;
+        }
+    }
+
+    // ===== AGREGAR EVENTO A PRÓXIMOS EVENTOS =====
+    addUpcomingEvent(usageData) {
+        const upcomingEventsTable = document.getElementById('upcomingEventsTable');
+        if (!upcomingEventsTable) return;
+
+        // Eliminar mensaje de "no hay eventos" si existe
+        const noDataRow = upcomingEventsTable.querySelector('td[colspan="4"]');
+        if (noDataRow) {
+            noDataRow.parentElement.remove();
+        }
+
+        // Mapeo de estados
+        const statusMap = {
+            'ASIGNADO': { text: 'Asignado', class: 'bg-info' },
+            'EN_USO': { text: 'En Uso', class: 'bg-warning' },
+            'CANCELADO': { text: 'Cancelado', class: 'bg-secondary' }
+        };
+        const status = statusMap[usageData.assignment_status] || { text: usageData.assignment_status, class: 'bg-secondary' };
+
+        // Formatear fecha
+        const eventDate = new Date(usageData.event_date);
+        const formattedDate = eventDate.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+
+        // Crear nueva fila
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${usageData.event_name}</td>
+            <td>${formattedDate}</td>
+            <td>${usageData.venue_address || 'Sin ubicación'}</td>
+            <td><span class="badge ${status.class}">${status.text}</span></td>
+        `;
+
+        // Insertar al principio de la tabla
+        upcomingEventsTable.insertBefore(newRow, upcomingEventsTable.firstChild);
     }
 }
 

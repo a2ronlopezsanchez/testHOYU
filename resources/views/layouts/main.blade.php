@@ -12,7 +12,7 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <meta name="csrf-token" content="{{ csrf_token() }}" />
+      <meta name="csrf-token" content="{{ csrf_token() }}" />
 
       <title>@yield('title') |  Black Production </title>
 
@@ -159,33 +159,25 @@
               <ul class="menu-sub">
                 <li class="menu-item
                 @if (trim($__env->yieldContent('subleve')) == "Catalogo")
-                  active
+                  active 
                 @endif
                 ">
                   <a href="{{route('catalogo')}}" class="menu-link">
                     <div data-i18n="Catálogo">Catálogo</div>
                   </a>
-                </li>
-                <li class="menu-item
+                </li>   
+                <li class="menu-item 
                 @if (trim($__env->yieldContent('subleve')) == "Disponibilidad")
-                  active
+                  active 
                 @endif">
-                  <a href="{{route('inventory.disponibilidad')}}" class="menu-link">
+                  <a href="{{route('dashboard')}}" class="menu-link">
                     <div data-i18n="Disponibilidad">Disponibilidad</div>
                   </a>
                 </li>
-                <li class="menu-item
-                @if (trim($__env->yieldContent('subleve')) == "Formulario")
-                  active
-                @endif
-                ">
-                  <a href="{{route('inventory.formulario')}}" class="menu-link">
-                    <div data-i18n="Nuevo Item">Nuevo Item</div>
-                  </a>
-                </li>
+                
                 <li class="menu-item
                 @if (trim($__env->yieldContent('subleve')) == "Almacen")
-                  active
+                  active 
                 @endif
                 ">
                   <a href="/reportes-inventario" class="menu-link">
