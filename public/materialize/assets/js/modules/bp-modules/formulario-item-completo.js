@@ -870,11 +870,20 @@ class ItemFormManager {
 
                 this.on('removedfile', (file) => {
                     if (file.imageId) {
-                        // Eliminar del backend usando el inventoryItemId
-                        console.log('Eliminando imagen del backend:', file.imageId);
-                        itemFormManager.deleteImageFromBackend(inventoryItemId, file.imageId);
+                        console.log('Dropzone removedfile event:', file.imageId);
 
-                        // Eliminar de formData
+                        // Solo eliminar del backend si aún está en formData
+                        // (si no está, significa que removeImage() ya lo eliminó)
+                        const stillInFormData = formData.imagenes.find(img => img.id === file.imageId);
+
+                        if (stillInFormData) {
+                            console.log('Imagen aún en formData, eliminando del backend...');
+                            itemFormManager.deleteImageFromBackend(inventoryItemId, file.imageId);
+                        } else {
+                            console.log('Imagen ya eliminada de formData, solo limpiando dropzone');
+                        }
+
+                        // Siempre limpiar de formData por si acaso
                         formData.imagenes = formData.imagenes.filter(img => img.id !== file.imageId);
                         itemFormManager.updateImageGallery();
                     }
@@ -1822,7 +1831,40 @@ class ItemFormManager {
         }
 
         // ===== REMOVER IMAGEN =====
-        removeImage(index) {
+        async removeImage(index) {
+            const imagen = formData.imagenes[index];
+
+            if (!imagen) {
+                console.error('Imagen no encontrada en index:', index);
+                return;
+            }
+
+            console.log('Eliminando imagen:', imagen);
+
+            // Si la imagen tiene ID (existe en backend), eliminarla
+            if (imagen.id) {
+                const inventoryItemId = window.bladeFormData?.inventoryItem?.id || currentInventoryItemId;
+
+                if (!inventoryItemId) {
+                    console.error('No se puede eliminar: falta inventoryItemId');
+                    this.showAlert('Error: No se puede identificar el item', 'error');
+                    return;
+                }
+
+                // Eliminar del backend
+                await this.deleteImageFromBackend(inventoryItemId, imagen.id);
+            }
+
+            // Eliminar del dropzone si existe
+            if (dropzoneInstance) {
+                const fileToRemove = dropzoneInstance.files.find(f => f.imageId === imagen.id);
+                if (fileToRemove) {
+                    console.log('Eliminando archivo de dropzone:', fileToRemove);
+                    dropzoneInstance.removeFile(fileToRemove);
+                }
+            }
+
+            // Eliminar de formData
             formData.imagenes.splice(index, 1);
             this.updateImageGallery();
             unsavedChanges = true;
@@ -1831,6 +1873,8 @@ class ItemFormManager {
             if (formData.imagenes.length === 0) {
                 document.getElementById('previewMainImage').src = '/public/materialize/assets/img/products/placeholder.png';
             }
+
+            this.showAlert('Imagen eliminada correctamente', 'success');
         }
 
         // ===== CARGAR IMÁGENES EXISTENTES EN DROPZONE =====
@@ -1848,25 +1892,18 @@ class ItemFormManager {
             inventoryItem.images.forEach((image, index) => {
                 // Crear un objeto mock file para Dropzone
                 const mockFile = {
-                    name: `imagen-${index + 1}.jpg`,
+                    name: image.public_id || `imagen-${index + 1}.jpg`,
                     size: 0,
                     type: 'image/jpeg',
-                    status: Dropzone.ADDED,
+                    status: Dropzone.SUCCESS,
                     accepted: true,
                     imageId: image.id,
                     cloudinaryUrl: image.url,
                     isPrimary: image.is_primary
                 };
 
-                // Agregar el archivo al Dropzone
-                dropzoneInstance.files.push(mockFile);
-                dropzoneInstance.emit('addedfile', mockFile);
-
-                // Agregar la thumbnail
-                dropzoneInstance.emit('thumbnail', mockFile, image.url);
-
-                // Marcar como completado
-                dropzoneInstance.emit('complete', mockFile);
+                // Usar el método oficial de Dropzone para agregar archivos existentes
+                dropzoneInstance.displayExistingFile(mockFile, image.url);
 
                 // Agregar a formData
                 formData.imagenes.push({
@@ -1909,15 +1946,15 @@ class ItemFormManager {
         // ===== ESTABLECER IMAGEN COMO PRINCIPAL =====
         async setPrimaryImage(index) {
             const imagen = formData.imagenes[index];
-            const itemParentId = window.bladeFormData?.itemParent?.id;
+            const inventoryItemId = window.bladeFormData?.inventoryItem?.id || currentInventoryItemId;
 
-            if (!itemParentId || !imagen || !imagen.id) {
+            if (!inventoryItemId || !imagen || !imagen.id) {
                 console.error('No se puede establecer imagen principal sin ID');
                 return;
             }
 
             try {
-                const response = await fetch(`/inventory/unidad/${itemParentId}/imagen/${imagen.id}/principal`, {
+                const response = await fetch(`/inventory/unidad/${inventoryItemId}/imagen/${imagen.id}/principal`, {
                     method: 'PATCH',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
