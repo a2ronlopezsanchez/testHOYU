@@ -705,7 +705,12 @@
                         @endif
                       </td>
                       <td class="text-end">
-                        <a href="{{ $document->url }}" target="_blank" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" title="Descargar">
+                        @php
+                          // Modificar URL de Cloudinary para forzar descarga
+                          // Agregar fl_attachment en la URL para forzar descarga en lugar de visualización
+                          $downloadUrl = str_replace('/upload/', '/upload/fl_attachment/', $document->url);
+                        @endphp
+                        <a href="{{ $downloadUrl }}" download="{{ $document->name }}" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" title="Descargar">
                           <i class="mdi mdi-download"></i>
                         </a>
                         <button class="btn btn-sm btn-icon btn-text-danger rounded-pill delete-document-btn"

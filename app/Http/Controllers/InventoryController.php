@@ -2062,9 +2062,14 @@ class InventoryController extends Controller
 
             try {
                 // Configurar opciones de upload para documentos (usar raw para PDFs y docs)
+                // Crear carpeta organizada: inventory_documents/{inventory_item_id}/{document_type}
+                $folder = "inventory_documents/{$inventoryItem->id}/{$request->input('document_type')}";
+
                 $uploadOptions = [
-                    'folder' => 'inventory_documents',
+                    'folder' => $folder,
                     'resource_type' => 'raw', // Para documentos no-imagen
+                    'use_filename' => true,    // Usar nombre original del archivo
+                    'unique_filename' => true,  // Agregar sufijo único para evitar duplicados
                 ];
 
                 $result = Cloudinary::upload(
@@ -2087,8 +2092,11 @@ class InventoryController extends Controller
                     $apiSecret = env('CLOUDINARY_API_SECRET');
                     $timestamp = time();
 
+                    // Usar la misma carpeta organizada
+                    $folder = "inventory_documents/{$inventoryItem->id}/{$request->input('document_type')}";
+
                     $params = [
-                        'folder' => 'inventory_documents',
+                        'folder' => $folder,
                         'timestamp' => $timestamp,
                     ];
 
@@ -2102,10 +2110,12 @@ class InventoryController extends Controller
                                 'contents' => fopen($uploadedFile->getRealPath(), 'r'),
                                 'filename' => $uploadedFile->getClientOriginalName(),
                             ],
-                            ['name' => 'folder', 'contents' => 'inventory_documents'],
+                            ['name' => 'folder', 'contents' => $folder],
                             ['name' => 'timestamp', 'contents' => $timestamp],
                             ['name' => 'api_key', 'contents' => $apiKey],
                             ['name' => 'signature', 'contents' => $signature],
+                            ['name' => 'use_filename', 'contents' => 'true'],
+                            ['name' => 'unique_filename', 'contents' => 'true'],
                         ],
                     ]);
 
