@@ -675,14 +675,58 @@
           </button>
         </div>
         <div class="card-body">
-          <div class="document-placeholder text-center py-5">
-            <i class="mdi mdi-file-document-outline mdi-48px text-muted mb-3"></i>
-            <p class="text-muted mb-3">No hay documentos adjuntos a este ítem.<br>
-            Puedes subir manuales, facturas, garantías u otra documentación relevante.</p>
-            <button class="btn btn-outline-primary">
-              <i class="mdi mdi-paperclip me-2"></i>Adjuntar Documento
-            </button>
-          </div>
+          @if($inventoryItem->documents && $inventoryItem->documents->count() > 0)
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Tamaño</th>
+                    <th>Fecha</th>
+                    <th>Notas</th>
+                    <th class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($inventoryItem->documents as $document)
+                    <tr>
+                      <td>
+                        <span class="badge bg-label-primary">{{ $document->document_type }}</span>
+                      </td>
+                      <td>{{ $document->name }}</td>
+                      <td>{{ number_format($document->file_size / 1024, 2) }} KB</td>
+                      <td>{{ $document->created_at->format('d/m/Y') }}</td>
+                      <td>
+                        @if($document->notes)
+                          <small class="text-muted">{{ Str::limit($document->notes, 30) }}</small>
+                        @else
+                          <small class="text-muted">-</small>
+                        @endif
+                      </td>
+                      <td class="text-end">
+                        <a href="{{ $document->url }}" target="_blank" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" title="Descargar">
+                          <i class="mdi mdi-download"></i>
+                        </a>
+                        <button class="btn btn-sm btn-icon btn-text-danger rounded-pill delete-document-btn"
+                                data-document-id="{{ $document->id }}"
+                                data-document-name="{{ $document->name }}"
+                                title="Eliminar">
+                          <i class="mdi mdi-delete-outline"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @else
+            <div class="document-placeholder text-center py-5">
+              <i class="mdi mdi-file-document-outline mdi-48px text-muted mb-3"></i>
+              <p class="text-muted mb-3">No hay documentos adjuntos a este ítem.<br>
+              Puedes subir manuales, facturas, garantías u otra documentación relevante.</p>
+            </div>
+          @endif
         </div>
       </div>
     </div>

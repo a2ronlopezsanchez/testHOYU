@@ -109,6 +109,15 @@ class InventoryItem extends Model
     {
         return $this->hasMany(ItemImage::class, 'item_id');
     }
+
+    /**
+     * Documentos del item
+     */
+    public function documents()
+    {
+        return $this->hasMany(InventoryItemDocument::class, 'inventory_item_id');
+    }
+
     /**
      * Usuario que dio de baja el item
      */

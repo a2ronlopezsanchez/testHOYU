@@ -682,6 +682,16 @@ class ItemDetailManager {
             attachDocumentBtn.addEventListener('click', () => this.handleUploadDocument());
         }
 
+        // Botones de eliminar documento (event delegation)
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-document-btn')) {
+                const btn = e.target.closest('.delete-document-btn');
+                const documentId = btn.dataset.documentId;
+                const documentName = btn.dataset.documentName;
+                this.handleDeleteDocument(documentId, documentName);
+            }
+        });
+
         // Cambio de tabs
         const tabs = document.querySelectorAll('#detailTabs .nav-link');
         tabs.forEach(tab => {
@@ -2143,59 +2153,174 @@ class ItemDetailManager {
     }
 
     // ===== SUBIR DOCUMENTO =====
-    uploadDocument(data) {
-        // Mostrar loading
-        Swal.fire({
-            title: 'Subiendo documento...',
-            html: 'Por favor espera',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        // En producción, aquí harías una llamada AJAX con FormData
-        // Simulamos la subida con un timeout
-        setTimeout(() => {
-            // Simular respuesta exitosa
-            const documentData = {
-                id: Date.now(),
-                type: data.type,
-                name: data.name,
-                fileName: data.file.name,
-                fileSize: this.formatFileSize(data.file.size),
-                uploadDate: this.formatDate(new Date()),
-                notes: data.notes,
-                url: URL.createObjectURL(data.file) // Crear URL temporal para preview
-            };
-
-            console.log('Document uploaded:', documentData);
-
-            // En producción, aquí guardarías en la BD y actualizarías la UI
-            // Por ahora solo mostramos mensaje de éxito
+    async uploadDocument(data) {
+        if (!currentItemData || !currentItemData.inventoryItemId) {
             Swal.fire({
-                title: 'Documento subido',
-                html: `
-                    <div class="text-start">
-                        <p class="mb-2"><strong>Nombre:</strong> ${documentData.name}</p>
-                        <p class="mb-2"><strong>Tipo:</strong> ${documentData.type}</p>
-                        <p class="mb-2"><strong>Archivo:</strong> ${documentData.fileName}</p>
-                        <p class="mb-2"><strong>Tamaño:</strong> ${documentData.fileSize}</p>
-                        <p class="text-muted small">El documento ha sido adjuntado exitosamente al item.</p>
-                    </div>
-                `,
-                icon: 'success',
-                confirmButtonText: 'Entendido',
-                customClass: {
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo identificar el item'
+            });
+            return;
+        }
+
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Subiendo documento...',
+                html: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Crear FormData para enviar el archivo
+            const formData = new FormData();
+            formData.append('document', data.file);
+            formData.append('document_type', data.type);
+            formData.append('name', data.name);
+            if (data.notes) {
+                formData.append('notes', data.notes);
+            }
+
+            // Enviar petición POST
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/documento`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    title: '¡Documento subido!',
+                    html: `
+                        <div class="text-start">
+                            <p class="mb-2"><strong>Nombre:</strong> ${result.data.name}</p>
+                            <p class="mb-2"><strong>Tipo:</strong> ${result.data.document_type}</p>
+                            <p class="mb-2"><strong>Tamaño:</strong> ${this.formatFileSize(result.data.file_size)}</p>
+                            <p class="text-muted small">El documento ha sido adjuntado exitosamente al item.</p>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonText: 'Entendido',
+                    customClass: {
                     confirmButton: 'btn btn-primary'
                 },
                 buttonsStyling: false
             }).then(() => {
-                // Actualizar la vista de documentos
-                this.updateDocumentsView();
+                // Recargar la página para mostrar el nuevo documento
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.message || 'Error al subir el documento'
+            });
+        }
+
+        } catch (error) {
+            console.error('Error al subir documento:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error de conexión al subir el documento'
+            });
+        }
+    }
+
+    // ===== MANEJAR ELIMINAR DOCUMENTO =====
+    handleDeleteDocument(documentId, documentName) {
+        Swal.fire({
+            title: '¿Eliminar documento?',
+            html: `
+                <p class="text-muted mb-3">¿Estás seguro de que deseas eliminar este documento?</p>
+                <div class="alert alert-warning text-start">
+                    <strong>${documentName}</strong>
+                </div>
+                <p class="text-muted small">Esta acción no se puede deshacer.</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                confirmButton: 'btn btn-danger me-2',
+                cancelButton: 'btn btn-outline-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.deleteDocument(documentId);
+            }
+        });
+    }
+
+    // ===== ELIMINAR DOCUMENTO =====
+    async deleteDocument(documentId) {
+        if (!currentItemData || !currentItemData.inventoryItemId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo identificar el item'
+            });
+            return;
+        }
+
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Eliminando documento...',
+                html: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
 
-        }, 1500); // Simular delay de subida
+            // Enviar petición DELETE
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/documento/${documentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Eliminado!',
+                    text: 'El documento ha sido eliminado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Recargar la página para actualizar la lista
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Error al eliminar el documento'
+                });
+            }
+
+        } catch (error) {
+            console.error('Error al eliminar documento:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error de conexión al eliminar el documento'
+            });
+        }
     }
 
     // ===== FORMATEAR TAMAÑO DE ARCHIVO =====
