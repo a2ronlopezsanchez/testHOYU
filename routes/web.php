@@ -113,7 +113,6 @@ Route::middleware('auth')->group(function () {
 
             // Rutas para documentos
             Route::post('/unidad/{id}/documento', [App\Http\Controllers\InventoryController::class, 'uploadDocument'])->name('unidad.documento.upload');
-            Route::get('/unidad/{itemId}/documento/{documentId}/descargar', [App\Http\Controllers\InventoryController::class, 'downloadDocument'])->name('unidad.documento.download');
             Route::delete('/unidad/{itemId}/documento/{documentId}', [App\Http\Controllers\InventoryController::class, 'deleteDocument'])->name('unidad.documento.delete');
 
             Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
