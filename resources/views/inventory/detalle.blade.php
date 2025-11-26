@@ -705,12 +705,9 @@
                         @endif
                       </td>
                       <td class="text-end">
-                        @php
-                          // Modificar URL de Cloudinary para forzar descarga
-                          // Agregar fl_attachment en la URL para forzar descarga en lugar de visualización
-                          $downloadUrl = str_replace('/upload/', '/upload/fl_attachment/', $document->url);
-                        @endphp
-                        <a href="{{ $downloadUrl }}" download="{{ $document->name }}" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" title="Descargar">
+                        <a href="{{ route('unidad.documento.download', ['itemId' => $inventoryItem->id, 'documentId' => $document->id]) }}"
+                           class="btn btn-sm btn-icon btn-text-secondary rounded-pill"
+                           title="Descargar">
                           <i class="mdi mdi-download"></i>
                         </a>
                         <button class="btn btn-sm btn-icon btn-text-danger rounded-pill delete-document-btn"

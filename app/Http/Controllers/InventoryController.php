@@ -2188,6 +2188,59 @@ class InventoryController extends Controller
     }
 
     /**
+     * Descargar documento forzando la descarga en lugar de visualización
+     */
+    public function downloadDocument($itemId, $documentId)
+    {
+        try {
+            // Buscar el documento
+            $document = InventoryItemDocument::where('inventory_item_id', $itemId)
+                ->where('id', $documentId)
+                ->firstOrFail();
+
+            // Obtener el contenido del archivo desde Cloudinary
+            $client = new \GuzzleHttp\Client([
+                'verify' => config('app.env') === 'local' ? false : true, // Deshabilitar SSL solo en local
+            ]);
+
+            $response = $client->get($document->url);
+            $fileContent = $response->getBody()->getContents();
+
+            // Obtener el nombre del archivo desde el public_id o usar el nombre del documento
+            $fileName = $document->name;
+
+            // Agregar extensión si no la tiene
+            if (!pathinfo($fileName, PATHINFO_EXTENSION) && $document->mime_type) {
+                $extension = match($document->mime_type) {
+                    'application/pdf' => 'pdf',
+                    'application/msword' => 'doc',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                    'application/vnd.ms-excel' => 'xls',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+                    'text/plain' => 'txt',
+                    default => '',
+                };
+                if ($extension) {
+                    $fileName .= '.' . $extension;
+                }
+            }
+
+            // Retornar el archivo con headers de descarga forzada
+            return response($fileContent)
+                ->header('Content-Type', $document->mime_type ?? 'application/octet-stream')
+                ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                ->header('Content-Length', strlen($fileContent))
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+
+        } catch (\Exception $e) {
+            \Log::error('Download document error: ' . $e->getMessage());
+            abort(404, 'Documento no encontrado');
+        }
+    }
+
+    /**
      * Eliminar documento de Cloudinary y base de datos
      */
     public function deleteDocument($itemId, $documentId)
