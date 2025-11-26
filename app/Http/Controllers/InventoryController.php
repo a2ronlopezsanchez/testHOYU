@@ -2232,11 +2232,33 @@ class InventoryController extends Controller
             abort(404, 'No se pudo obtener el archivo.');
         }
 
-        $filename = $document->name ?? 'documento.pdf';
+        // 1) Sacar la extensión y nombre original desde la URL de Cloudinary
+        $path      = parse_url($document->url, PHP_URL_PATH);              // /raw/upload/v123/.../archivo.pdf
+        $ext       = strtolower(pathinfo($path, PATHINFO_EXTENSION));      // pdf
+        $baseName  = basename($path);                                      // vxmi1lyfjavzhmro5xpt_hmfhxy.pdf
+
+        // 2) Definir un nombre bonito para descargar
+        //    Si en BD tienes un nombre tipo "Manual", le agregamos la extensión.
+        if (!empty($document->name)) {
+            // Evitar doble .pdf.pdf por si acaso
+            $filename = $document->name;
+            if ($ext && !str_ends_with(strtolower($filename), '.' . $ext)) {
+                $filename .= '.' . $ext;
+            }
+        } else {
+            // Si no hay nombre en BD, usamos el nombre de Cloudinary tal cual
+            $filename = $baseName ?: 'documento.pdf';
+        }
+
+        // 3) Forzar un Content-Type adecuado
+        $mime = 'application/octet-stream';
+        if ($ext === 'pdf') {
+            $mime = 'application/pdf';
+        }
 
         return response($response->body(), 200, [
-            'Content-Type'        => $response->header('Content-Type', 'application/pdf'),
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Type'        => $mime,
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 }
