@@ -2095,9 +2095,13 @@ class InventoryController extends Controller
                     // Usar la misma carpeta organizada
                     $folder = "inventory_documents/{$inventoryItem->id}/{$request->input('document_type')}";
 
+                    // Todos los parámetros que se enviarán (excepto file, api_key, signature)
+                    // DEBEN estar en los params para generar la firma correcta
                     $params = [
                         'folder' => $folder,
                         'timestamp' => $timestamp,
+                        'use_filename' => true,
+                        'unique_filename' => true,
                     ];
 
                     // Generar firma
