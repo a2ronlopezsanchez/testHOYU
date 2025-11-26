@@ -705,7 +705,7 @@
                         @endif
                       </td>
                       <td class="text-end">
-                        <a href="{{ route('unidad.documento.download', ['itemId' => $inventoryItem->id, 'documentId' => $document->id]) }}"
+                        <a href="{{ route('inventory.unidad.documento.download', ['itemId' => $inventoryItem->id, 'documentId' => $document->id]) }}"
                            class="btn btn-sm btn-icon btn-text-secondary rounded-pill"
                            title="Descargar">
                           <i class="mdi mdi-download"></i>
