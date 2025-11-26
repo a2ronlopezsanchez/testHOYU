@@ -926,16 +926,78 @@ class ItemDetailManager {
     }
 
     // ===== PROGRAMAR MANTENIMIENTO =====
-    scheduleMaintenance(data) {
-        // En producción, esto sería una llamada AJAX
-        console.log('Scheduling maintenance:', data);
+    async scheduleMaintenance(data) {
+        if (!currentItemData || !currentItemData.inventoryItemId) {
+            this.showToast('error', 'Error: No se pudo identificar el item');
+            return;
+        }
 
-        // Simular guardado exitoso
-        this.showToast('success', 'Mantenimiento programado exitosamente');
-        
-        // Actualizar próxima inspección
-        currentItemData.nextInspection = this.formatDate(new Date(data.date));
-        document.getElementById('nextInspection').textContent = currentItemData.nextInspection;
+        try {
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Programando mantenimiento...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const response = await fetch(`/inventory/unidad/${currentItemData.inventoryItemId}/mantenimiento`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    maintenance_type: data.type,
+                    scheduled_date: data.date,
+                    technician_name: data.technician,
+                    work_description: data.notes || null
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'Mantenimiento programado exitosamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Actualizar próxima inspección en la UI
+                if (result.data && result.data.scheduled_date) {
+                    currentItemData.nextInspection = result.data.scheduled_date;
+                    const nextInspectionElement = document.getElementById('nextInspection');
+                    if (nextInspectionElement) {
+                        nextInspectionElement.textContent = result.data.scheduled_date;
+                    }
+                }
+
+                // Recargar la página para mostrar el nuevo mantenimiento en la tabla
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Error al programar el mantenimiento'
+                });
+            }
+
+        } catch (error) {
+            console.error('Error al programar mantenimiento:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error de conexión al programar el mantenimiento'
+            });
+        }
     }
 
     // ===== MANEJAR DAR DE BAJA =====
