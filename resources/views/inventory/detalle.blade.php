@@ -705,11 +705,10 @@
                         @endif
                       </td>
                       <td class="text-end">
-                        <a href="{{ $document->url }}"
-                           target="_blank"
-                           class="btn btn-sm btn-icon btn-text-secondary rounded-pill"
-                           title="Ver documento">
-                          <i class="mdi mdi-eye-outline"></i>
+                        <a href="{{ route('inventory.documents.download', $document) }}"
+                          class="btn btn-sm btn-icon btn-text-secondary rounded-pill"
+                          title="Descargar documento">
+                          <i class="mdi mdi-download"></i>
                         </a>
                         <button class="btn btn-sm btn-icon btn-text-danger rounded-pill delete-document-btn"
                                 data-document-id="{{ $document->id }}"

@@ -28,15 +28,7 @@ return new class extends Migration
 
             // Índices y llaves foráneas
             $table->index('inventory_item_id');
-            $table->foreign('inventory_item_id')
-                  ->references('id')
-                  ->on('inventory_items')
-                  ->onDelete('cascade');
 
-            $table->foreign('uploaded_by')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null');
         });
     }
 

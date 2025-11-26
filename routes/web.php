@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
             // Rutas para documentos
             Route::post('/unidad/{id}/documento', [App\Http\Controllers\InventoryController::class, 'uploadDocument'])->name('unidad.documento.upload');
             Route::delete('/unidad/{itemId}/documento/{documentId}', [App\Http\Controllers\InventoryController::class, 'deleteDocument'])->name('unidad.documento.delete');
+            Route::get('/documents/{document}/download', [App\Http\Controllers\InventoryController::class, 'download'])->name('documents.download');
 
             Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
         });

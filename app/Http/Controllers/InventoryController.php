@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Http;
 
 class InventoryController extends Controller
 {
@@ -2221,5 +2222,21 @@ class InventoryController extends Controller
                 'message' => 'Error al eliminar el documento: ' . $e->getMessage()
             ], 500);
         }
+    }
+    public function download(InventoryItemDocument $document)
+    {
+        // Descarga el archivo desde Cloudinary
+        $response = Http::get($document->url);
+
+        if ($response->failed()) {
+            abort(404, 'No se pudo obtener el archivo.');
+        }
+
+        $filename = $document->name ?? 'documento.pdf';
+
+        return response($response->body(), 200, [
+            'Content-Type'        => $response->header('Content-Type', 'application/pdf'),
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 }
