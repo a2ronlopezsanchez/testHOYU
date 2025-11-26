@@ -2232,32 +2232,50 @@ class InventoryController extends Controller
             abort(404, 'No se pudo obtener el archivo.');
         }
 
-        // 1) Sacar la extensión y nombre original desde la URL de Cloudinary
-        $path      = parse_url($document->url, PHP_URL_PATH);              // /raw/upload/v123/.../archivo.pdf
-        $ext       = strtolower(pathinfo($path, PATHINFO_EXTENSION));      // pdf
-        $baseName  = basename($path);                                      // vxmi1lyfjavzhmro5xpt_hmfhxy.pdf
+        // 1) Sacar la extensión desde la URL de Cloudinary o desde public_id
+        $path = parse_url($document->url, PHP_URL_PATH);
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        // Si no hay extensión en el path, intentar extraerla del public_id
+        if (empty($ext) && !empty($document->public_id)) {
+            $ext = strtolower(pathinfo($document->public_id, PATHINFO_EXTENSION));
+        }
+
+        // Si aún no hay extensión, usar mime_type de la BD
+        if (empty($ext) && !empty($document->mime_type)) {
+            $mimeToExt = [
+                'application/pdf' => 'pdf',
+                'application/msword' => 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                'application/vnd.ms-excel' => 'xls',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+                'text/plain' => 'txt',
+            ];
+            $ext = $mimeToExt[$document->mime_type] ?? '';
+        }
 
         // 2) Definir un nombre bonito para descargar
-        //    Si en BD tienes un nombre tipo "Manual", le agregamos la extensión.
-        if (!empty($document->name)) {
-            // Evitar doble .pdf.pdf por si acaso
-            $filename = $document->name;
-            if ($ext && !str_ends_with(strtolower($filename), '.' . $ext)) {
-                $filename .= '.' . $ext;
-            }
-        } else {
-            // Si no hay nombre en BD, usamos el nombre de Cloudinary tal cual
-            $filename = $baseName ?: 'documento.pdf';
+        $filename = $document->name;
+
+        // Si el nombre no tiene extensión, agregarla
+        if ($ext && !preg_match('/\.' . preg_quote($ext, '/') . '$/i', $filename)) {
+            $filename .= '.' . $ext;
         }
 
-        // 3) Forzar un Content-Type adecuado
-        $mime = 'application/octet-stream';
-        if ($ext === 'pdf') {
-            $mime = 'application/pdf';
-        }
+        // 3) Determinar Content-Type adecuado
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'txt' => 'text/plain',
+        ];
+
+        $mime = $mimeTypes[$ext] ?? ($document->mime_type ?? 'application/octet-stream');
 
         return response($response->body(), 200, [
-            'Content-Type'        => $mime,
+            'Content-Type' => $mime,
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
