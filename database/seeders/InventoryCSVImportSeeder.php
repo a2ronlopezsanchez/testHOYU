@@ -128,6 +128,7 @@ class InventoryCSVImportSeeder extends Seeder
             'rack' => !empty($csvRow['RACK']) ? $csvRow['RACK'] : null,
             'panel' => !empty($csvRow['PANEL']) ? $csvRow['PANEL'] : null,
             'identificador' => !empty($csvRow['IDENTIFICADOR']) ? $csvRow['IDENTIFICADOR'] : null,
+            'numero_serie' => !empty($csvRow['NUMERO DE SERIE']) && strtoupper(trim($csvRow['NUMERO DE SERIE'])) !== 'COLOCAR COMPLETO' ? trim($csvRow['NUMERO DE SERIE']) : null,
             'numero_garantia_vip' => !empty($csvRow['NUMERO DE GARANTIA VIP']) || !empty($csvRow['NUMERO_GARANTIA_VIP']) ? ($csvRow['NUMERO DE GARANTIA VIP'] ?? $csvRow['NUMERO_GARANTIA_VIP'] ?? null) : null,
             'precio_original' => $this->parsePrice($csvRow['PRECIO ORIGINAL'] ?? $csvRow['PRECIO_ORIGINAL'] ?? '0'),
             'precio_reciente' => $this->parsePrice($csvRow['PRECIO RECIENTE'] ?? $csvRow['PRECIO_RECIENTE'] ?? '0'),
@@ -359,7 +360,7 @@ class InventoryCSVImportSeeder extends Seeder
             'rack_position' => $row['rack'] ?? null,
             'panel_position' => $row['panel'] ?? null,
             'rfid_tag' => $row['etiquetado'] === 'SI' ? $row['identificador'] ?? null : null,
-            'serial_number' => $row['numero_garantia_vip'] ?? null,
+            'serial_number' => $row['numero_serie'] ?? null,
             'status' => $this->mapStatus($row['status'] ?? 'ACTIVO'),
             'condition' => $this->mapCondition($row['comentarios'] ?? 'BUENO'),
             'original_price' => $row['precio_original'] ?? 0,
@@ -384,16 +385,19 @@ class InventoryCSVImportSeeder extends Seeder
             return 'UNIT';
         }
 
+        $upperValue = strtoupper(trim($value));
+
         $mapping = [
             'INDIVIDUAL' => 'UNIT',
             'UNIDAD' => 'UNIT',
+            'UNIT' => 'UNIT',
             'SET' => 'SET',
             'CONJUNTO' => 'SET',
             'PAR' => 'PAIR',
             'PAIR' => 'PAIR',
         ];
 
-        return $mapping[strtoupper($value)] ?? 'UNIT';
+        return $mapping[$upperValue] ?? 'UNIT';
     }
 
     /**

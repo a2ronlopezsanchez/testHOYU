@@ -49,7 +49,8 @@ El CSV debe tener estos headers (tal como aparecen en tu Excel):
 - `RACK` → Se guarda en `inventory_items.rack_position`
 - `PANEL` → Se guarda en `inventory_items.panel_position`
 - `IDENTIFICADOR` → Se guarda en `inventory_items.rfid_tag` (si etiquetado = SI)
-- `NUMERO DE GARANTIA VIP` → Se guarda en `inventory_items.serial_number`
+- `NUMERO DE SERIE` → Se guarda en `inventory_items.serial_number` (solo si ≠ "COLOCAR COMPLETO")
+- `NUMERO DE GARANTIA VIP`
 - `PRECIO ORIGINAL` → Se guarda en `inventory_items.original_price`
 - `PRECIO RECIENTE`
 - `PRECIO RENTA` → Se guarda en `inventory_items.ideal_rental_price`
