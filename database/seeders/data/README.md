@@ -28,38 +28,46 @@ php artisan db:seed --class=InventoryCSVImportSeeder
 
 El CSV debe tener estos headers (tal como aparecen en tu Excel):
 
-- `SKU`
-- `NOMBRE TECNICO`
-- `ID`
-- `ETIQUETADO`
-- `COMENTARIOS`
-- `CATEGORIA`
-- `MARCA`
-- `MODELO`
-- `FAMILIA`
-- `SUB FAMILIA`
-- `NOMBRE PARA USUARIO`
-- `COLOR`
+- `SKU` → Se guarda en `inventory_items.sku`
+- `NOMBRE TECNICO INTERNO CON ID` → Se guarda en `inventory_items.name`
+- `ID` → Se guarda en `inventory_items.item_id`
+- `ETIQUETADO` (SI/NO)
+- `COMENTARIOS` → Se guarda en `inventory_items.notes` y `condition`
+- `CATEGORIA` → Crea/encuentra categoría automáticamente
+- `MARCA` → Crea/encuentra marca automáticamente
+- `MODELO` → Se guarda en `item_parents.model`
+- `FAMILIA` → Se guarda en `item_parents.family`
+- `SUB FAMILIA` → Se guarda en `item_parents.sub_family`
+- `NOMBRE PARA COTIZACIONES` → Se guarda en:
+  - `inventory_items.public_name`
+  - `item_parents.name`
+  - `item_parents.public_name`
+- `COLOR` → Se guarda en `inventory_items.color` y `item_parents.color`
 - `STATUS`
-- `UBICACION`
+- `UBICACION` → Crea/encuentra ubicación automáticamente
 - `UNITS/SET`
-- `RACK`
-- `PANEL`
-- `IDENTIFICADOR`
-- `NUMERO DE GARANTIA VIP`
-- `PRECIO ORIGINAL`
+- `RACK` → Se guarda en `inventory_items.rack_position`
+- `PANEL` → Se guarda en `inventory_items.panel_position`
+- `IDENTIFICADOR` → Se guarda en `inventory_items.rfid_tag` (si etiquetado = SI)
+- `NUMERO DE GARANTIA VIP` → Se guarda en `inventory_items.serial_number`
+- `PRECIO ORIGINAL` → Se guarda en `inventory_items.original_price`
 - `PRECIO RECIENTE`
-- `PRECIO RENTA`
-- `MINIMO`
+- `PRECIO RENTA` → Se guarda en `inventory_items.ideal_rental_price`
+- `PRECIO RENTA MINIMO` → Se guarda en `inventory_items.minimum_rental_price`
 
-**Nota:** Los headers pueden tener espacios o guiones bajos, el seeder los reconocerá automáticamente.
+**Nota:**
+- Los headers pueden tener espacios o guiones bajos, el seeder los reconocerá automáticamente.
+- El archivo CSV debe estar en **UTF-8** para manejar correctamente caracteres especiales (á, é, í, ó, ú, ñ, etc.).
 
 ## Qué hace el seeder
 
-✅ Lee el archivo CSV
+✅ Lee el archivo CSV con encoding UTF-8 (caracteres especiales)
 ✅ Crea automáticamente las marcas que no existen
 ✅ Crea automáticamente las categorías que no existen
 ✅ Crea automáticamente las ubicaciones que no existen
+✅ Crea `item_parents` inteligentemente:
+   - Un nuevo padre se crea solo si difiere en: **MODELO, FAMILIA, SUB FAMILIA o NOMBRE PARA COTIZACIONES**
+   - Ejemplo: Items BD011, BD012, BD013 con diferentes MODELO/FAMILIA crearán padres separados aunque compartan categoría y marca
 ✅ Omite items duplicados (por SKU o item_id)
 ✅ Muestra progreso cada 100 registros
 ✅ Muestra resumen al finalizar

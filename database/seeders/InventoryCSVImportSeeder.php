@@ -28,7 +28,14 @@ class InventoryCSVImportSeeder extends Seeder
 
         $this->command->info("📂 Leyendo archivo CSV...");
 
+        // Abrir archivo con encoding UTF-8
         $file = fopen($csvPath, 'r');
+
+        // Detectar y manejar BOM UTF-8
+        $bom = fread($file, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($file);
+        }
 
         // Leer headers
         $headers = fgetcsv($file);
@@ -102,18 +109,17 @@ class InventoryCSVImportSeeder extends Seeder
     private function mapCSVRow(array $csvRow): array
     {
         // Mapeo de columnas del CSV
-        // Ajusta estos nombres según los headers exactos de tu CSV
         return [
-            'nombre_tecnico' => $csvRow['NOMBRE TECNICO'] ?? $csvRow['NOMBRE_TECNICO'] ?? '',
-            'categoria' => $csvRow['CATEGORIA'] ?? '',
-            'marca' => $csvRow['MARCA'] ?? '',
-            'modelo' => $csvRow['MODELO'] ?? null,
-            'familia' => $csvRow['FAMILIA'] ?? null,
-            'sub_familia' => $csvRow['SUB FAMILIA'] ?? $csvRow['SUB_FAMILIA'] ?? null,
-            'nombre_usuario' => $csvRow['NOMBRE PARA USUARIO'] ?? $csvRow['NOMBRE_USUARIO'] ?? '',
-            'color' => $csvRow['COLOR'] ?? null,
-            'sku' => $csvRow['SKU'] ?? '',
-            'item_id' => $csvRow['ID'] ?? '',
+            'nombre_tecnico_interno' => trim($csvRow['NOMBRE TECNICO INTERNO CON ID'] ?? $csvRow['NOMBRE_TECNICO_INTERNO_CON_ID'] ?? ''),
+            'nombre_cotizaciones' => trim($csvRow['NOMBRE PARA COTIZACIONES'] ?? $csvRow['NOMBRE_PARA_COTIZACIONES'] ?? ''),
+            'categoria' => trim($csvRow['CATEGORIA'] ?? ''),
+            'marca' => trim($csvRow['MARCA'] ?? ''),
+            'modelo' => !empty($csvRow['MODELO']) ? trim($csvRow['MODELO']) : null,
+            'familia' => !empty($csvRow['FAMILIA']) ? trim($csvRow['FAMILIA']) : null,
+            'sub_familia' => !empty($csvRow['SUB FAMILIA']) ? trim($csvRow['SUB FAMILIA']) : (!empty($csvRow['SUB_FAMILIA']) ? trim($csvRow['SUB_FAMILIA']) : null),
+            'color' => !empty($csvRow['COLOR']) ? trim($csvRow['COLOR']) : null,
+            'sku' => trim($csvRow['SKU'] ?? ''),
+            'item_id' => trim($csvRow['ID'] ?? ''),
             'etiquetado' => $csvRow['ETIQUETADO'] ?? 'NO',
             'comentarios' => $csvRow['COMENTARIOS'] ?? $csvRow['COMENTARIO'] ?? 'BIEN',
             'status' => $csvRow['STATUS'] ?? 'ACTIVO',
@@ -121,12 +127,12 @@ class InventoryCSVImportSeeder extends Seeder
             'units_set' => $csvRow['UNITS/SET'] ?? $csvRow['UNITS_SET'] ?? 'INDIVIDUAL',
             'rack' => !empty($csvRow['RACK']) ? $csvRow['RACK'] : null,
             'panel' => !empty($csvRow['PANEL']) ? $csvRow['PANEL'] : null,
-            'identificador' => $csvRow['IDENTIFICADOR'] ?? null,
-            'numero_garantia_vip' => $csvRow['NUMERO DE GARANTIA VIP'] ?? $csvRow['NUMERO_GARANTIA_VIP'] ?? null,
+            'identificador' => !empty($csvRow['IDENTIFICADOR']) ? $csvRow['IDENTIFICADOR'] : null,
+            'numero_garantia_vip' => !empty($csvRow['NUMERO DE GARANTIA VIP']) || !empty($csvRow['NUMERO_GARANTIA_VIP']) ? ($csvRow['NUMERO DE GARANTIA VIP'] ?? $csvRow['NUMERO_GARANTIA_VIP'] ?? null) : null,
             'precio_original' => $this->parsePrice($csvRow['PRECIO ORIGINAL'] ?? $csvRow['PRECIO_ORIGINAL'] ?? '0'),
             'precio_reciente' => $this->parsePrice($csvRow['PRECIO RECIENTE'] ?? $csvRow['PRECIO_RECIENTE'] ?? '0'),
             'precio_renta' => $this->parsePrice($csvRow['PRECIO RENTA'] ?? $csvRow['PRECIO_RENTA'] ?? '0'),
-            'minimo' => !empty($csvRow['MINIMO']) ? $this->parsePrice($csvRow['MINIMO']) : null,
+            'precio_renta_minimo' => !empty($csvRow['PRECIO RENTA MINIMO']) || !empty($csvRow['PRECIO_RENTA_MINIMO']) ? $this->parsePrice($csvRow['PRECIO RENTA MINIMO'] ?? $csvRow['PRECIO_RENTA_MINIMO'] ?? '0') : null,
         ];
     }
 
@@ -262,22 +268,48 @@ class InventoryCSVImportSeeder extends Seeder
 
     /**
      * Crea o encuentra un ItemParent y retorna su ID
+     *
+     * Un nuevo padre se crea solo si difiere en:
+     * - MODELO, FAMILIA, SUB FAMILIA o NOMBRE PARA COTIZACIONES
      */
     private function getOrCreateItemParent(array $row): int
     {
         $brandId = $this->getOrCreateBrand($row['marca']);
         $categoryId = $this->getOrCreateCategory($row['categoria']);
 
-        // Buscar si ya existe un ItemParent con esta combinación
-        $itemParent = ItemParent::where('name', $row['nombre_tecnico'])
-            ->where('brand_id', $brandId)
+        // Buscar si ya existe un ItemParent con esta combinación exacta
+        // de modelo, familia, sub_familia, nombre_cotizaciones
+        $query = ItemParent::where('brand_id', $brandId)
             ->where('category_id', $categoryId)
-            ->first();
+            ->where('public_name', $row['nombre_cotizaciones']);
+
+        // Comparar modelo (puede ser null)
+        if ($row['modelo'] === null) {
+            $query->whereNull('model');
+        } else {
+            $query->where('model', $row['modelo']);
+        }
+
+        // Comparar familia (puede ser null)
+        if ($row['familia'] === null) {
+            $query->whereNull('family');
+        } else {
+            $query->where('family', $row['familia']);
+        }
+
+        // Comparar sub_familia (puede ser null)
+        if ($row['sub_familia'] === null) {
+            $query->whereNull('sub_family');
+        } else {
+            $query->where('sub_family', $row['sub_familia']);
+        }
+
+        $itemParent = $query->first();
 
         if (!$itemParent) {
             $itemParent = ItemParent::create([
-                'name' => $row['nombre_tecnico'],
-                'public_name' => $row['nombre_usuario'] ?? null,
+                'name' => $row['nombre_cotizaciones'], // Usar nombre de cotizaciones
+                'public_name' => $row['nombre_cotizaciones'],
                 'category_id' => $categoryId,
                 'brand_id' => $brandId,
                 'model' => $row['modelo'] ?? null,
@@ -319,8 +351,8 @@ class InventoryCSVImportSeeder extends Seeder
         InventoryItem::create([
             'sku' => $row['sku'],
             'item_id' => $row['item_id'],
-            'name' => $row['nombre_tecnico'],
-            'public_name' => $row['nombre_usuario'] ?? null,
+            'name' => $row['nombre_tecnico_interno'], // NOMBRE TECNICO INTERNO CON ID
+            'public_name' => $row['nombre_cotizaciones'], // NOMBRE PARA COTIZACIONES
             'item_parent_id' => $itemParentId,
             'location_id' => $locationId,
             'unit_set' => $this->mapUnitSet($row['units_set'] ?? 'INDIVIDUAL'),
@@ -332,7 +364,7 @@ class InventoryCSVImportSeeder extends Seeder
             'condition' => $this->mapCondition($row['comentarios'] ?? 'BUENO'),
             'original_price' => $row['precio_original'] ?? 0,
             'ideal_rental_price' => $row['precio_renta'] ?? 0,
-            'minimum_rental_price' => $row['minimo'] ?? null,
+            'minimum_rental_price' => $row['precio_renta_minimo'] ?? null, // PRECIO RENTA MINIMO
             'warranty_valid' => !empty($row['numero_garantia_vip']),
             'notes' => $row['comentarios'] ?? null,
             'color' => $row['color'] ?? null,
