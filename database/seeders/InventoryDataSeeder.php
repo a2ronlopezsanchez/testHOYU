@@ -263,6 +263,16 @@ class InventoryDataSeeder extends Seeder
      */
     private function createInventoryItem(array $row): void
     {
+        // Verificar si ya existe por SKU o item_id
+        $exists = InventoryItem::where('sku', $row['sku'])
+            ->orWhere('item_id', $row['item_id'])
+            ->exists();
+
+        if ($exists) {
+            $this->command->warn("⊘ Omitido (ya existe): {$row['sku']} - {$row['item_id']}");
+            return;
+        }
+
         // Obtener/crear relaciones
         $itemParentId = $this->getOrCreateItemParent($row);
         $locationId = $this->getOrCreateLocation($row['ubicacion'] ?? 'ALMACEN GENERAL');
