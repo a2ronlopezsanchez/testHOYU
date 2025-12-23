@@ -124,7 +124,7 @@ class InventoryCSVImportSeeder extends Seeder
             'comentarios' => $csvRow['COMENTARIOS'] ?? $csvRow['COMENTARIO'] ?? 'BIEN',
             'status' => $csvRow['STATUS'] ?? 'ACTIVO',
             'ubicacion' => $csvRow['UBICACION'] ?? 'INDIVIDUAL',
-            'units_set' => $csvRow['UNITS/SET'] ?? $csvRow['UNITS_SET'] ?? 'INDIVIDUAL',
+            'units_set' => !empty($csvRow['UNITS/SET']) ? trim($csvRow['UNITS/SET']) : (!empty($csvRow['UNITS_SET']) ? trim($csvRow['UNITS_SET']) : 'INDIVIDUAL'),
             'rack' => !empty($csvRow['RACK']) ? $csvRow['RACK'] : null,
             'panel' => !empty($csvRow['PANEL']) ? $csvRow['PANEL'] : null,
             'identificador' => !empty($csvRow['IDENTIFICADOR']) ? $csvRow['IDENTIFICADOR'] : null,
