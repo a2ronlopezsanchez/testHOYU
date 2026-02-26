@@ -1094,7 +1094,7 @@ class InventoryCatalog {
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.addItemToParent('${item.id}')">
-                            <i class="mdi mdi-plus me-2"></i>Añadir Item
+                            <i class="mdi mdi-plus me-2"></i>Añadir Unidad
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.showItemDetails('${item.id}')">
@@ -2938,7 +2938,7 @@ class InventoryCatalog {
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.addItemToParent('${item.id}')">
-                                <i class="mdi mdi-plus me-2"></i>Añadir Item
+                                <i class="mdi mdi-plus me-2"></i>Añadir Unidad
                             </a></li>
                             <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.showItemDetails('${item.id}')">
                                 <i class="mdi mdi-eye me-2"></i>Ver Detalles
