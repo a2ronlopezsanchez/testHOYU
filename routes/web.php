@@ -100,6 +100,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/disponibilidad', [App\Http\Controllers\InventoryController::class, 'disponibilidad'])->name('disponibilidad');
             Route::get('/item/{id}', [App\Http\Controllers\InventoryController::class, 'detalle'])->name('detalle');
+            Route::get('/item/{id}/asignar-eventos', [App\Http\Controllers\InventoryController::class, 'asignarEventos'])->name('asignar-eventos');
             Route::get('/unidad/{id}', [App\Http\Controllers\InventoryController::class, 'detalleUnidad'])->name('detalle.unidad');
             Route::patch('/unidad/{id}/notas', [App\Http\Controllers\InventoryController::class, 'actualizarNotas'])->name('unidad.notas');
             Route::post('/unidad/{id}/dar-de-baja', [App\Http\Controllers\InventoryController::class, 'darDeBaja'])->name('unidad.dar-de-baja');

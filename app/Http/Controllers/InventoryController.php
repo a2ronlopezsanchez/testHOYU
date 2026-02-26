@@ -1247,6 +1247,25 @@ class InventoryController extends Controller
     }
 
     /**
+     * Vista para asignar unidades a eventos
+     */
+    public function asignarEventos($id)
+    {
+        $itemParent = ItemParent::with([
+            'category',
+            'brand',
+            'items.location',
+            'items' => function ($query) {
+                $query->where('is_active', true)->orderBy('id');
+            }
+        ])->findOrFail($id);
+
+        $inventoryItems = $itemParent->items;
+
+        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems'));
+    }
+
+    /**
      * Vista detallada de un item
      */
     public function detalle($id)
