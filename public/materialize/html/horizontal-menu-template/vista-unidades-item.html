@@ -1,0 +1,918 @@
+<!doctype html>
+<html
+  lang="es"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../../assets/"
+  data-template="vertical-menu-template-no-customizer">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Detalle de Unidades | Black Production</title>
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="../../assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="../../assets/vendor/fonts/flag-icons.css" />
+
+    <!-- Menu waves -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" />
+    <link rel="stylesheet" href="../../assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/cards-statistics.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/black-production-css/vista-unidades-item.css" />
+
+    <!-- Helpers -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- ===================== MENU LATERAL ===================== -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="dashboard.html" class="app-brand-link">
+              <span class="app-brand-text demo menu-text fw-bold ms-2">BLCK</span>
+            </a>
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z" fill="currentColor" fill-opacity="0.6"/>
+                <path d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z" fill="currentColor" fill-opacity="0.38"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+            <li class="menu-item">
+              <a href="dashboard.html" class="menu-link">
+                <i class="menu-icon tf-icons mdi mdi-view-dashboard-outline"></i>
+                <div data-i18n="Dashboard">Dashboard</div>
+              </a>
+            </li>
+            <li class="menu-item active open">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-package-variant-closed"></i>
+                <div data-i18n="Inventario">Inventario</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="catalogo-inventario.html" class="menu-link">
+                    <div data-i18n="Disponibilidad">Disponibilidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="formulario-item-completo.html?mode=new" class="menu-link">
+                    <div data-i18n="Registro Completo">Registro Completo</div>
+                  </a>
+                </li>
+                <li class="menu-item active">
+                  <a href="vista-detalle-item.html" class="menu-link">
+                    <div data-i18n="Detalle Item">Detalle Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos-inventario" class="menu-link">
+                    <div data-i18n="Eventos">Eventos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/reportes-inventario" class="menu-link">
+                    <div data-i18n="Reportes">Reportes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-warehouse"></i>
+                <div data-i18n="Almacén">Almacén</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="#" class="menu-link"><div>Ubicaciones</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Movimientos</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Zonas</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-clipboard-list-outline"></i>
+                <div data-i18n="Logística">Logística</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="#" class="menu-link"><div>Horarios</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Personal</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Traslados</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-truck-outline"></i>
+                <div data-i18n="Transporte">Transporte</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="#" class="menu-link"><div>Vehículos</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Rutas</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Conductores</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-file-document-outline"></i>
+                <div data-i18n="Cotizaciones">Cotizaciones</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="#" class="menu-link"><div>Nuevas</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>En Proceso</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Historial</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Proveedores</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-currency-usd"></i>
+                <div data-i18n="Administración">Administración</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="#" class="menu-link"><div>Facturación</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Ingresos</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Gastos</div></a></li>
+                <li class="menu-item"><a href="#" class="menu-link"><div>Cuentas por Cobrar</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="#" class="menu-link">
+                <i class="menu-icon tf-icons mdi mdi-cog-outline"></i>
+                <div data-i18n="Configuración">Configuración</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+        <!-- ===================== / MENU LATERAL ===================== -->
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="mdi mdi-menu mdi-24px"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <div class="navbar-nav align-items-center">
+                <div class="nav-item navbar-search-wrapper mb-0">
+                  <a class="nav-item nav-link search-toggler fw-normal px-0" href="javascript:void(0);">
+                    <i class="mdi mdi-magnify mdi-24px scaleX-n1-rtl"></i>
+                    <span class="d-none d-md-inline-block text-muted">Buscar (Ctrl+f)</span>
+                  </a>
+                </div>
+              </div>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="../../assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">Nach Díaz</span>
+                            <small class="text-muted">Super Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-account-outline me-2"></i><span class="align-middle">Mi Perfil</span></a></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-cog-outline me-2"></i><span class="align-middle">Configuración</span></a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-logout me-2"></i><span class="align-middle">Log Out</span></a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div class="navbar-search-wrapper search-input-wrapper d-none">
+              <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..." />
+              <i class="mdi mdi-close search-toggler cursor-pointer"></i>
+            </div>
+          </nav>
+          <!-- / Navbar -->
+           <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+              <!-- ── HEADER DEL ÍTEM ── -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-start gap-3">
+                      <button class="btn btn-icon btn-sm btn-outline-secondary flex-shrink-0"
+                              onclick="window.location.href='catalogo-inventario.html'">
+                        <i class="mdi mdi-arrow-left"></i>
+                      </button>
+                      <div>
+                        <h4 class="mb-1" id="pageItemName">Cargando...</h4>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                          <span class="text-muted small" id="pageItemBrand">--</span>
+                          <span class="text-muted">•</span>
+                          <span class="badge bg-label-primary" id="pageItemCategory">--</span>
+                          <span class="text-muted">•</span>
+                          <small class="text-muted"><span id="pageItemTotal">--</span> unidades</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                        <i class="mdi mdi-printer me-1"></i>
+                        <span class="d-none d-sm-inline">Imprimir</span>
+                      </button>
+                      <button class="btn btn-sm btn-outline-secondary" id="exportUnitsBtn">
+                        <i class="mdi mdi-download me-1"></i>
+                        <span class="d-none d-sm-inline">Exportar</span>
+                      </button>
+                      <button class="btn btn-sm btn-primary" id="editItemBtn">
+                        <i class="mdi mdi-pencil me-1"></i>
+                        <span class="d-none d-sm-inline">Editar Item</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-4">
+                <!-- ══════════════ COLUMNA PRINCIPAL ══════════════ -->
+                <div class="col-lg-8 col-xl-9">
+
+                  <!-- Info general + specs -->
+                  <div class="card mb-4">
+                    <div class="card-body">
+                      <div class="row g-4">
+                        <!-- Imagen -->
+                        <div class="col-auto d-none d-md-block">
+                          <div class="units-item-image">
+                            <img src="../../assets/img/products/card-weekly-sales-watch.png"
+                                 alt="Item" id="itemMainImage"
+                                 class="rounded border" style="width:120px;height:90px;object-fit:cover;">
+                          </div>
+                        </div>
+                        <!-- Info -->
+                        <div class="col">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <h6 class="text-muted text-uppercase small fw-semibold mb-2">
+                                Información General
+                              </h6>
+                              <ul class="list-unstyled mb-0 small">
+                                <li class="mb-1">
+                                  <span class="text-muted">Categoría:</span>
+                                  <span id="infoCategory" class="ms-1 fw-medium">--</span>
+                                </li>
+                                <li class="mb-1">
+                                  <span class="text-muted">Marca:</span>
+                                  <span id="infoBrand" class="ms-1 fw-medium">--</span>
+                                </li>
+                                <li class="mb-1">
+                                  <span class="text-muted">Modelo:</span>
+                                  <span id="infoModel" class="ms-1 fw-medium">--</span>
+                                </li>
+                                <li class="mb-1">
+                                  <span class="text-muted">SKU:</span>
+                                  <span id="infoSku" class="ms-1 fw-medium font-monospace">--</span>
+                                </li>
+                              </ul>
+                            </div>
+                            <div class="col-md-6">
+                              <h6 class="text-muted text-uppercase small fw-semibold mb-2">
+                                Especificaciones
+                              </h6>
+                              <ul class="list-unstyled mb-0 small" id="infoSpecs">
+                                <li class="text-muted">Cargando...</li>
+                              </ul>
+                            </div>
+                            <div class="col-12">
+                              <h6 class="text-muted text-uppercase small fw-semibold mb-1">
+                                Descripción
+                              </h6>
+                              <p class="small text-muted mb-0" id="infoDescription">--</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Stats rápidas -->
+                    <div class="card-footer bg-light">
+                      <div class="row g-3 text-center">
+                        <div class="col-6 col-md-3">
+                          <div class="units-stat-box">
+                            <div class="fw-bold fs-4 mb-0" id="statTotal">--</div>
+                            <small class="text-muted">Total</small>
+                            <div class="units-stat-bar bg-secondary mt-1"></div>
+                          </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <div class="units-stat-box">
+                            <div class="fw-bold fs-4 mb-0 text-success" id="statAvailable">--</div>
+                            <small class="text-muted">Disponibles</small>
+                            <div class="units-stat-bar bg-success mt-1"></div>
+                          </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <div class="units-stat-box">
+                            <div class="fw-bold fs-4 mb-0 text-primary" id="statAssigned">--</div>
+                            <small class="text-muted">Asignadas</small>
+                            <div class="units-stat-bar bg-primary mt-1"></div>
+                          </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <div class="units-stat-box">
+                            <div class="fw-bold fs-4 mb-0 text-warning" id="statMaintenance">--</div>
+                            <small class="text-muted">Mantenimiento</small>
+                            <div class="units-stat-bar bg-warning mt-1"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Filtros -->
+                  <div class="card mb-4">
+                    <div class="card-body">
+                      <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                          <div class="input-group">
+                            <span class="input-group-text">
+                              <i class="mdi mdi-magnify"></i>
+                            </span>
+                            <input type="text" class="form-control"
+                                   placeholder="Buscar por ID, Serial, RFID o ubicación..."
+                                   id="unitsSearchInput">
+                            <button class="btn btn-outline-secondary d-none"
+                                    type="button" id="clearUnitsSearch">
+                              <i class="mdi mdi-close"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                            <select class="form-select w-auto" id="statusFilterSelect">
+                              <option value="all">Todos los estados</option>
+                              <option value="Disponible">Disponibles</option>
+                              <option value="Asignado">Asignados</option>
+                              <option value="En Mantenimiento">En Mantenimiento</option>
+                            </select>
+                            <select class="form-select w-auto" id="conditionFilterSelect">
+                              <option value="all">Todas las condiciones</option>
+                              <option value="Excelente">Excelente</option>
+                              <option value="Bueno">Bueno</option>
+                              <option value="Regular">Regular</option>
+                              <option value="En Reparación">En Reparación</option>
+                            </select>
+                            <button class="btn btn-outline-secondary" id="clearAllUnitsFilters"
+                                    title="Limpiar filtros">
+                              <i class="mdi mdi-refresh"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tabla de unidades -->
+                  <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                      <div>
+                        <h5 class="card-title mb-0">Unidades Individuales</h5>
+                        <small class="text-muted" id="unitsCountLabel">Cargando...</small>
+                      </div>
+                      <button class="btn btn-primary btn-sm" id="addUnitBtn">
+                        <i class="mdi mdi-plus me-1"></i>Agregar Unidad
+                      </button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table table-hover mb-0" id="unitsTable">
+                        <thead class="table-light">
+                          <tr>
+                            <th width="60px">#</th>
+                            <th width="140px">Serial / RFID</th>
+                            <th width="110px">Estado</th>
+                            <th width="110px">Condición</th>
+                            <th>Ubicación</th>
+                            <th width="110px">Último Uso</th>
+                            <th width="120px">Próx. Evento</th>
+                            <th width="90px" class="text-center">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody id="unitsTableBody">
+                          <tr>
+                            <td colspan="8" class="text-center py-4">
+                              <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                              <span class="text-muted">Cargando unidades...</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    <div class="card-footer">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <small class="text-muted">
+                          Mostrando <span id="showingFrom">1</span>–<span id="showingTo">10</span>
+                          de <span id="totalUnits">0</span> unidades
+                        </small>
+                        <nav>
+                          <ul class="pagination pagination-sm mb-0" id="unitsPagination">
+                            <li class="page-item disabled" id="prevUnitPage">
+                              <a class="page-link" href="javascript:void(0);">
+                                <i class="mdi mdi-chevron-left"></i>
+                              </a>
+                            </li>
+                            <li class="page-item active">
+                              <a class="page-link" href="javascript:void(0);">1</a>
+                            </li>
+                            <li class="page-item disabled" id="nextUnitPage">
+                              <a class="page-link" href="javascript:void(0);">
+                                <i class="mdi mdi-chevron-right"></i>
+                              </a>
+                            </li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- ══════════════ / COLUMNA PRINCIPAL ══════════════ -->
+
+                <!-- ══════════════ PANEL LATERAL ══════════════ -->
+                <div class="col-lg-4 col-xl-3">
+
+                  <!-- Acciones rápidas -->
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Acciones Rápidas</h5>
+                    </div>
+                    <div class="card-body d-grid gap-2">
+                      <button class="btn btn-primary" id="sideAddUnitBtn">
+                        <i class="mdi mdi-plus me-2"></i>Agregar Unidad
+                      </button>
+                      <button class="btn btn-success" id="assignToEventBtn">
+                        <i class="mdi mdi-calendar-plus me-2"></i>Asignar a Evento
+                      </button>
+                      <button class="btn btn-outline-secondary" id="printRfidBtn">
+                        <i class="mdi mdi-tag-outline me-2"></i>Imprimir Etiquetas RFID
+                      </button>
+                      <button class="btn btn-outline-secondary" id="generateReportBtn">
+                        <i class="mdi mdi-chart-bar me-2"></i>Generar Reporte
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Stats mantenimiento -->
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Mantenimiento</h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Total mantenimientos:</small>
+                        <span class="fw-medium" id="sideMaintenanceTotal">--</span>
+                      </div>
+                      <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">En mantenimiento:</small>
+                        <span class="fw-medium text-warning" id="sideMaintenanceCurrent">--</span>
+                      </div>
+                      <div class="d-flex justify-content-between mb-3">
+                        <small class="text-muted">Último registro:</small>
+                        <span class="fw-medium" id="sideMaintenanceLast">--</span>
+                      </div>
+                      <hr class="my-2">
+                      <a href="vista-detalle-item.html" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="mdi mdi-history me-1"></i>Ver historial
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Próximos eventos -->
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Próximos Eventos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                      <ul class="list-group list-group-flush" id="sideUpcomingEvents">
+                        <li class="list-group-item text-center py-3">
+                          <div class="spinner-border spinner-border-sm text-primary"></div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <!-- Alertas -->
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Alertas</h5>
+                    </div>
+                    <div class="card-body p-0">
+                      <ul class="list-group list-group-flush" id="sideAlerts">
+                        <li class="list-group-item text-center py-3 text-muted">
+                          <i class="mdi mdi-check-circle-outline mdi-24px d-block mb-1 text-success"></i>
+                          Sin alertas activas
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- ══════════════ / PANEL LATERAL ══════════════ -->
+              </div>
+
+            </div>
+            <!-- / Content -->
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                  <div class="mb-2 mb-md-0">
+                    ©<script>document.write(new Date().getFullYear());</script>,
+                    hecho con <span class="text-danger"><i class="tf-icons mdi mdi-heart"></i></span> por
+                    <a href="#" class="footer-link fw-medium">Happening</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- / Content wrapper -->
+        </div>
+      </div>
+
+      <div class="layout-overlay layout-menu-toggle"></div>
+      <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- ══ MODAL: AGREGAR / EDITAR UNIDAD ══ -->
+    <div class="modal fade" id="unitModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="unitModalTitle">Agregar Unidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="unitForm">
+              <input type="hidden" id="unitFormId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline">
+                    <input type="text" class="form-control" id="unitSerial"
+                           placeholder="TPP-001">
+                    <label for="unitSerial">Número de Serie</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline">
+                    <input type="text" class="form-control" id="unitRfid"
+                           placeholder="RF-L-0001">
+                    <label for="unitRfid">Etiqueta RFID</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline">
+                    <select class="form-select" id="unitStatus">
+                      <option value="Disponible">Disponible</option>
+                      <option value="Asignado">Asignado</option>
+                      <option value="En Mantenimiento">En Mantenimiento</option>
+                    </select>
+                    <label for="unitStatus">Estado</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline">
+                    <select class="form-select" id="unitCondition">
+                      <option value="Excelente">Excelente</option>
+                      <option value="Bueno" selected>Bueno</option>
+                      <option value="Regular">Regular</option>
+                      <option value="En Reparación">En Reparación</option>
+                    </select>
+                    <label for="unitCondition">Condición</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline">
+                    <input type="text" class="form-control" id="unitLocation"
+                           placeholder="Almacén A-1">
+                    <label for="unitLocation">Ubicación</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating form-floating-outline">
+                    <input type="date" class="form-control" id="unitPurchaseDate">
+                    <label for="unitPurchaseDate">Fecha de Compra</label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-floating form-floating-outline">
+                    <textarea class="form-control" id="unitNotes"
+                              placeholder="Notas..." style="height:80px;"></textarea>
+                    <label for="unitNotes">Notas</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="saveUnitBtn">
+              <i class="mdi mdi-content-save me-1"></i>Guardar Unidad
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL: HISTORIAL DE UNIDAD ══ -->
+    <div class="modal fade" id="unitHistoryModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="unitHistoryTitle">Historial de Unidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="unitHistoryBody">
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL: SELECCIONAR ÍTEM DE CATÁLOGO ══ -->
+        <div class="modal fade" id="selectItemModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                <div class="modal-header">
+                    <div>
+                    <h5 class="modal-title">Seleccionar Ítem del Catálogo</h5>
+                    <small class="text-muted">Busca y selecciona el ítem al que deseas agregar una unidad</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-0">
+
+                    <!-- Buscador -->
+                    <div class="p-3 border-bottom bg-light">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="catalogSearchInput"
+                            placeholder="Buscar por nombre, SKU o ID...">
+                        <button class="btn btn-outline-secondary d-none" type="button" id="clearCatalogSearch">
+                        <i class="mdi mdi-close"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 mt-2 flex-wrap">
+                        <select class="form-select form-select-sm w-auto" id="catalogCategoryFilter">
+                        <option value="all">Todas las categorías</option>
+                        </select>
+                        <small class="text-muted align-self-center ms-auto" id="catalogResultCount"></small>
+                    </div>
+                    </div>
+
+                    <!-- Tabla de catálogo -->
+                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                    <table class="table table-hover mb-0" id="catalogTable">
+                        <thead class="table-light sticky-top">
+                        <tr>
+                            <th style="width:50px;">ACTIVO</th>
+                            <th style="width:120px;">SKU</th>
+                            <th>NOMBRE DE PRODUCTO</th>
+                            <th style="width:140px;">CATEGORÍA</th>
+                            <th style="width:90px;">ID</th>
+                            <th style="width:70px;" class="text-center">VER</th>
+                        </tr>
+                        </thead>
+                        <tbody id="catalogTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                            <span class="text-muted">Cargando catálogo...</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                    </button>
+                </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ MODAL: SELECCIONAR EVENTO ══ -->
+            <div class="modal fade" id="selectEventModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                <div class="modal-header">
+                    <div>
+                    <h5 class="modal-title">Asignar a Evento</h5>
+                    <small class="text-muted">Selecciona el evento al que deseas asignar unidades</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-0">
+
+                    <!-- Buscador eventos -->
+                    <div class="p-3 border-bottom bg-light">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control" id="eventSearchInput"
+                            placeholder="Buscar evento por nombre, cliente o lugar...">
+                        <button class="btn btn-outline-secondary d-none" type="button" id="clearEventSearch">
+                        <i class="mdi mdi-close"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 mt-2 flex-wrap align-items-center">
+                        <select class="form-select form-select-sm w-auto" id="eventMonthFilter">
+                        <option value="all">Todos los meses</option>
+                        </select>
+                        <small class="text-muted ms-auto" id="eventResultCount"></small>
+                    </div>
+                    </div>
+
+                    <!-- Tabla eventos -->
+                    <div class="table-responsive" style="max-height:380px; overflow-y:auto;">
+                    <table class="table table-hover mb-0" id="eventCatalogTable">
+                        <thead class="table-light sticky-top">
+                        <tr>
+                            <th style="width:110px;">FECHA</th>
+                            <th>NOMBRE DEL EVENTO</th>
+                            <th style="width:150px;">CLIENTE</th>
+                            <th style="width:120px;">LUGAR</th>
+                            <th style="width:80px;" class="text-center">SELECCIONAR</th>
+                        </tr>
+                        </thead>
+                        <tbody id="eventCatalogTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                            <span class="text-muted">Cargando eventos...</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                    </button>
+                </div>
+
+                </div>
+            </div>
+            </div>
+
+            <!-- ══ MODAL: ASIGNAR UNIDADES AL EVENTO ══ -->
+            <div class="modal fade" id="assignUnitsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                <div class="modal-header">
+                    <div>
+                    <h5 class="modal-title" id="assignUnitsTitle">Seleccionar Unidades</h5>
+                    <div class="text-muted small mt-1" id="assignUnitsSubtitle"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-0">
+
+                    <!-- Info del evento seleccionado -->
+                    <div class="p-3 border-bottom bg-light" id="assignEventInfoBar">
+                    </div>
+
+                    <!-- Controles selección -->
+                    <div class="p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="selectAllUnitsCheck">
+                        <label class="form-check-label fw-medium" for="selectAllUnitsCheck">
+                        Seleccionar todas
+                        </label>
+                    </div>
+                    <small class="text-muted" id="assignSelectedCount">0 unidades seleccionadas</small>
+                    </div>
+
+                    <!-- Lista de unidades -->
+                    <div class="table-responsive" style="max-height:320px; overflow-y:auto;">
+                    <table class="table table-hover mb-0" id="assignUnitsTable">
+                        <thead class="table-light sticky-top">
+                        <tr>
+                            <th style="width:50px;"></th>
+                            <th style="width:120px;">SERIAL / RFID</th>
+                            <th style="width:110px;">CONDICIÓN</th>
+                            <th>UBICACIÓN ACTUAL</th>
+                            <th style="width:110px;">ÚLTIMO USO</th>
+                        </tr>
+                        </thead>
+                        <tbody id="assignUnitsTableBody">
+                        </tbody>
+                    </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-outline-secondary"
+                            id="assignUnitsBackBtn">
+                    <i class="mdi mdi-arrow-left me-1"></i>Volver a eventos
+                    </button>
+                    <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="confirmAssignBtn">
+                        <i class="mdi mdi-calendar-check me-1"></i>
+                        Confirmar Asignación
+                    </button>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+        </div>
+
+    <!-- Core JS -->
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/vendor/libs/moment/moment.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/modules/bp-modules/vista-unidades-item.js"></script>
+  </body>
+</html>

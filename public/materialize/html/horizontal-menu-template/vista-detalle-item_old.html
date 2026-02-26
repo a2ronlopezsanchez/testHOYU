@@ -1,0 +1,872 @@
+<!doctype html>
+
+<html
+  lang="es"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../../assets/"
+  data-template="vertical-menu-template-no-customizer">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Detalle de Item | Black Production</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
+      rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="../../assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="../../assets/vendor/fonts/flag-icons.css" />
+
+    <!-- Menu waves for no-customizer fix -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" />
+    <link rel="stylesheet" href="../../assets/css/demo.css" />
+
+    <!-- Other CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.0.96/css/materialdesignicons.min.css">
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/cards-statistics.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/black-production-css/vista-detalle-item.css" />
+
+    <!-- Helpers -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/js/config.js"></script>
+
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="index.html" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <span style="color: var(--bs-primary)">
+                </span>
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">BLCK</span>
+            </a>
+
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z"
+                  fill="currentColor"
+                  fill-opacity="0.6" />
+                <path
+                  d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z"
+                  fill="currentColor"
+                  fill-opacity="0.38" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="menu-inner-shadow"></div>
+
+<ul class="menu-inner py-1">
+            <!-- Inventario -->
+            <li class="menu-item active">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-package-variant-closed"></i>
+                <div data-i18n="Inventario">Inventario</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/catalogo-inventario.html" class="menu-link">
+                    <div data-i18n="Disponibilidad">Disponibilidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/formulario-item-completo.html?mode=new" class="menu-link">
+                    <div data-i18n="Registro Completo">Registro Completo</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/vista-detalle-item.html" class="menu-link">
+                    <div data-i18n="Detalle Item">Detalle Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos-inventario" class="menu-link">
+                    <div data-i18n="Eventos">Eventos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/reportes-inventario" class="menu-link">
+                    <div data-i18n="Reportes">Reportes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </aside>
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav
+            class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="mdi mdi-menu mdi-24px"></i>
+              </a>
+            </div>
+
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <!-- Search -->
+              <div class="navbar-nav align-items-center">
+                <div class="nav-item navbar-search-wrapper mb-0">
+                  <a class="nav-item nav-link search-toggler fw-normal px-0" href="javascript:void(0);">
+                    <i class="mdi mdi-magnify mdi-24px scaleX-n1-rtl"></i>
+                    <span class="d-none d-md-inline-block text-muted">Buscar (Ctrl+f)</span>
+                  </a>
+                </div>
+              </div>
+              <!-- /Search -->
+
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-account.html">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="../../assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">Nach Díaz</span>
+                            <small class="text-muted">Super Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-profile-user.html">
+                        <i class="mdi mdi-account-outline me-2"></i>
+                        <span class="align-middle">Mi Perfil</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-account.html">
+                        <i class="mdi mdi-cog-outline me-2"></i>
+                        <span class="align-middle">Configuración</span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="auth-login-cover.html" target="_blank">
+                        <i class="mdi mdi-logout me-2"></i>
+                        <span class="align-middle">Log Out</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <!--/ User -->
+              </ul>
+            </div>
+
+            <!-- Search Small Screens -->
+            <div class="navbar-search-wrapper search-input-wrapper d-none">
+              <input
+                type="text"
+                class="form-control search-input container-xxl border-0"
+                placeholder="Search..."
+                aria-label="Search..." />
+              <i class="mdi mdi-close search-toggler cursor-pointer"></i>
+            </div>
+          </nav>
+
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+              <!-- Header del Item -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between">
+                    <div class="d-flex align-items-start">
+                      <button class="btn btn-icon btn-sm btn-outline-secondary me-3" onclick="window.location.href='catalogo-inventario.html'">
+                        <i class="mdi mdi-arrow-left"></i>
+                      </button>
+                      <div>
+                        <h4 class="mb-1" id="itemName">Altavoz JBL EON615</h4>
+                        <div class="d-flex align-items-center gap-3">
+                          <span class="text-muted">ID: <span id="itemId">EQ-AUD-001</span></span>
+                          <span class="badge bg-label-success" id="itemStatusBadge">Operativo</span>
+                          <span class="badge bg-label-primary" id="itemConditionBadge">Bueno</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                        <i class="mdi mdi-printer me-1"></i>
+                        <span class="d-none d-sm-inline">Imprimir</span>
+                      </button>
+                      <button class="btn btn-sm btn-outline-secondary" id="shareBtn">
+                        <i class="mdi mdi-share-variant me-1"></i>
+                        <span class="d-none d-sm-inline">Compartir</span>
+                      </button>
+                      <button class="btn btn-sm btn-primary" id="editBtn">
+                        <i class="mdi mdi-pencil me-1"></i>
+                        <span class="d-none d-sm-inline">Editar</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabs de navegación -->
+              <ul class="nav nav-pills mb-4" id="detailTabs" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">
+                    <i class="mdi mdi-view-dashboard me-1"></i>
+                    Resumen
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="usage-tab" data-bs-toggle="tab" href="#usage" role="tab">
+                    <i class="mdi mdi-history me-1"></i>
+                    Historial de Uso
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="maintenance-tab" data-bs-toggle="tab" href="#maintenance" role="tab">
+                    <i class="mdi mdi-wrench me-1"></i>
+                    Mantenimiento
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="documents-tab" data-bs-toggle="tab" href="#documents" role="tab">
+                    <i class="mdi mdi-file-document me-1"></i>
+                    Documentos
+                  </a>
+                </li>
+              </ul>
+              <!-- Contenido de las tabs -->
+              <div class="tab-content">
+                <!-- Tab Resumen -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                  <div class="row">
+                    <!-- Columna principal -->
+                    <div class="col-lg-8">
+                      <!-- Información general -->
+                      <div class="card mb-4">
+                        <div class="card-header">
+                          <h5 class="card-title mb-0">Información General</h5>
+                        </div>
+                        <div class="card-body">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Categoría</span>
+                                <div class="info-value" id="itemCategory">Audio / Altavoces</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Marca / Modelo</span>
+                                <div class="info-value" id="itemBrandModel">JBL / EON615</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Fecha de Compra</span>
+                                <div class="info-value" id="itemPurchaseDate">15/06/2022</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Precio de Compra</span>
+                                <div class="info-value" id="itemPurchasePrice">$499.99</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Número de Serie</span>
+                                <div class="info-value" id="itemSerialNumber">EON615-2204-8743</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Etiqueta RFID</span>
+                                <div class="info-value" id="itemRfidTag">RF-A-12345</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Garantía</span>
+                                <div class="info-value">
+                                  <span id="itemWarranty">Audio Pro (15/06/2024)</span>
+                                  <span class="badge bg-label-danger ms-2" id="warrantyStatus">Expirada</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="info-item">
+                                <span class="info-label">Condición Actual</span>
+                                <div class="info-value" id="itemCondition">Bueno</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div class="mt-4">
+                            <h6 class="mb-2">Descripción</h6>
+                            <p class="text-muted" id="itemDescription">
+                              Altavoz activo de 15 pulgadas con 1000W de potencia. Incluye mezclador de 2 canales y Bluetooth.
+                            </p>
+                          </div>
+                          
+                          <div class="mt-4">
+                            <h6 class="mb-2">Especificaciones</h6>
+                            <ul class="list-unstyled mb-0" id="itemSpecifications">
+                              <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Potencia: 1000W</li>
+                              <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Respuesta de frecuencia: 50Hz - 20kHz</li>
+                              <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>SPL Máximo: 127 dB</li>
+                              <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Peso: 17,69 kg</li>
+                              <li class="mb-1"><i class="mdi mdi-check text-primary me-2"></i>Dimensiones: 375 x 654 x 363 mm</li>
+                            </ul>
+                          </div>
+                          
+                            <div class="alert alert-warning d-flex align-items-start mt-4" id="itemNotes">
+                                <i class="mdi mdi-alert me-2"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="alert-heading mb-1">Notas Importantes</h6>
+                                    <p class="mb-0" id="itemNotesText">El altavoz presenta un leve zumbido...</p>
+                                </div>
+                                <button class="btn btn-sm btn-icon btn-warning ms-2" id="editNotesBtn" title="Editar notas">
+                                    <i class="mdi mdi-pencil"></i>
+                                </button>
+                            </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Estadísticas de uso -->
+                      <div class="card">
+                        <div class="card-header">
+                          <h5 class="card-title mb-0">Estadísticas de Uso</h5>
+                        </div>
+                        <div class="card-body">
+                          <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                              <div class="stat-card">
+                                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                                  <i class="mdi mdi-calendar"></i>
+                                </div>
+                                <div class="stat-content">
+                                  <h3 class="stat-value" id="totalEvents">28</h3>
+                                  <p class="stat-label">Total de Eventos</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="stat-card">
+                                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                                  <i class="mdi mdi-clock-outline"></i>
+                                </div>
+                                <div class="stat-content">
+                                  <h3 class="stat-value" id="totalHours">187 hrs</h3>
+                                  <p class="stat-label">Horas de Uso</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="stat-card">
+                                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                                  <i class="mdi mdi-wrench"></i>
+                                </div>
+                                <div class="stat-content">
+                                  <h3 class="stat-value" id="totalMaintenances">3</h3>
+                                  <p class="stat-label">Mantenimientos</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h6 class="mb-3">Próximos Eventos Programados</h6>
+                            <div class="table-responsive">
+                              <table class="table table-hover">
+                                <thead>
+                                  <tr>
+                                    <th>Evento</th>
+                                    <th>Fecha</th>
+                                    <th>Ubicación</th>
+                                    <th>Estado</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="upcomingEventsTable">
+                                  <tr>
+                                    <td>Conferencia Empresarial</td>
+                                    <td>20/04/2025</td>
+                                    <td>Hotel Business</td>
+                                    <td><span class="badge bg-label-success">Confirmado</span></td>
+                                  </tr>
+                                  <tr>
+                                    <td>Boda Rodríguez-López</td>
+                                    <td>08/05/2025</td>
+                                    <td>Hacienda Vista Verde</td>
+                                    <td><span class="badge bg-label-success">Confirmado</span></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Columna lateral -->
+                    <div class="col-lg-4">
+                      <!-- Estado actual -->
+                      <div class="card mb-4">
+                        <div class="card-header">
+                          <h5 class="card-title mb-0">Estado Actual</h5>
+                        </div>
+                        <div class="card-body">
+                          <div class="d-flex align-items-center mb-4">
+                            <div class="avatar avatar-md bg-primary bg-opacity-10 me-3">
+                              <i class="mdi mdi-map-marker text-primary mdi-24px"></i>
+                            </div>
+                            <div>
+                              <small class="text-muted d-block">Ubicación Actual</small>
+                              <div class="fw-medium" id="currentLocation">Almacén Principal</div>
+                            </div>
+                          </div>
+                          
+                          <hr>
+                          
+                          <div class="mb-4">
+                            <h6 class="mb-3">Mantenimiento</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                              <span class="text-muted">Última inspección:</span>
+                              <span id="lastInspection">05/03/2025</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                              <span class="text-muted">Próxima inspección:</span>
+                              <span class="fw-medium text-primary" id="nextInspection">05/06/2025</span>
+                            </div>
+                            
+                            <div class="mb-2">
+                              <span class="badge bg-label-success">En buen estado</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                              <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                            </div>
+                          </div>
+                          
+                          <hr>
+                          
+                          <div class="mb-4">
+                            <h6 class="mb-3">Valor y Depreciación</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                              <span class="text-muted">Valor original:</span>
+                              <span id="originalValue">$499.99</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                              <span class="text-muted">Valor actual estimado:</span>
+                              <span class="fw-medium" id="currentValue">$299.99</span>
+                            </div>
+                            
+                            <div class="progress mb-1" style="height: 8px;">
+                              <div class="progress-bar" role="progressbar" style="width: 60%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                              <span>Depreciación: 40%</span>
+                              <span>Vida útil: 60%</span>
+                            </div>
+                          </div>
+                          
+                          <div class="d-grid gap-2">
+                            <button class="btn btn-primary" id="scheduleMaintenanceBtn">
+                              <i class="mdi mdi-calendar me-2"></i>Programar Mantenimiento
+                            </button>
+                            <button class="btn btn-outline-danger" id="decommissionBtn">
+                              <i class="mdi mdi-archive me-2"></i>Dar de Baja
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Acciones rápidas -->
+                      <div class="card">
+                        <div class="card-header">
+                          <h5 class="card-title mb-0">Acciones Rápidas</h5>
+                        </div>
+                        <div class="card-body">
+                          <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-outline-primary">
+                              <i class="mdi mdi-qrcode me-2"></i>Ver Código QR
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary">
+                              <i class="mdi mdi-file-pdf me-2"></i>Generar Ficha Técnica
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary">
+                              <i class="mdi mdi-history me-2"></i>Historial Completo
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Tab Historial de Uso -->
+                <div class="tab-pane fade" id="usage" role="tabpanel">
+                  <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h5 class="card-title mb-0">Historial de Uso</h5>
+                      <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary">
+                          <i class="mdi mdi-download me-1"></i>Exportar
+                        </button>
+                        <button class="btn btn-sm btn-primary" id="registerUsageBtn">
+                          <i class="mdi mdi-calendar-plus me-1"></i>Registrar Uso
+                        </button>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="table-responsive">
+                        <table class="table table-hover" id="usageHistoryTable">
+                          <thead>
+                            <tr>
+                              <th>Evento</th>
+                              <th>Fecha</th>
+                              <th>Ubicación</th>
+                              <th>Horas de Uso</th>
+                              <th>Estado</th>
+                              <th>Notas</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Concierto Rock City</td>
+                              <td>10/03/2025</td>
+                              <td>Arena Ciudad</td>
+                              <td>8 hrs</td>
+                              <td><span class="badge bg-label-success">Finalizado</span></td>
+                              <td>Funcionamiento correcto</td>
+                            </tr>
+                            <tr>
+                              <td>Boda García-Mendez</td>
+                              <td>28/02/2025</td>
+                              <td>Hotel Palace</td>
+                              <td>6 hrs</td>
+                              <td><span class="badge bg-label-success">Finalizado</span></td>
+                              <td>Se detectó zumbido a volumen alto</td>
+                            </tr>
+                            <tr>
+                              <td>Conferencia Anual Tecnología</td>
+                              <td>15/02/2025</td>
+                              <td>Centro Convenciones</td>
+                              <td>4 hrs</td>
+                              <td><span class="badge bg-label-success">Finalizado</span></td>
+                              <td>Sin incidencias</td>
+                            </tr>
+                            <tr>
+                              <td>Festival de Verano</td>
+                              <td>22/01/2025</td>
+                              <td>Parque Central</td>
+                              <td>10 hrs</td>
+                              <td><span class="badge bg-label-success">Finalizado</span></td>
+                              <td>Funcionamiento normal</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      <!-- Paginación -->
+                      <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="text-muted">Mostrando 4 de 28 registros</div>
+                        <nav>
+                          <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+                          </ul>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Tab Mantenimiento -->
+                <div class="tab-pane fade" id="maintenance" role="tabpanel">
+                  <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h5 class="card-title mb-0">Historial de Mantenimiento</h5>
+                      <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary">
+                          <i class="mdi mdi-download me-1"></i>Exportar
+                        </button>
+                        <button class="btn btn-sm btn-primary" id="registerMaintenanceBtn">
+                          <i class="mdi mdi-wrench me-1"></i>Registrar Mantenimiento
+                        </button>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="table-responsive">
+                        <table class="table table-hover" id="maintenanceHistoryTable">
+                          <thead>
+                            <tr>
+                              <th>Tipo</th>
+                              <th>Fecha</th>
+                              <th>Técnico</th>
+                              <th>Costo</th>
+                              <th>Estado</th>
+                              <th>Notas</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Revisión</td>
+                              <td>05/03/2025</td>
+                              <td>Miguel Ángel</td>
+                              <td>$0</td>
+                              <td><span class="badge bg-label-success">Completado</span></td>
+                              <td>Se verificó el zumbido reportado. Se recomienda revisar los circuitos internos en la próxima revisión.</td>
+                            </tr>
+                            <tr>
+                              <td>Limpieza</td>
+                              <td>10/01/2025</td>
+                              <td>Carlos Mendoza</td>
+                              <td>$25</td>
+                              <td><span class="badge bg-label-success">Completado</span></td>
+                              <td>Limpieza de componentes y carcasa.</td>
+                            </tr>
+                            <tr>
+                              <td>Reparación</td>
+                              <td>15/11/2024</td>
+                              <td>Roberto Sánchez</td>
+                              <td>$75</td>
+                              <td><span class="badge bg-label-success">Completado</span></td>
+                              <td>Sustitución de fusible y revisión de conexiones internas.</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Tab Documentos -->
+                <div class="tab-pane fade" id="documents" role="tabpanel">
+                  <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h5 class="card-title mb-0">Documentos</h5>
+                      <button class="btn btn-sm btn-primary" id="uploadDocumentBtn">
+                        <i class="mdi mdi-upload me-1"></i>Subir Documento
+                      </button>
+                    </div>
+                    <div class="card-body">
+                      <div class="document-placeholder text-center py-5">
+                        <i class="mdi mdi-file-document-outline mdi-48px text-muted mb-3"></i>
+                        <p class="text-muted mb-3">No hay documentos adjuntos a este ítem.<br>
+                        Puedes subir manuales, facturas, garantías u otra documentación relevante.</p>
+                        <button class="btn btn-outline-primary">
+                          <i class="mdi mdi-paperclip me-2"></i>Adjuntar Documento
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- / Content -->
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div
+                  class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                  <div class="mb-2 mb-md-0">
+                    ©
+                    <script>
+                      document.write(new Date().getFullYear());
+                    </script>
+                    , hecho con <span class="text-danger"><i class="tf-icons mdi mdi-heart"></i></span> por
+                    <a href="https://pixinvent.com" target="_blank" class="footer-link fw-medium">Happening</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <!-- / Footer -->
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- / Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+
+      <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+      <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Modal Registrar Uso -->
+    <div class="modal fade" id="registerUsageModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Registrar Uso del Equipo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="usageForm">
+              <div class="mb-3">
+                <label class="form-label" for="eventName">Nombre del Evento</label>
+                <input type="text" class="form-control" id="eventName" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="eventDate">Fecha</label>
+                <input type="date" class="form-control" id="eventDate" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="eventLocation">Ubicación</label>
+                <input type="text" class="form-control" id="eventLocation" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="usageHours">Horas de Uso</label>
+                <input type="number" class="form-control" id="usageHours" min="1" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="usageNotes">Notas</label>
+                <textarea class="form-control" id="usageNotes" rows="3"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="saveUsageBtn">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Registrar Mantenimiento -->
+    <div class="modal fade" id="registerMaintenanceModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Registrar Mantenimiento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="maintenanceForm">
+              <div class="mb-3">
+                <label class="form-label" for="maintenanceType">Tipo de Mantenimiento</label>
+                <select class="form-select" id="maintenanceType" required>
+                  <option value="">Seleccionar tipo</option>
+                  <option value="Revisión">Revisión</option>
+                  <option value="Limpieza">Limpieza</option>
+                  <option value="Reparación">Reparación</option>
+                  <option value="Preventivo">Preventivo</option>
+                  <option value="Correctivo">Correctivo</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="maintenanceDate">Fecha</label>
+                <input type="date" class="form-control" id="maintenanceDate" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="technician">Técnico</label>
+                <input type="text" class="form-control" id="technician" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="maintenanceCost">Costo</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" id="maintenanceCost" step="0.01" min="0">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="maintenanceNotes">Notas</label>
+                <textarea class="form-control" id="maintenanceNotes" rows="3"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="saveMaintenanceBtn">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core JS -->
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+
+    <!-- Vendors JS -->
+    <script src="../../assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <!-- Main JS -->
+    <script src="../../assets/js/main.js"></script>
+
+    <!-- Page JS -->
+    <script src="../../assets/js/modules/bp-modules/vista-detalle-item.js"></script>
+
+  </body>
+</html>

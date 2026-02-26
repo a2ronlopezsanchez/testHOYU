@@ -1,0 +1,568 @@
+/* =====================================================
+   VISTA UNIDADES ITEM — Black Production
+   ===================================================== */
+
+/* ── Imagen del ítem ── */
+.units-item-image {
+  width: 120px;
+  height: 90px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.units-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Stat boxes del footer ── */
+.units-stat-box {
+  padding: 0.5rem;
+}
+
+.units-stat-bar {
+  height: 3px;
+  border-radius: 2px;
+  opacity: 0.5;
+  width: 40px;
+  margin: 0 auto;
+}
+
+/* ── Tabla de unidades ── */
+#unitsTable thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#unitsTable tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+#unitsTable tbody tr:hover {
+  background-color: rgba(105, 108, 255, 0.04);
+}
+
+#unitsTable td {
+  vertical-align: middle;
+  font-size: 0.85rem;
+}
+
+/* ── Badges de estado ── */
+.badge-status-disponible {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-status-asignado {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-status-mantenimiento {
+  background-color: #fff8e1;
+  color: #f57f17;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ── Badges de condición ── */
+.badge-condition-excelente {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+.badge-condition-bueno {
+  background-color: #f1f8e9;
+  color: #33691e;
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+.badge-condition-regular {
+  background-color: #fff3e0;
+  color: #e65100;
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+.badge-condition-reparacion {
+  background-color: #fce4ec;
+  color: #880e4f;
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+/* ── Botones de acción en tabla ── */
+.unit-action-btn {
+  padding: 3px 7px;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+/* ── Panel lateral: eventos ── */
+#sideUpcomingEvents .list-group-item {
+  padding: 0.65rem 1rem;
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s;
+}
+
+#sideUpcomingEvents .list-group-item:hover {
+  border-left-color: #696cff;
+}
+
+.side-event-date {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+.side-event-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.side-event-units {
+  font-size: 0.72rem;
+  color: #696cff;
+}
+
+/* ── Panel lateral: alertas ── */
+#sideAlerts .list-group-item {
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+}
+
+.alert-item-icon {
+  font-size: 1rem;
+  margin-right: 6px;
+}
+
+/* ── Historial modal ── */
+.history-timeline {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.history-timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e0e0e0;
+}
+
+.history-timeline-item {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.history-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #696cff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #696cff;
+}
+
+.history-timeline-item .history-date {
+  font-size: 0.72rem;
+  color: #999;
+}
+
+.history-timeline-item .history-action {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.history-timeline-item .history-detail {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+/* ── Filtros ── */
+#statusFilterSelect,
+#conditionFilterSelect {
+  font-size: 0.83rem;
+  min-width: 150px;
+}
+
+/* ── Paginación ── */
+#unitsPagination .page-link {
+  font-size: 0.82rem;
+  padding: 4px 10px;
+}
+
+/* ── Empty state ── */
+.units-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #aaa;
+}
+
+.units-empty-state i {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Loading row ── */
+.units-loading-row td {
+  text-align: center;
+  padding: 2.5rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #statusFilterSelect,
+  #conditionFilterSelect {
+    width: 100% !important;
+  }
+
+  .units-stat-box .fs-4 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ── Modal catálogo ── */
+#catalogTable thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #f8f8ff;
+}
+
+#catalogTable tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#catalogTable tbody tr:hover {
+  background-color: rgba(105, 108, 255, 0.06);
+}
+
+#catalogTable td {
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+
+/* Toggle activo */
+.catalog-toggle {
+  width: 36px;
+  height: 20px;
+  background: linear-gradient(135deg, #a8a8f8, #696cff);
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 4px;
+  position: relative;
+}
+
+.catalog-toggle::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  margin-left: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Botón ver ítem */
+.catalog-view-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: rgba(105, 108, 255, 0.12);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #696cff;
+  font-size: 1rem;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.catalog-view-btn:hover {
+  background-color: rgba(105, 108, 255, 0.25);
+  transform: scale(1.08);
+}
+
+/* Fila seleccionada */
+#catalogTable tbody tr.catalog-row-selected {
+  background-color: rgba(105, 108, 255, 0.1);
+  outline: 2px solid #696cff;
+  outline-offset: -2px;
+}
+
+/* Buscador sticky */
+#selectItemModal .modal-body .bg-light {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Empty state catálogo */
+.catalog-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #aaa;
+}
+
+.catalog-empty i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Highlight búsqueda */
+.catalog-highlight {
+  background-color: rgba(105, 108, 255, 0.18);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* =====================================================
+   MÓDULO: ASIGNAR A EVENTO
+   ===================================================== */
+
+/* ── Tabla de eventos ── */
+#eventCatalogTable thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #f8f8ff;
+}
+
+#eventCatalogTable tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#eventCatalogTable tbody tr:hover {
+  background-color: rgba(105, 108, 255, 0.06);
+}
+
+#eventCatalogTable td {
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+
+/* ── Chip de fecha del evento ── */
+.event-date-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(105, 108, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px 10px;
+  min-width: 56px;
+}
+
+.event-date-chip .event-day {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #696cff;
+  line-height: 1;
+}
+
+.event-date-chip .event-month {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #696cff;
+  letter-spacing: 0.5px;
+}
+
+.event-date-chip.event-today {
+  background: rgba(40, 199, 111, 0.12);
+}
+
+.event-date-chip.event-today .event-day,
+.event-date-chip.event-today .event-month {
+  color: #28c76f;
+}
+
+/* ── Fila evento seleccionada ── */
+#eventCatalogTable tbody tr.event-row-selected {
+  background-color: rgba(105, 108, 255, 0.1);
+  outline: 2px solid #696cff;
+  outline-offset: -2px;
+}
+
+/* ── Botón seleccionar evento ── */
+.event-select-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: rgba(105, 108, 255, 0.12);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #696cff;
+  font-size: 1rem;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.event-select-btn:hover {
+  background-color: rgba(105, 108, 255, 0.25);
+  transform: scale(1.08);
+}
+
+/* ── Info bar del evento en modal unidades ── */
+#assignEventInfoBar {
+  background: linear-gradient(135deg,
+    rgba(105, 108, 255, 0.06),
+    rgba(105, 108, 255, 0.02));
+  border-left: 3px solid #696cff !important;
+}
+
+.assign-event-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.assign-event-meta {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+.assign-event-meta i {
+  margin-right: 3px;
+}
+
+/* ── Tabla de unidades a asignar ── */
+#assignUnitsTable thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #f8f8ff;
+}
+
+#assignUnitsTable tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#assignUnitsTable tbody tr:hover {
+  background-color: rgba(105, 108, 255, 0.05);
+}
+
+#assignUnitsTable td {
+  vertical-align: middle;
+  font-size: 0.83rem;
+}
+
+/* ── Fila unidad seleccionada ── */
+#assignUnitsTable tbody tr.unit-checked {
+  background-color: rgba(40, 199, 111, 0.07);
+}
+
+#assignUnitsTable tbody tr.unit-checked td:first-child {
+  border-left: 3px solid #28c76f;
+}
+
+/* ── Checkbox custom ── */
+#assignUnitsTable .form-check-input,
+#selectAllUnitsCheck {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  border-color: #696cff;
+}
+
+#assignUnitsTable .form-check-input:checked,
+#selectAllUnitsCheck:checked {
+  background-color: #696cff;
+  border-color: #696cff;
+}
+
+/* ── Badge contador seleccionados ── */
+#assignSelectedCount {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #696cff;
+}
+
+/* ── Empty states ── */
+.event-empty-state,
+.assign-units-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #aaa;
+}
+
+.event-empty-state i,
+.assign-units-empty i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Highlight búsqueda eventos ── */
+.event-highlight {
+  background-color: rgba(105, 108, 255, 0.18);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* ── Dias restantes badge ── */
+.days-left-badge {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.days-left-today {
+  background: rgba(40, 199, 111, 0.15);
+  color: #28c76f;
+}
+
+.days-left-soon {
+  background: rgba(255, 159, 67, 0.15);
+  color: #ff9f43;
+}
+
+.days-left-normal {
+  background: rgba(105, 108, 255, 0.12);
+  color: #696cff;
+}

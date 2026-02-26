@@ -686,18 +686,33 @@ class ItemFormManager {
     initializeDropzone() {
         const dropzoneElement = document.querySelector('#dropzone-multi');
 
-        if (!dropzoneElement) return;
-
-        // Obtener el ID del item
-        const itemParentId = window.bladeFormData?.itemParent?.id;
-
-        if (!itemParentId) {
-            console.warn('No se puede inicializar Dropzone sin item_parent_id');
+        if (!dropzoneElement) {
+            console.log('Dropzone element not found');
             return;
         }
 
+        // Obtener el ID del InventoryItem (unidad específica)
+        // Prioridad: 1. inventoryItem existente (edit-unit/edit), 2. currentInventoryItemId (autoguardado en new-from-parent)
+        let inventoryItemId = window.bladeFormData?.inventoryItem?.id || currentInventoryItemId;
+
+        console.log('=== DROPZONE INIT DEBUG ===');
+        console.log('window.bladeFormData:', window.bladeFormData);
+        console.log('currentInventoryItemId:', currentInventoryItemId);
+        console.log('inventoryItemId:', inventoryItemId);
+
+        if (!inventoryItemId) {
+            console.warn('No se puede inicializar Dropzone sin inventory_item_id. Esperando autoguardado...');
+            // En modo new-from-parent, el dropzone se inicializará después del primer autoguardado
+            dropzoneElement.innerHTML = '<div class="dz-message text-muted">Guarda el formulario primero para poder subir imágenes</div>';
+            return;
+        }
+
+        const uploadUrl = `/inventory/unidad/${inventoryItemId}/imagen`;
+        console.log('Upload URL:', uploadUrl);
+
         dropzoneInstance = new Dropzone(dropzoneElement, {
-            url: `/inventory/unidad/${itemParentId}/imagen`,
+            url: uploadUrl,
+            method: 'post',
             paramName: 'image',
             maxFilesize: 5, // MB
             maxFiles: 10,
@@ -705,20 +720,136 @@ class ItemFormManager {
             addRemoveLinks: true,
             dictRemoveFile: 'Eliminar',
             dictCancelUpload: 'Cancelar',
+            autoProcessQueue: true, // Procesar automáticamente
+            uploadMultiple: false, // Una imagen a la vez
+            clickable: true, // Permitir clicks
+            createImageThumbnails: true,
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
                 'X-Requested-With': 'XMLHttpRequest'
             },
+            // NO usar accept handler (evitar mocks)
+            accept: function(file, done) {
+                console.log('=== ACCEPT HANDLER ===');
+                console.log('Accepting file:', file.name);
+                done(); // Aceptar el archivo sin validación adicional
+            },
             init: function() {
                 const myDropzone = this;
+
+                console.log('Dropzone initialized with URL:', myDropzone.options.url);
+                console.log('CSRF Token:', myDropzone.options.headers['X-CSRF-TOKEN']);
+
+                // FORZAR petición XHR real - Sobrescribir método uploadFiles
+                myDropzone.uploadFiles = function(files) {
+                    console.log('=== CUSTOM UPLOADFILES DEBUG ===');
+                    console.log('Uploading files:', files);
+
+                    for (let file of files) {
+                        const formData = new FormData();
+                        formData.append(myDropzone.options.paramName, file);
+
+                        const xhr = new XMLHttpRequest();
+                        file.xhr = xhr;
+
+                        xhr.open(myDropzone.options.method || 'POST', myDropzone.options.url, true);
+
+                        // Agregar headers
+                        for (let headerName in myDropzone.options.headers) {
+                            xhr.setRequestHeader(headerName, myDropzone.options.headers[headerName]);
+                        }
+
+                        // Emitir evento sending
+                        myDropzone.emit('sending', file, xhr, formData);
+
+                        xhr.upload.addEventListener('progress', (e) => {
+                            if (e.lengthComputable) {
+                                const progress = (e.loaded / e.total) * 100;
+                                myDropzone.emit('uploadprogress', file, progress, e.loaded);
+                            }
+                        });
+
+                        xhr.addEventListener('load', () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                let response;
+                                try {
+                                    response = JSON.parse(xhr.responseText);
+                                } catch (e) {
+                                    response = xhr.responseText;
+                                }
+                                file.status = 'success';
+                                myDropzone.emit('success', file, response);
+                                myDropzone.emit('complete', file);
+                            } else {
+                                file.status = 'error';
+                                myDropzone.emit('error', file, xhr.responseText, xhr);
+                                myDropzone.emit('complete', file);
+                            }
+                        });
+
+                        xhr.addEventListener('error', () => {
+                            file.status = 'error';
+                            myDropzone.emit('error', file, 'Error de red', xhr);
+                            myDropzone.emit('complete', file);
+                        });
+
+                        xhr.send(formData);
+                    }
+                };
 
                 // Cargar imágenes existentes
                 itemFormManager.loadExistingImages(myDropzone);
 
-                this.on('success', (file, response) => {
-                    console.log('Imagen subida exitosamente:', response);
+                this.on('addedfile', (file) => {
+                    console.log('=== DROPZONE ADDEDFILE DEBUG ===');
+                    console.log('File added:', file.name);
+                    console.log('File status:', file.status);
+                    console.log('Dropzone processing?', myDropzone.options.autoProcessQueue);
+                    console.log('Queue length:', myDropzone.getQueuedFiles().length);
 
-                    if (response.success) {
+                    // Forzar procesamiento si autoProcessQueue está deshabilitado
+                    if (!myDropzone.options.autoProcessQueue) {
+                        console.log('Procesando manualmente...');
+                        myDropzone.processQueue();
+                    }
+                });
+
+                this.on('processing', (file) => {
+                    console.log('=== DROPZONE PROCESSING DEBUG ===');
+                    console.log('Processing file:', file.name);
+                    console.log('Upload URL:', myDropzone.options.url);
+                });
+
+                this.on('sending', (file, xhr, formData) => {
+                    console.log('=== DROPZONE SENDING DEBUG ===');
+                    console.log('URL:', myDropzone.options.url);
+                    console.log('File:', file);
+                    console.log('XHR:', xhr);
+                    console.log('FormData:', formData);
+                });
+
+                this.on('uploadprogress', (file, progress, bytesSent) => {
+                    console.log('=== DROPZONE UPLOAD PROGRESS ===');
+                    console.log('Progress:', progress + '%');
+                    console.log('Bytes sent:', bytesSent);
+                });
+
+                this.on('success', (file, response) => {
+                    console.log('=== DROPZONE SUCCESS DEBUG ===');
+                    console.log('Raw response:', response);
+                    console.log('Response type:', typeof response);
+
+                    // Verificar si la respuesta es un string (modo mock) o un objeto (respuesta real)
+                    if (typeof response === 'string') {
+                        console.error('⚠️ DROPZONE EN MODO MOCK - La respuesta es un string, no un objeto JSON');
+                        console.error('Esto significa que la petición HTTP NO se está haciendo realmente');
+                        itemFormManager.showAlert('Error: Dropzone no está enviando la petición al servidor', 'error');
+                        return;
+                    }
+
+                    console.log('Response.success:', response.success);
+
+                    if (response && response.success) {
                         // Guardar datos de Cloudinary en el archivo
                         file.imageId = response.data.id;
                         file.cloudinaryUrl = response.data.url;
@@ -739,17 +870,31 @@ class ItemFormManager {
 
                 this.on('removedfile', (file) => {
                     if (file.imageId) {
-                        // Eliminar del backend
-                        itemFormManager.deleteImageFromBackend(itemParentId, file.imageId);
+                        console.log('Dropzone removedfile event:', file.imageId);
 
-                        // Eliminar de formData
+                        // Solo eliminar del backend si aún está en formData
+                        // (si no está, significa que removeImage() ya lo eliminó)
+                        const stillInFormData = formData.imagenes.find(img => img.id === file.imageId);
+
+                        if (stillInFormData) {
+                            console.log('Imagen aún en formData, eliminando del backend...');
+                            itemFormManager.deleteImageFromBackend(inventoryItemId, file.imageId);
+                        } else {
+                            console.log('Imagen ya eliminada de formData, solo limpiando dropzone');
+                        }
+
+                        // Siempre limpiar de formData por si acaso
                         formData.imagenes = formData.imagenes.filter(img => img.id !== file.imageId);
                         itemFormManager.updateImageGallery();
                     }
                 });
 
                 this.on('error', (file, errorMessage, xhr) => {
+                    console.error('=== DROPZONE ERROR DEBUG ===');
                     console.error('Error al subir imagen:', errorMessage);
+                    console.error('XHR:', xhr);
+                    console.error('File status:', file.status);
+
                     let message = 'Error al subir imagen';
 
                     if (typeof errorMessage === 'object' && errorMessage.message) {
@@ -759,6 +904,13 @@ class ItemFormManager {
                     }
 
                     itemFormManager.showAlert(message, 'error');
+                });
+
+                this.on('complete', (file) => {
+                    console.log('=== DROPZONE COMPLETE DEBUG ===');
+                    console.log('File complete:', file.name);
+                    console.log('Status:', file.status);
+                    console.log('XHR:', file.xhr);
                 });
 
                 this.on('maxfilesexceeded', (file) => {
@@ -995,9 +1147,16 @@ class ItemFormManager {
 
                 if (result.success) {
                     // Si es la primera vez que guardamos, almacenar el ID de base de datos
-                    if (!currentInventoryItemId && result.data && result.data.database_id) {
+                    const isFirstSave = !currentInventoryItemId && result.data && result.data.database_id;
+                    if (isFirstSave) {
                         currentInventoryItemId = result.data.database_id;
                         console.log('Borrador creado con ID:', currentInventoryItemId);
+
+                        // Inicializar Dropzone ahora que tenemos un inventory_item_id
+                        if (!dropzoneInstance) {
+                            console.log('Inicializando Dropzone después del primer guardado...');
+                            this.initializeDropzone();
+                        }
                     }
 
                     autoSaveStatus.textContent = 'Guardado hace un momento';
@@ -1672,7 +1831,40 @@ class ItemFormManager {
         }
 
         // ===== REMOVER IMAGEN =====
-        removeImage(index) {
+        async removeImage(index) {
+            const imagen = formData.imagenes[index];
+
+            if (!imagen) {
+                console.error('Imagen no encontrada en index:', index);
+                return;
+            }
+
+            console.log('Eliminando imagen:', imagen);
+
+            // Si la imagen tiene ID (existe en backend), eliminarla
+            if (imagen.id) {
+                const inventoryItemId = window.bladeFormData?.inventoryItem?.id || currentInventoryItemId;
+
+                if (!inventoryItemId) {
+                    console.error('No se puede eliminar: falta inventoryItemId');
+                    this.showAlert('Error: No se puede identificar el item', 'error');
+                    return;
+                }
+
+                // Eliminar del backend
+                await this.deleteImageFromBackend(inventoryItemId, imagen.id);
+            }
+
+            // Eliminar del dropzone si existe
+            if (dropzoneInstance) {
+                const fileToRemove = dropzoneInstance.files.find(f => f.imageId === imagen.id);
+                if (fileToRemove) {
+                    console.log('Eliminando archivo de dropzone:', fileToRemove);
+                    dropzoneInstance.removeFile(fileToRemove);
+                }
+            }
+
+            // Eliminar de formData
             formData.imagenes.splice(index, 1);
             this.updateImageGallery();
             unsavedChanges = true;
@@ -1681,41 +1873,37 @@ class ItemFormManager {
             if (formData.imagenes.length === 0) {
                 document.getElementById('previewMainImage').src = '/public/materialize/assets/img/products/placeholder.png';
             }
+
+            this.showAlert('Imagen eliminada correctamente', 'success');
         }
 
         // ===== CARGAR IMÁGENES EXISTENTES EN DROPZONE =====
         loadExistingImages(dropzoneInstance) {
-            const itemParent = window.bladeFormData?.itemParent;
+            // Buscar imágenes del InventoryItem específico
+            const inventoryItem = window.bladeFormData?.inventoryItem;
 
-            if (!itemParent || !itemParent.images || itemParent.images.length === 0) {
+            if (!inventoryItem || !inventoryItem.images || inventoryItem.images.length === 0) {
                 console.log('No hay imágenes existentes para cargar');
                 return;
             }
 
-            console.log('Cargando imágenes existentes:', itemParent.images);
+            console.log('Cargando imágenes existentes del InventoryItem:', inventoryItem.images);
 
-            itemParent.images.forEach((image, index) => {
+            inventoryItem.images.forEach((image, index) => {
                 // Crear un objeto mock file para Dropzone
                 const mockFile = {
-                    name: `imagen-${index + 1}.jpg`,
+                    name: image.public_id || `imagen-${index + 1}.jpg`,
                     size: 0,
                     type: 'image/jpeg',
-                    status: Dropzone.ADDED,
+                    status: Dropzone.SUCCESS,
                     accepted: true,
                     imageId: image.id,
                     cloudinaryUrl: image.url,
                     isPrimary: image.is_primary
                 };
 
-                // Agregar el archivo al Dropzone
-                dropzoneInstance.files.push(mockFile);
-                dropzoneInstance.emit('addedfile', mockFile);
-
-                // Agregar la thumbnail
-                dropzoneInstance.emit('thumbnail', mockFile, image.url);
-
-                // Marcar como completado
-                dropzoneInstance.emit('complete', mockFile);
+                // Usar el método oficial de Dropzone para agregar archivos existentes
+                dropzoneInstance.displayExistingFile(mockFile, image.url);
 
                 // Agregar a formData
                 formData.imagenes.push({
@@ -1758,15 +1946,15 @@ class ItemFormManager {
         // ===== ESTABLECER IMAGEN COMO PRINCIPAL =====
         async setPrimaryImage(index) {
             const imagen = formData.imagenes[index];
-            const itemParentId = window.bladeFormData?.itemParent?.id;
+            const inventoryItemId = window.bladeFormData?.inventoryItem?.id || currentInventoryItemId;
 
-            if (!itemParentId || !imagen || !imagen.id) {
+            if (!inventoryItemId || !imagen || !imagen.id) {
                 console.error('No se puede establecer imagen principal sin ID');
                 return;
             }
 
             try {
-                const response = await fetch(`/inventory/unidad/${itemParentId}/imagen/${imagen.id}/principal`, {
+                const response = await fetch(`/inventory/unidad/${inventoryItemId}/imagen/${imagen.id}/principal`, {
                     method: 'PATCH',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
@@ -1955,15 +2143,16 @@ class ItemFormManager {
 // ===== INICIALIZACIÓN =====
 let itemFormManager;
 
+// Configurar Dropzone globalmente ANTES de cualquier inicialización
+if (typeof Dropzone !== 'undefined') {
+    Dropzone.autoDiscover = false;
+    console.log('Dropzone.autoDiscover deshabilitado');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar el gestor del formulario
     itemFormManager = new ItemFormManager();
-    
-    // Configurar Dropzone globalmente
-    if (typeof Dropzone !== 'undefined') {
-        Dropzone.autoDiscover = false;
-    }
-    
+
     console.log('Formulario de Item Completo inicializado correctamente');
 });
 

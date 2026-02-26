@@ -398,12 +398,12 @@
     border-color: var(--bs-primary);
     box-shadow: 0 0 0.25rem rgba(105, 108, 255, 0.25);
 }
-
+/*
 .tagify__tag {
     background-color: var(--bs-primary);
     color: white;
 }
-
+*/
 .tagify__tag:hover {
     background-color: var(--bs-primary-dark);
 }

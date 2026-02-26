@@ -11,11 +11,15 @@ use App\Models\EventAssignment;
 use App\Models\Event;
 use App\Models\Specification;
 use App\Models\MaintenanceRecord;
+use App\Models\ItemImage;
+use App\Models\InventoryItemDocument;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Http;
 
 class InventoryController extends Controller
 {
@@ -1287,10 +1291,13 @@ class InventoryController extends Controller
                 $mode = 'new-from-parent';
             } elseif ($queryMode === 'edit-unit' && $unitId) {
                 $mode = 'edit-unit';
-                // Cargar el InventoryItem específico con sus specifications
+                // Cargar el InventoryItem específico con sus specifications e imágenes
                 $inventoryItem = InventoryItem::with([
                     'location',
-                    'specifications'
+                    'specifications',
+                    'images' => function($query) {
+                        $query->orderBy('order', 'asc');
+                    }
                 ])->findOrFail($unitId);
             } else {
                 $mode = 'edit';
@@ -1310,7 +1317,10 @@ class InventoryController extends Controller
             'parent.category',
             'parent.brand',
             'location',
-            'specifications'  // Cargar especificaciones del item
+            'specifications',  // Cargar especificaciones del item
+            'documents' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }
         ])->findOrFail($id);
 
         // Usar el parent del item
@@ -1786,7 +1796,7 @@ class InventoryController extends Controller
     {
         try {
             \Log::info('=== UPLOAD IMAGE DEBUG ===');
-            \Log::info('Request ID: ' . $id);
+            \Log::info('Request ID (inventory_item_id): ' . $id);
             \Log::info('Has file: ' . ($request->hasFile('image') ? 'YES' : 'NO'));
 
             // Validar la imagen
@@ -1794,24 +1804,104 @@ class InventoryController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // max 5MB
             ]);
 
-            // Buscar el ItemParent (no InventoryItem)
-            $itemParent = ItemParent::findOrFail($id);
-            \Log::info('ItemParent found: ' . $itemParent->id);
+            // Buscar el InventoryItem (unidad específica)
+            $inventoryItem = InventoryItem::findOrFail($id);
+            \Log::info('InventoryItem found: ' . $inventoryItem->id);
 
-            // Subir la imagen a Cloudinary
+            // Subir la imagen a Cloudinary usando el facade
             $uploadedFile = $request->file('image');
             \Log::info('Uploading to Cloudinary...');
-            $result = $uploadedFile->storeOnCloudinary('inventory_items');
-            \Log::info('Cloudinary result: ' . $result->getSecurePath());
+
+            // Verificar si las credenciales están configuradas
+            $cloudUrl = config('cloudinary.cloud_url');
+            if (empty($cloudUrl) || strpos($cloudUrl, 'your_cloud_name') !== false || strpos($cloudUrl, 'your_api_key') !== false) {
+                throw new \Exception('Credenciales de Cloudinary no configuradas. Por favor configura CLOUDINARY_URL en el archivo .env');
+            }
+
+            // Deshabilitar verificación SSL temporalmente para desarrollo en Windows/XAMPP
+            // IMPORTANTE: Solo para ambiente local. En producción configura los certificados SSL correctamente.
+            $previousVerifyPeer = null;
+            $previousVerifyHost = null;
+            if (config('app.env') === 'local' && strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $previousVerifyPeer = ini_get('curl.cainfo');
+                $previousVerifyHost = ini_get('openssl.cafile');
+                // Temporalmente deshabilitar verificación SSL
+                \Cloudinary\Configuration\Configuration::instance()->url->secure(true);
+            }
+
+            try {
+                // Configurar opciones de upload
+                $uploadOptions = [
+                    'folder' => 'inventory_items',
+                    'resource_type' => 'image',
+                ];
+
+                $result = Cloudinary::upload(
+                    $uploadedFile->getRealPath(),
+                    $uploadOptions
+                );
+            } catch (\Exception $e) {
+                // Si el error es de SSL, intentar con verificación deshabilitada
+                if (strpos($e->getMessage(), 'SSL certificate') !== false || strpos($e->getMessage(), 'cURL error 60') !== false) {
+                    \Log::warning('SSL certificate error detected, retrying with verification disabled for local development');
+
+                    // Usar la API de Cloudinary directamente con opciones de Guzzle
+                    $client = new \GuzzleHttp\Client([
+                        'verify' => false, // Deshabilitar verificación SSL
+                    ]);
+
+                    // Construir la petición manualmente
+                    $cloudName = env('CLOUDINARY_CLOUD_NAME');
+                    $apiKey = env('CLOUDINARY_API_KEY');
+                    $apiSecret = env('CLOUDINARY_API_SECRET');
+                    $timestamp = time();
+
+                    $params = [
+                        'folder' => 'inventory_items',
+                        'timestamp' => $timestamp,
+                    ];
+
+                    // Generar firma
+                    $signature = $this->generateCloudinarySignature($params, $apiSecret);
+
+                    $response = $client->request('POST', "https://api.cloudinary.com/v1_1/{$cloudName}/image/upload", [
+                        'multipart' => [
+                            [
+                                'name' => 'file',
+                                'contents' => fopen($uploadedFile->getRealPath(), 'r'),
+                                'filename' => $uploadedFile->getClientOriginalName(),
+                            ],
+                            ['name' => 'folder', 'contents' => 'inventory_items'],
+                            ['name' => 'timestamp', 'contents' => $timestamp],
+                            ['name' => 'api_key', 'contents' => $apiKey],
+                            ['name' => 'signature', 'contents' => $signature],
+                        ],
+                    ]);
+
+                    $result = json_decode($response->getBody()->getContents());
+                } else {
+                    throw $e;
+                }
+            }
+
+            \Log::info('Cloudinary result: ' . json_encode($result));
 
             // Obtener el número de imágenes existentes para determinar el orden
-            $order = $itemParent->images()->count();
+            $order = $inventoryItem->images()->count();
 
             // Guardar en la base de datos
+            // Manejar tanto objetos de Cloudinary como objetos stdClass del fallback manual
+            $imageUrl = is_object($result) && method_exists($result, 'getSecurePath')
+                ? $result->getSecurePath()
+                : $result->secure_url;
+            $publicId = is_object($result) && method_exists($result, 'getPublicId')
+                ? $result->getPublicId()
+                : $result->public_id;
+
             $image = ItemImage::create([
-                'item_id' => $itemParent->id,
-                'url' => $result->getSecurePath(),
-                'public_id' => $result->getPublicId(),
+                'item_id' => $inventoryItem->id,
+                'url' => $imageUrl,
+                'public_id' => $publicId,
                 'is_primary' => $order === 0, // La primera imagen es la principal
                 'order' => $order
             ]);
@@ -1845,6 +1935,27 @@ class InventoryController extends Controller
                 'message' => 'Error al subir la imagen: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generar firma de autenticación para Cloudinary
+     */
+    private function generateCloudinarySignature($params, $apiSecret)
+    {
+        // Ordenar parámetros alfabéticamente
+        ksort($params);
+
+        // Crear string de parámetros
+        $paramString = '';
+        foreach ($params as $key => $value) {
+            if (!empty($value)) {
+                $paramString .= $key . '=' . $value . '&';
+            }
+        }
+        $paramString = rtrim($paramString, '&');
+
+        // Generar firma SHA-1
+        return sha1($paramString . $apiSecret);
     }
 
     /**
@@ -1916,5 +2027,256 @@ class InventoryController extends Controller
                 'message' => 'Error al actualizar la imagen principal: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Subir documento a Cloudinary
+     */
+    public function uploadDocument(Request $request, $id)
+    {
+        try {
+            \Log::info('=== UPLOAD DOCUMENT DEBUG ===');
+            \Log::info('Request ID (inventory_item_id): ' . $id);
+            \Log::info('Has file: ' . ($request->hasFile('document') ? 'YES' : 'NO'));
+
+            // Validar el documento
+            $request->validate([
+                'document' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,txt|max:10240', // max 10MB
+                'document_type' => 'required|string|max:50',
+                'name' => 'required|string|max:255',
+                'notes' => 'nullable|string'
+            ]);
+
+            // Buscar el InventoryItem (unidad específica)
+            $inventoryItem = InventoryItem::findOrFail($id);
+            \Log::info('InventoryItem found: ' . $inventoryItem->id);
+
+            // Subir el documento a Cloudinary
+            $uploadedFile = $request->file('document');
+            \Log::info('Uploading document to Cloudinary...');
+
+            // Verificar si las credenciales están configuradas
+            $cloudUrl = config('cloudinary.cloud_url');
+            if (empty($cloudUrl) || strpos($cloudUrl, 'your_cloud_name') !== false || strpos($cloudUrl, 'your_api_key') !== false) {
+                throw new \Exception('Credenciales de Cloudinary no configuradas. Por favor configura CLOUDINARY_URL en el archivo .env');
+            }
+
+            try {
+                // Configurar opciones de upload para documentos (usar raw para PDFs y docs)
+                // Crear carpeta organizada: inventory_documents/{inventory_item_id}/{document_type}
+                $folder = "inventory_documents/{$inventoryItem->id}/{$request->input('document_type')}";
+
+                $uploadOptions = [
+                    'folder' => $folder,
+                    'resource_type' => 'raw', // Para documentos no-imagen
+                    'use_filename' => true,    // Usar nombre original del archivo
+                    'unique_filename' => true,  // Agregar sufijo único para evitar duplicados
+                ];
+
+                $result = Cloudinary::upload(
+                    $uploadedFile->getRealPath(),
+                    $uploadOptions
+                );
+            } catch (\Exception $e) {
+                // Si el error es de SSL, intentar con verificación deshabilitada
+                if (strpos($e->getMessage(), 'SSL certificate') !== false || strpos($e->getMessage(), 'cURL error 60') !== false) {
+                    \Log::warning('SSL certificate error detected, retrying with verification disabled for local development');
+
+                    // Usar la API de Cloudinary directamente con opciones de Guzzle
+                    $client = new \GuzzleHttp\Client([
+                        'verify' => false, // Deshabilitar verificación SSL
+                    ]);
+
+                    // Construir la petición manualmente
+                    $cloudName = env('CLOUDINARY_CLOUD_NAME');
+                    $apiKey = env('CLOUDINARY_API_KEY');
+                    $apiSecret = env('CLOUDINARY_API_SECRET');
+                    $timestamp = time();
+
+                    // Usar la misma carpeta organizada
+                    $folder = "inventory_documents/{$inventoryItem->id}/{$request->input('document_type')}";
+
+                    // Todos los parámetros que se enviarán (excepto file, api_key, signature)
+                    // DEBEN estar en los params para generar la firma correcta
+                    $params = [
+                        'folder' => $folder,
+                        'timestamp' => $timestamp,
+                        'use_filename' => true,
+                        'unique_filename' => true,
+                    ];
+
+                    // Generar firma
+                    $signature = $this->generateCloudinarySignature($params, $apiSecret);
+
+                    $response = $client->request('POST', "https://api.cloudinary.com/v1_1/{$cloudName}/raw/upload", [
+                        'multipart' => [
+                            [
+                                'name' => 'file',
+                                'contents' => fopen($uploadedFile->getRealPath(), 'r'),
+                                'filename' => $uploadedFile->getClientOriginalName(),
+                            ],
+                            ['name' => 'folder', 'contents' => $folder],
+                            ['name' => 'timestamp', 'contents' => $timestamp],
+                            ['name' => 'api_key', 'contents' => $apiKey],
+                            ['name' => 'signature', 'contents' => $signature],
+                            ['name' => 'use_filename', 'contents' => 'true'],
+                            ['name' => 'unique_filename', 'contents' => 'true'],
+                        ],
+                    ]);
+
+                    $result = json_decode($response->getBody()->getContents());
+                } else {
+                    throw $e;
+                }
+            }
+
+            \Log::info('Cloudinary result: ' . json_encode($result));
+
+            // Manejar tanto objetos de Cloudinary como objetos stdClass del fallback manual
+            $documentUrl = is_object($result) && method_exists($result, 'getSecurePath')
+                ? $result->getSecurePath()
+                : $result->secure_url;
+            $publicId = is_object($result) && method_exists($result, 'getPublicId')
+                ? $result->getPublicId()
+                : $result->public_id;
+
+            // Guardar en la base de datos
+            $document = InventoryItemDocument::create([
+                'inventory_item_id' => $inventoryItem->id,
+                'document_type' => $request->input('document_type'),
+                'name' => $request->input('name'),
+                'url' => $documentUrl,
+                'public_id' => $publicId,
+                'notes' => $request->input('notes'),
+                'file_size' => $uploadedFile->getSize(),
+                'mime_type' => $uploadedFile->getMimeType(),
+                'uploaded_by' => auth()->id()
+            ]);
+
+            \Log::info('Document saved to DB: ' . $document->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Documento subido correctamente',
+                'data' => [
+                    'id' => $document->id,
+                    'name' => $document->name,
+                    'document_type' => $document->document_type,
+                    'url' => $document->url,
+                    'file_size' => $document->file_size,
+                    'mime_type' => $document->mime_type,
+                    'notes' => $document->notes,
+                    'created_at' => $document->created_at->format('d/m/Y H:i')
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error: ' . json_encode($e->errors()));
+            return response()->json([
+                'success' => false,
+                'message' => 'Archivo inválido',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            \Log::error('Upload error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir el documento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Eliminar documento de Cloudinary y base de datos
+     */
+    public function deleteDocument($itemId, $documentId)
+    {
+        try {
+            // Buscar el documento
+            $document = InventoryItemDocument::where('inventory_item_id', $itemId)
+                ->where('id', $documentId)
+                ->firstOrFail();
+
+            // Eliminar de Cloudinary con resource_type raw
+            try {
+                \Cloudinary::destroy($document->public_id, ['resource_type' => 'raw']);
+            } catch (\Exception $e) {
+                \Log::warning('Error deleting from Cloudinary (continuing): ' . $e->getMessage());
+                // Continuar aunque falle Cloudinary
+            }
+
+            // Eliminar de la base de datos
+            $document->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Documento eliminado correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Delete document error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar el documento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function download(InventoryItemDocument $document)
+    {
+        // Descarga el archivo desde Cloudinary
+        $response = Http::get($document->url);
+
+        if ($response->failed()) {
+            abort(404, 'No se pudo obtener el archivo.');
+        }
+
+        // 1) Sacar la extensión desde la URL de Cloudinary o desde public_id
+        $path = parse_url($document->url, PHP_URL_PATH);
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        // Si no hay extensión en el path, intentar extraerla del public_id
+        if (empty($ext) && !empty($document->public_id)) {
+            $ext = strtolower(pathinfo($document->public_id, PATHINFO_EXTENSION));
+        }
+
+        // Si aún no hay extensión, usar mime_type de la BD
+        if (empty($ext) && !empty($document->mime_type)) {
+            $mimeToExt = [
+                'application/pdf' => 'pdf',
+                'application/msword' => 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                'application/vnd.ms-excel' => 'xls',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+                'text/plain' => 'txt',
+            ];
+            $ext = $mimeToExt[$document->mime_type] ?? '';
+        }
+
+        // 2) Definir un nombre bonito para descargar
+        $filename = $document->name;
+
+        // Si el nombre no tiene extensión, agregarla
+        if ($ext && !preg_match('/\.' . preg_quote($ext, '/') . '$/i', $filename)) {
+            $filename .= '.' . $ext;
+        }
+
+        // 3) Determinar Content-Type adecuado
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'txt' => 'text/plain',
+        ];
+
+        $mime = $mimeTypes[$ext] ?? ($document->mime_type ?? 'application/octet-stream');
+
+        return response($response->body(), 200, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 }
