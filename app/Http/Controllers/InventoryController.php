@@ -1246,6 +1246,34 @@ class InventoryController extends Controller
         return view('inventory.disponibilidad');
     }
 
+
+    /**
+     * Lista de eventos disponibles para asignación de unidades
+     */
+    public function assignableEvents(): JsonResponse
+    {
+        $today = now()->toDateString();
+
+        $events = Event::query()
+            ->whereDate('end_date', '>=', $today)
+            ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->orderBy('start_date', 'asc')
+            ->get([
+                'id',
+                'name',
+                'client_name',
+                'venue_name',
+                'start_date',
+                'end_date',
+                'status',
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $events,
+        ]);
+    }
+
     /**
      * Vista para asignar unidades a eventos
      */

@@ -559,20 +559,106 @@ document.addEventListener('DOMContentLoaded', function () {
   const clearAllBtn = document.getElementById('clearAllUnitsFilters');
   const rows = Array.from(document.querySelectorAll('#unitsTableBody tr[data-status]'));
 
-  if (!rows.length) return;
+  const assignToEventBtn = document.getElementById('assignToEventBtn');
+  const eventModalEl = document.getElementById('eventCatalogModal');
+  const eventSearchInput = document.getElementById('eventSearchInput');
+  const clearEventSearch = document.getElementById('clearEventSearch');
+  const eventMonthFilter = document.getElementById('eventMonthFilter');
+  const eventResultCount = document.getElementById('eventResultCount');
+  const eventTableBody = document.getElementById('eventCatalogTableBody');
+
 
   const uniqueSorted = (arr) => Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
 
   const statuses = uniqueSorted(rows.map(r => r.dataset.status || ''));
   const conditions = uniqueSorted(rows.map(r => r.dataset.condition || ''));
 
-  statusSelect.innerHTML = '<option value="all">Todos los estados</option>' + statuses.map(v => `<option value="${v}">${v}</option>`).join('');
-  conditionSelect.innerHTML = '<option value="all">Todas las condiciones</option>' + conditions.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (statusSelect) statusSelect.innerHTML = '<option value="all">Todos los estados</option>' + statuses.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (conditionSelect) conditionSelect.innerHTML = '<option value="all">Todas las condiciones</option>' + conditions.map(v => `<option value="${v}">${v}</option>`).join('');
+
+  const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const formatShortDate = (d) => {
+    if (!d) return '';
+    const date = new Date(d + 'T00:00:00');
+    if (Number.isNaN(date.getTime())) return '';
+    return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  let eventRowsCache = [];
+
+  function renderEventRows() {
+    if (!eventTableBody) return;
+
+    const term = (eventSearchInput?.value || '').trim().toLowerCase();
+    const month = eventMonthFilter?.value || 'all';
+
+    const rowsFiltered = eventRowsCache.filter((ev) => {
+      const inSearch = !term || `${ev.name} ${ev.client_name} ${ev.venue_name}`.toLowerCase().includes(term);
+      const inMonth = month === 'all' || String(ev.start_month) === String(month);
+      return inSearch && inMonth;
+    });
+
+    eventTableBody.innerHTML = rowsFiltered.length
+      ? rowsFiltered.map((ev) => `
+        <tr>
+          <td>${formatShortDate(ev.start_date)}</td>
+          <td>${ev.name || 'Sin nombre'}</td>
+          <td>${ev.client_name || '—'}</td>
+          <td>${ev.venue_name || '—'}</td>
+          <td class="text-center">
+            <button class="btn btn-icon btn-sm btn-outline-primary" title="Seleccionar" data-event-id="${ev.id}">
+              <i class="mdi mdi-calendar-check"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('')
+      : '<tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron eventos.</td></tr>';
+
+    if (eventResultCount) {
+      eventResultCount.textContent = `${rowsFiltered.length} evento${rowsFiltered.length === 1 ? '' : 's'}`;
+    }
+
+    if (clearEventSearch) {
+      clearEventSearch.classList.toggle('d-none', !term);
+    }
+  }
+
+  async function openEventModal() {
+    if (!eventModalEl || typeof bootstrap === 'undefined') return;
+    const modal = new bootstrap.Modal(eventModalEl);
+    modal.show();
+
+    if (!eventTableBody) return;
+    eventTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div><span class="text-muted">Cargando eventos...</span></td></tr>';
+
+    try {
+      const res = await fetch('{{ route('inventory.events.assignable') }}', { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Error al cargar eventos');
+
+      eventRowsCache = (data.data || []).map((ev) => {
+        const d = ev.start_date ? new Date(ev.start_date + 'T00:00:00') : null;
+        return {
+          ...ev,
+          start_month: d && !Number.isNaN(d.getTime()) ? d.getMonth() + 1 : null,
+        };
+      });
+
+      const months = Array.from(new Set(eventRowsCache.map(e => e.start_month).filter(Boolean))).sort((a,b)=>a-b);
+      if (eventMonthFilter) {
+        eventMonthFilter.innerHTML = '<option value="all">Todos los meses</option>' + months.map((m) => `<option value="${m}">${monthNames[m-1]}</option>`).join('');
+      }
+      renderEventRows();
+    } catch (e) {
+      eventTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${e.message || 'No se pudieron cargar los eventos.'}</td></tr>`;
+      if (eventResultCount) eventResultCount.textContent = '0 eventos';
+    }
+  }
 
   function applyFilters() {
-    const term = (searchInput.value || '').trim().toLowerCase();
-    const status = statusSelect.value;
-    const condition = conditionSelect.value;
+    const term = (searchInput?.value || '').trim().toLowerCase();
+    const status = statusSelect?.value || 'all';
+    const condition = conditionSelect?.value || 'all';
 
     let visible = 0;
     rows.forEach((row) => {
@@ -598,22 +684,46 @@ document.addEventListener('DOMContentLoaded', function () {
       totalUnits.textContent = String(visible);
     }
 
-    clearSearchBtn.classList.toggle('d-none', !term);
+    if (clearSearchBtn) clearSearchBtn.classList.toggle('d-none', !term);
   }
 
-  searchInput.addEventListener('input', applyFilters);
-  statusSelect.addEventListener('change', applyFilters);
-  conditionSelect.addEventListener('change', applyFilters);
-  clearSearchBtn.addEventListener('click', function () {
-    searchInput.value = '';
-    applyFilters();
-  });
-  clearAllBtn.addEventListener('click', function () {
-    searchInput.value = '';
-    statusSelect.value = 'all';
-    conditionSelect.value = 'all';
-    applyFilters();
-  });
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (statusSelect) statusSelect.addEventListener('change', applyFilters);
+  if (conditionSelect) conditionSelect.addEventListener('change', applyFilters);
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', function () {
+      if (searchInput) searchInput.value = '';
+      applyFilters();
+    });
+  }
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', function () {
+      if (searchInput) searchInput.value = '';
+      if (statusSelect) statusSelect.value = 'all';
+      if (conditionSelect) conditionSelect.value = 'all';
+      applyFilters();
+    });
+  }
+
+
+  if (assignToEventBtn) {
+    assignToEventBtn.addEventListener('click', openEventModal);
+  }
+
+  if (eventSearchInput) {
+    eventSearchInput.addEventListener('input', renderEventRows);
+  }
+
+  if (eventMonthFilter) {
+    eventMonthFilter.addEventListener('change', renderEventRows);
+  }
+
+  if (clearEventSearch) {
+    clearEventSearch.addEventListener('click', function () {
+      if (eventSearchInput) eventSearchInput.value = '';
+      renderEventRows();
+    });
+  }
 
   applyFilters();
 });
