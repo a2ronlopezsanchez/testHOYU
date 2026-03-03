@@ -9,7 +9,6 @@
   $availableUnits = $inventoryItems->where('status', 'ACTIVO')->count();
   $assignedUnits = $inventoryItems->filter(fn($u) => in_array($u->status, ['ASIGNADO', 'EN_USO']))->count();
   $maintenanceUnits = $inventoryItems->filter(fn($u) => in_array($u->status, ['EN_REPARACION', 'MANTENIMIENTO']))->count();
-  $skuValue = $itemParent->sku ?? 'Falta';
 @endphp
 
 @section('css')
@@ -79,7 +78,6 @@
                     <li class="mb-1"><span class="text-muted">Categoría:</span><span id="infoCategory" class="ms-1 fw-medium">{{ $itemParent->category->name ?? 'Falta' }}</span></li>
                     <li class="mb-1"><span class="text-muted">Marca:</span><span id="infoBrand" class="ms-1 fw-medium">{{ $itemParent->brand->name ?? 'Falta' }}</span></li>
                     <li class="mb-1"><span class="text-muted">Modelo:</span><span id="infoModel" class="ms-1 fw-medium">{{ $itemParent->model ?: 'Falta' }}</span></li>
-                    <li class="mb-1"><span class="text-muted">SKU:</span><span id="infoSku" class="ms-1 fw-medium font-monospace">{{ $skuValue }}</span></li>
                   </ul>
                 </div>
                 <div class="col-md-6">
@@ -87,13 +85,13 @@
                   <ul class="list-unstyled mb-0 small" id="infoSpecs">
                     <li><span class="text-muted">Familia:</span> <span class="ms-1 fw-medium">{{ $itemParent->family ?: 'Falta' }}</span></li>
                     <li><span class="text-muted">Sub familia:</span> <span class="ms-1 fw-medium">{{ $itemParent->sub_family ?: 'Falta' }}</span></li>
-                    <li><span class="text-muted">Color:</span> <span class="ms-1 fw-medium">{{ $itemParent->color ?: 'Falta' }}</span></li>
-                    <li><span class="text-muted">Tags:</span> <span class="ms-1 fw-medium">Falta</span></li>
+                    <li><span class="text-muted">Color:</span> <span class="ms-1 fw-medium">{{ $itemParent->color ?? '' }}</span></li>
+                    <li><span class="text-muted">Tags:</span> <span class="ms-1 fw-medium">{{ is_array($itemParent->tags) ? implode(', ', array_filter($itemParent->tags)) : ($itemParent->tags ?? '') }}</span></li>
                   </ul>
                 </div>
                 <div class="col-12">
                   <h6 class="text-muted text-uppercase small fw-semibold mb-1">Descripción</h6>
-                  <p class="small text-muted mb-0" id="infoDescription">Falta</p>
+                  <p class="small text-muted mb-0" id="infoDescription">{{ $itemParent->description ?? '' }}</p>
                 </div>
               </div>
             </div>
