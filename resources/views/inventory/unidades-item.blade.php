@@ -39,6 +39,27 @@
   $prettyLabel = function ($value) {
       return ucwords(strtolower(str_replace('_', ' ', trim((string) $value))));
   };
+
+  $formatShortDate = function ($dateValue) {
+      if (empty($dateValue)) return '';
+
+      if ($dateValue instanceof \Carbon\CarbonInterface) {
+          $date = $dateValue;
+      } else {
+          try {
+              $date = \Carbon\Carbon::parse($dateValue);
+          } catch (\Throwable $e) {
+              return '';
+          }
+      }
+
+      $months = [
+          1 => 'ene', 2 => 'feb', 3 => 'mar', 4 => 'abr', 5 => 'may', 6 => 'jun',
+          7 => 'jul', 8 => 'ago', 9 => 'sep', 10 => 'oct', 11 => 'nov', 12 => 'dic',
+      ];
+
+      return $date->day . ' ' . ($months[(int) $date->month] ?? '') . ' ' . $date->year;
+  };
 @endphp
 
 @section('css')
@@ -236,7 +257,7 @@
                     ->sortByDesc(fn($a) => $a->returned_at ?? $a->assigned_until ?? $a->assigned_from)
                     ->first();
 
-                  $lastUseLabel = optional(optional($lastReturned)->event)->name ?? 'No asignado';
+                  $lastUseDate = $formatShortDate(optional($lastReturned)->returned_at ?? optional($lastReturned)->assigned_until ?? optional($lastReturned)->assigned_from);
 
                   $nextAssigned = $assignments
                     ->filter(function ($a) {
@@ -246,9 +267,21 @@
                     ->sortBy(fn($a) => $a->assigned_from)
                     ->first();
 
-                  $nextEventLabel = optional(optional($nextAssigned)->event)->name ?? 'No asignado';
+                  $nextEventName = optional(optional($nextAssigned)->event)->name ?? 'No asignado';
+                  $nextEventDate = $formatShortDate(optional(optional($nextAssigned)->event)->start_date ?? optional($nextAssigned)->assigned_from);
+                  $statusLabel = $prettyLabel($unit->status);
+                  $conditionLabel = $prettyLabel($unit->condition);
+                  $searchBlob = strtolower(trim(implode(' ', [
+                    (string) ($unit->item_id ?? ''),
+                    (string) ($unit->serial_number ?? ''),
+                    (string) ($unit->rfid_tag ?? ''),
+                    (string) ($unit->location->name ?? ''),
+                    (string) $statusLabel,
+                    (string) $conditionLabel,
+                    (string) $nextEventName,
+                  ])));
                 @endphp
-                <tr>
+                <tr data-status="{{ $statusLabel }}" data-condition="{{ $conditionLabel }}" data-search="{{ $searchBlob }}">
                   <td>{{ $index + 1 }}</td>
                   <td>
                     <div class="fw-medium">{{ $unit->item_id ?? '' }}</div>
@@ -256,14 +289,17 @@
                     <small class="text-muted d-block">{{ $unit->rfid_tag ?? '' }}</small>
                   </td>
                   <td>
-                    <span class="badge {{ $statusBadgeClass($unit->status) }}">{{ $prettyLabel($unit->status) }}</span>
+                    <span class="badge {{ $statusBadgeClass($unit->status) }}">{{ $statusLabel }}</span>
                   </td>
                   <td>
-                    <span class="badge {{ $conditionBadgeClass($unit->condition) }}">{{ $prettyLabel($unit->condition) }}</span>
+                    <span class="badge {{ $conditionBadgeClass($unit->condition) }}">{{ $conditionLabel }}</span>
                   </td>
                   <td>{{ $unit->location->name ?? 'Falta' }}</td>
-                  <td>{{ $lastUseLabel }}</td>
-                  <td>{{ $nextEventLabel }}</td>
+                  <td>{{ $lastUseDate }}</td>
+                  <td>
+                    <div>{{ $nextEventName }}</div>
+                    <small class="text-muted d-block">{{ $nextEventDate }}</small>
+                  </td>
                   <td class="text-center">
                     <div class="d-flex gap-1 justify-content-center">
                       <a class="btn btn-icon btn-sm btn-outline-primary" title="Ver" href="{{ route('inventory.detalle.unidad', ['id' => $unit->id]) }}">
@@ -509,4 +545,60 @@
     </div>
   </div>
 </div>
+
+
 @endsection
+
+@section('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const searchInput = document.getElementById('unitsSearchInput');
+  const clearSearchBtn = document.getElementById('clearUnitsSearch');
+  const statusSelect = document.getElementById('statusFilterSelect');
+  const conditionSelect = document.getElementById('conditionFilterSelect');
+  const clearAllBtn = document.getElementById('clearAllUnitsFilters');
+  const rows = Array.from(document.querySelectorAll('#unitsTableBody tr[data-status]'));
+
+  if (!rows.length) return;
+
+  const uniqueSorted = (arr) => Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
+
+  const statuses = uniqueSorted(rows.map(r => r.dataset.status || ''));
+  const conditions = uniqueSorted(rows.map(r => r.dataset.condition || ''));
+
+  statusSelect.innerHTML = '<option value="all">Todos los estados</option>' + statuses.map(v => `<option value="${v}">${v}</option>`).join('');
+  conditionSelect.innerHTML = '<option value="all">Todas las condiciones</option>' + conditions.map(v => `<option value="${v}">${v}</option>`).join('');
+
+  function applyFilters() {
+    const term = (searchInput.value || '').trim().toLowerCase();
+    const status = statusSelect.value;
+    const condition = conditionSelect.value;
+
+    rows.forEach((row) => {
+      const bySearch = !term || (row.dataset.search || '').includes(term);
+      const byStatus = status === 'all' || row.dataset.status === status;
+      const byCondition = condition === 'all' || row.dataset.condition === condition;
+      row.style.display = (bySearch && byStatus && byCondition) ? '' : 'none';
+    });
+
+    clearSearchBtn.classList.toggle('d-none', !term);
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+  statusSelect.addEventListener('change', applyFilters);
+  conditionSelect.addEventListener('change', applyFilters);
+  clearSearchBtn.addEventListener('click', function () {
+    searchInput.value = '';
+    applyFilters();
+  });
+  clearAllBtn.addEventListener('click', function () {
+    searchInput.value = '';
+    statusSelect.value = 'all';
+    conditionSelect.value = 'all';
+    applyFilters();
+  });
+});
+</script>
+@endsection
+
+
