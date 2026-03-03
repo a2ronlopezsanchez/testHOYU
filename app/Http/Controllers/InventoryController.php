@@ -1263,6 +1263,7 @@ class InventoryController extends Controller
                 'name',
                 'client_name',
                 'venue_name',
+                'venue_address',
                 'start_date',
                 'end_date',
                 'status',

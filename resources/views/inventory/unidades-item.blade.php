@@ -281,7 +281,16 @@
                     (string) $nextEventName,
                   ])));
                 @endphp
-                <tr data-status="{{ $statusLabel }}" data-condition="{{ $conditionLabel }}" data-search="{{ $searchBlob }}">
+                <tr
+                  data-unit-id="{{ $unit->id }}"
+                  data-status="{{ $statusLabel }}"
+                  data-condition="{{ $conditionLabel }}"
+                  data-search="{{ $searchBlob }}"
+                  data-serial="{{ $unit->serial_number ?? '' }}"
+                  data-rfid="{{ $unit->rfid_tag ?? '' }}"
+                  data-location="{{ $unit->location->name ?? '' }}"
+                  data-last-use="{{ $lastUseDate }}">
+
                   <td>{{ $index + 1 }}</td>
                   <td>
                     <div class="fw-medium">{{ $unit->item_id ?? '' }}</div>
@@ -586,6 +595,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let eventRowsCache = [];
 
+  function eventDueBadge(startDate) {
+    if (!startDate) return '';
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const d = new Date(startDate + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return '';
+
+    const diffDays = Math.floor((d - today) / 86400000);
+    if (diffDays === 0) return '<span class="badge bg-label-success">Hoy</span>';
+    if (diffDays > 0) return `<span class="badge bg-label-warning">En ${diffDays} día${diffDays === 1 ? '' : 's'}</span>`;
+    return '';
+  }
+
   function renderEventRows() {
     if (!eventTableBody) return;
 
@@ -593,25 +615,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const month = eventMonthFilter?.value || 'all';
 
     const rowsFiltered = eventRowsCache.filter((ev) => {
-      const inSearch = !term || `${ev.name} ${ev.client_name} ${ev.venue_name}`.toLowerCase().includes(term);
+      const inSearch = !term || `${ev.name} ${ev.client_name} ${ev.venue_name} ${ev.venue_address}`.toLowerCase().includes(term);
       const inMonth = month === 'all' || String(ev.start_month) === String(month);
       return inSearch && inMonth;
     });
 
     eventTableBody.innerHTML = rowsFiltered.length
-      ? rowsFiltered.map((ev) => `
-        <tr>
-          <td>${formatShortDate(ev.start_date)}</td>
-          <td>${ev.name || 'Sin nombre'}</td>
-          <td>${ev.client_name || '—'}</td>
-          <td>${ev.venue_name || '—'}</td>
-          <td class="text-center">
-            <button class="btn btn-icon btn-sm btn-outline-primary" title="Seleccionar" data-event-id="${ev.id}">
-              <i class="mdi mdi-calendar-check"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('')
+      ? rowsFiltered.map((ev) => {
+          const d = ev.start_date ? new Date(ev.start_date + 'T00:00:00') : null;
+          const day = d && !Number.isNaN(d.getTime()) ? d.getDate() : '—';
+          const mon = d && !Number.isNaN(d.getTime()) ? monthNames[d.getMonth()].toUpperCase() : '';
+          return `
+            <tr>
+              <td>
+                <div class="rounded bg-label-primary text-center px-2 py-1" style="min-width:52px;">
+                  <div class="fw-bold">${day}</div>
+                  <small class="text-uppercase">${mon}</small>
+                </div>
+              </td>
+              <td>
+                <div class="fw-medium">${ev.name || 'Sin nombre'}</div>
+                <div class="d-flex align-items-center gap-2 small text-muted mt-1">
+                  ${eventDueBadge(ev.start_date)}
+                </div>
+              </td>
+              <td>${ev.client_name || '—'}</td>
+              <td>${ev.venue_address || ev.venue_name || '—'}</td>
+              <td class="text-center">
+                <button class="btn btn-icon btn-sm btn-outline-primary" title="Seleccionar" data-event-id="${ev.id}">
+                  <i class="mdi mdi-calendar-check"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('')
       : '<tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron eventos.</td></tr>';
 
     if (eventResultCount) {
@@ -653,6 +690,81 @@ document.addEventListener('DOMContentLoaded', function () {
       eventTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${e.message || 'No se pudieron cargar los eventos.'}</td></tr>`;
       if (eventResultCount) eventResultCount.textContent = '0 eventos';
     }
+  }
+
+
+  let selectedEvent = null;
+
+  function collectUnitsForAssignment() {
+    return Array.from(document.querySelectorAll('#unitsTableBody tr[data-unit-id]')).map((row) => ({
+      id: row.dataset.unitId,
+      serial: row.dataset.serial || '',
+      rfid: row.dataset.rfid || '',
+      condition: row.dataset.condition || '',
+      location: row.dataset.location || '',
+      lastUse: row.dataset.lastUse || '',
+    }));
+  }
+
+  function updateAssignSelectedCount() {
+    const checks = Array.from(document.querySelectorAll('.assign-unit-check'));
+    const checked = checks.filter(c => c.checked).length;
+    const label = document.getElementById('assignSelectedCount');
+    if (label) label.textContent = `${checked} unidad${checked === 1 ? '' : 'es'} seleccionada${checked === 1 ? '' : 's'}`;
+    const confirmBtn = document.getElementById('confirmAssignBtn');
+    if (confirmBtn) confirmBtn.disabled = checked === 0;
+    const selectAll = document.getElementById('selectAllUnitsCheck');
+    if (selectAll) {
+      selectAll.checked = checks.length > 0 && checked === checks.length;
+      selectAll.indeterminate = checked > 0 && checked < checks.length;
+    }
+  }
+
+  function openAssignUnitsModal(eventData) {
+    selectedEvent = eventData;
+    const assignModalEl = document.getElementById('assignUnitsModal');
+    if (!assignModalEl || typeof bootstrap === 'undefined') return;
+
+    const title = document.getElementById('assignUnitsTitle');
+    const subtitle = document.getElementById('assignUnitsSubtitle');
+    const infoBar = document.getElementById('assignEventInfoBar');
+    const tbody = document.getElementById('assignUnitsTableBody');
+
+    if (title) title.innerHTML = `Seleccionar Unidades <span class="badge bg-label-success ms-2">EVT-${eventData.id}</span>`;
+    if (subtitle) subtitle.textContent = eventData.name || '';
+    if (infoBar) {
+      infoBar.innerHTML = `<div class="d-flex align-items-center justify-content-between flex-wrap gap-2"><div><div class="fw-medium">${eventData.name || ''}</div><small class="text-muted">${formatShortDate(eventData.start_date)} • ${eventData.client_name || '—'}</small></div><small class="text-muted">${eventData.venue_address || eventData.venue_name || '—'}</small></div>`;
+    }
+
+    const units = collectUnitsForAssignment();
+    if (tbody) {
+      tbody.innerHTML = units.map((u) => `
+        <tr>
+          <td><input class="form-check-input assign-unit-check" type="checkbox" value="${u.id}"></td>
+          <td><div class="fw-medium">${u.serial || '—'}</div><small class="text-muted d-block">${u.rfid || ''}</small></td>
+          <td><span class="badge bg-label-secondary">${u.condition || '—'}</span></td>
+          <td>${u.location || '—'}</td>
+          <td>${u.lastUse || '—'}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No hay unidades para asignar.</td></tr>';
+    }
+
+    document.querySelectorAll('.assign-unit-check').forEach((c) => c.addEventListener('change', updateAssignSelectedCount));
+    const selectAll = document.getElementById('selectAllUnitsCheck');
+    if (selectAll) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+      selectAll.onchange = function () {
+        document.querySelectorAll('.assign-unit-check').forEach((c) => { c.checked = this.checked; });
+        updateAssignSelectedCount();
+      };
+    }
+
+    updateAssignSelectedCount();
+
+    const eventModalElLocal = document.getElementById('eventCatalogModal');
+    if (eventModalElLocal) bootstrap.Modal.getOrCreateInstance(eventModalElLocal).hide();
+    bootstrap.Modal.getOrCreateInstance(assignModalEl).show();
   }
 
   function applyFilters() {
@@ -722,6 +834,29 @@ document.addEventListener('DOMContentLoaded', function () {
     clearEventSearch.addEventListener('click', function () {
       if (eventSearchInput) eventSearchInput.value = '';
       renderEventRows();
+    });
+  }
+
+
+  if (eventTableBody) {
+    eventTableBody.addEventListener('click', function (e) {
+      const btn = e.target.closest('button[data-event-id]');
+      if (!btn) return;
+      const eventId = btn.getAttribute('data-event-id');
+      const ev = eventRowsCache.find((x) => String(x.id) === String(eventId));
+      if (!ev) return;
+      openAssignUnitsModal(ev);
+    });
+  }
+
+  const assignUnitsBackBtn = document.getElementById('assignUnitsBackBtn');
+  if (assignUnitsBackBtn) {
+    assignUnitsBackBtn.addEventListener('click', function () {
+      const assignModalEl = document.getElementById('assignUnitsModal');
+      if (assignModalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(assignModalEl).hide();
+      }
+      openEventModal();
     });
   }
 
