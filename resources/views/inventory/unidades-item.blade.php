@@ -586,21 +586,27 @@ document.addEventListener('DOMContentLoaded', function () {
   if (conditionSelect) conditionSelect.innerHTML = '<option value="all">Todas las condiciones</option>' + conditions.map(v => `<option value="${v}">${v}</option>`).join('');
 
   const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const parseDateSafe = (raw) => {
+    if (!raw) return null;
+    let d = new Date(raw);
+    if (!Number.isNaN(d.getTime())) return d;
+    d = new Date(String(raw).split(' ')[0] + 'T00:00:00');
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
   const formatShortDate = (d) => {
-    if (!d) return '';
-    const date = new Date(d + 'T00:00:00');
-    if (Number.isNaN(date.getTime())) return '';
+    const date = parseDateSafe(d);
+    if (!date) return '';
     return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
   };
 
   let eventRowsCache = [];
 
   function eventDueBadge(startDate) {
-    if (!startDate) return '';
+    const d = parseDateSafe(startDate);
+    if (!d) return '';
     const today = new Date();
     today.setHours(0,0,0,0);
-    const d = new Date(startDate + 'T00:00:00');
-    if (Number.isNaN(d.getTime())) return '';
+    d.setHours(0,0,0,0);
 
     const diffDays = Math.floor((d - today) / 86400000);
     if (diffDays === 0) return '<span class="badge bg-label-success">Hoy</span>';
@@ -622,13 +628,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     eventTableBody.innerHTML = rowsFiltered.length
       ? rowsFiltered.map((ev) => {
-          const d = ev.start_date ? new Date(ev.start_date + 'T00:00:00') : null;
-          const day = d && !Number.isNaN(d.getTime()) ? d.getDate() : '—';
-          const mon = d && !Number.isNaN(d.getTime()) ? monthNames[d.getMonth()].toUpperCase() : '';
+          const d = parseDateSafe(ev.start_date);
+          const day = d ? d.getDate() : '—';
+          const mon = d ? monthNames[d.getMonth()].toUpperCase() : '';
+          const dateBoxClass = eventDueBadge(ev.start_date).includes('Hoy') ? 'bg-label-success' : 'bg-label-primary';
           return `
             <tr>
               <td>
-                <div class="rounded bg-label-primary text-center px-2 py-1" style="min-width:52px;">
+                <div class="rounded ${dateBoxClass} text-center px-2 py-1" style="min-width:52px;">
                   <div class="fw-bold">${day}</div>
                   <small class="text-uppercase">${mon}</small>
                 </div>
@@ -637,6 +644,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="fw-medium">${ev.name || 'Sin nombre'}</div>
                 <div class="d-flex align-items-center gap-2 small text-muted mt-1">
                   ${eventDueBadge(ev.start_date)}
+                  <span>${formatShortDate(ev.start_date)}</span>
                 </div>
               </td>
               <td>${ev.client_name || '—'}</td>
@@ -674,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!res.ok || !data.success) throw new Error(data.message || 'Error al cargar eventos');
 
       eventRowsCache = (data.data || []).map((ev) => {
-        const d = ev.start_date ? new Date(ev.start_date + 'T00:00:00') : null;
+        const d = parseDateSafe(ev.start_date);
         return {
           ...ev,
           start_month: d && !Number.isNaN(d.getTime()) ? d.getMonth() + 1 : null,
@@ -767,6 +775,58 @@ document.addEventListener('DOMContentLoaded', function () {
     bootstrap.Modal.getOrCreateInstance(assignModalEl).show();
   }
 
+
+  async function submitEventAssignment() {
+    const checks = Array.from(document.querySelectorAll('.assign-unit-check:checked'));
+    const unitIds = checks.map((c) => Number(c.value)).filter(Boolean);
+    if (!selectedEvent || !unitIds.length) return;
+
+    try {
+      const res = await fetch('{{ route('inventory.events.assign') }}', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        },
+        body: JSON.stringify({
+          event_id: selectedEvent.id,
+          unit_ids: unitIds,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'No se pudo guardar la asignación.');
+      }
+
+      const created = data?.data?.created_count || 0;
+      const skipped = data?.data?.skipped_count || 0;
+      const allOk = skipped === 0;
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: allOk ? 'success' : 'info',
+          title: allOk ? 'Asignación completada' : 'Asignación parcial',
+          html: allOk
+            ? `Se agregaron ${created} unidad(es) correctamente.`
+            : `Se agregaron ${created} unidad(es).<br>${skipped} ya estaban asignadas a este evento.`,
+          confirmButtonText: 'Aceptar',
+        });
+      }
+
+      const assignModalEl = document.getElementById('assignUnitsModal');
+      if (assignModalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(assignModalEl).hide();
+      }
+
+    } catch (e) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Error', e.message || 'No se pudo guardar la asignación.', 'error');
+      }
+    }
+  }
+
   function applyFilters() {
     const term = (searchInput?.value || '').trim().toLowerCase();
     const status = statusSelect?.value || 'all';
@@ -847,6 +907,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!ev) return;
       openAssignUnitsModal(ev);
     });
+  }
+
+  const confirmAssignBtn = document.getElementById('confirmAssignBtn');
+  if (confirmAssignBtn) {
+    confirmAssignBtn.addEventListener('click', submitEventAssignment);
   }
 
   const assignUnitsBackBtn = document.getElementById('assignUnitsBackBtn');

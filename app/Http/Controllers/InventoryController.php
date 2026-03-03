@@ -20,6 +20,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
@@ -1272,6 +1273,64 @@ class InventoryController extends Controller
         return response()->json([
             'success' => true,
             'data' => $events,
+        ]);
+    }
+
+
+    /**
+     * Asigna unidades a un evento evitando duplicados existentes
+     */
+    public function assignUnitsToEvent(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'event_id' => ['required', 'integer', 'exists:events,id'],
+            'unit_ids' => ['required', 'array', 'min:1'],
+            'unit_ids.*' => ['integer', 'exists:inventory_items,id'],
+        ]);
+
+        $event = Event::findOrFail($validated['event_id']);
+        $unitIds = collect($validated['unit_ids'])->unique()->values();
+
+        $existing = EventAssignment::where('event_id', $event->id)
+            ->whereIn('inventory_item_id', $unitIds)
+            ->pluck('inventory_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $toInsert = $unitIds->reject(fn ($id) => in_array((int) $id, $existing, true))->values();
+
+        $created = 0;
+        DB::beginTransaction();
+        try {
+            foreach ($toInsert as $unitId) {
+                EventAssignment::create([
+                    'event_id' => $event->id,
+                    'inventory_item_id' => (int) $unitId,
+                    'assigned_from' => $event->start_date ?? now()->toDateString(),
+                    'assigned_until' => $event->end_date ?? now()->toDateString(),
+                    'assignment_status' => 'ASIGNADO',
+                ]);
+                $created++;
+            }
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudieron guardar las asignaciones.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asignación procesada.',
+            'data' => [
+                'created_count' => $created,
+                'skipped_count' => count($existing),
+                'total_requested' => $unitIds->count(),
+                'skipped_unit_ids' => $existing,
+            ],
         ]);
     }
 
