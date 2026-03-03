@@ -549,7 +549,7 @@
 
 @endsection
 
-@section('js')
+@section('script')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const searchInput = document.getElementById('unitsSearchInput');
@@ -574,12 +574,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const status = statusSelect.value;
     const condition = conditionSelect.value;
 
+    let visible = 0;
     rows.forEach((row) => {
       const bySearch = !term || (row.dataset.search || '').includes(term);
       const byStatus = status === 'all' || row.dataset.status === status;
       const byCondition = condition === 'all' || row.dataset.condition === condition;
-      row.style.display = (bySearch && byStatus && byCondition) ? '' : 'none';
+      const show = (bySearch && byStatus && byCondition);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
     });
+
+    const unitsCountLabel = document.getElementById('unitsCountLabel');
+    if (unitsCountLabel) {
+      unitsCountLabel.textContent = `${visible} unidad${visible === 1 ? '' : 'es'} encontrada${visible === 1 ? '' : 's'}`;
+    }
+
+    const showingFrom = document.getElementById('showingFrom');
+    const showingTo = document.getElementById('showingTo');
+    const totalUnits = document.getElementById('totalUnits');
+    if (showingFrom && showingTo && totalUnits) {
+      showingFrom.textContent = visible ? '1' : '0';
+      showingTo.textContent = String(visible);
+      totalUnits.textContent = String(visible);
+    }
 
     clearSearchBtn.classList.toggle('d-none', !term);
   }
@@ -597,6 +614,8 @@ document.addEventListener('DOMContentLoaded', function () {
     conditionSelect.value = 'all';
     applyFilters();
   });
+
+  applyFilters();
 });
 </script>
 @endsection
