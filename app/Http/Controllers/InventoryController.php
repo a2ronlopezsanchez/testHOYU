@@ -1351,7 +1351,60 @@ class InventoryController extends Controller
 
         $inventoryItems = $itemParent->items;
 
-        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems'));
+        $upcomingEvents = Event::query()
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->orderBy('start_date', 'asc')
+            ->limit(6)
+            ->get(['id', 'name', 'client_name', 'start_date', 'venue_name']);
+
+        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents'));
+    }
+
+
+    /**
+     * Vista de eventos activos y próximos
+     */
+    public function eventosIndex()
+    {
+        $events = Event::query()
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->orderBy('start_date', 'asc')
+            ->get();
+
+        return view('inventory.eventos', compact('events'));
+    }
+
+    /**
+     * Crear evento desde la vista de eventos
+     */
+    public function eventosStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'client_name' => ['nullable', 'string', 'max:255'],
+            'venue_name' => ['nullable', 'string', 'max:255'],
+            'venue_address' => ['nullable', 'string', 'max:500'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'status' => ['nullable', 'string', 'max:40'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        Event::create([
+            'name' => $validated['name'],
+            'client_name' => $validated['client_name'] ?? null,
+            'venue_name' => $validated['venue_name'] ?? null,
+            'venue_address' => $validated['venue_address'] ?? null,
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'status' => $validated['status'] ?? 'ACTIVO',
+            'description' => $validated['description'] ?? null,
+            'created_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('inventory.eventos.index')->with('success', 'Evento creado correctamente.');
     }
 
     /**

@@ -391,10 +391,21 @@
       </div>
 
       <div class="card mb-4">
-        <div class="card-header"><h5 class="card-title mb-0">Próximos Eventos</h5></div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Próximos Eventos</h5>
+          <a href="{{ route('inventory.eventos.index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+        </div>
         <div class="card-body p-0">
           <ul class="list-group list-group-flush" id="sideUpcomingEvents">
-            <li class="list-group-item text-center py-3 text-muted">Falta</li>
+            @forelse(($upcomingEvents ?? collect()) as $ev)
+              <li class="list-group-item">
+                <div class="fw-medium">{{ $ev->name }}</div>
+                <small class="text-muted d-block">{{ $ev->start_date ? $ev->start_date->format('d M Y') : '' }}</small>
+                <small class="text-muted d-block">{{ $ev->client_name ?? 'Sin cliente' }}</small>
+              </li>
+            @empty
+              <li class="list-group-item text-center py-3 text-muted">No hay próximos eventos.</li>
+            @endforelse
           </ul>
         </div>
       </div>
