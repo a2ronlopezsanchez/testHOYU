@@ -1100,8 +1100,8 @@ class InventoryCatalog {
                         <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.showItemDetails('${item.id}')">
                             <i class="mdi mdi-eye me-2"></i>Ver Detalles
                         </a></li>
-                        <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.showCalendarView('${item.id}')">
-                            <i class="mdi mdi-calendar me-2"></i>Calendario
+                        <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.goToEventAssignment('${item.id}')">
+                            <i class="mdi mdi-calendar-check me-2"></i>Asignar a Eventos
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.editItem('${item.id}')">
@@ -2711,6 +2711,17 @@ class InventoryCatalog {
     }
 
 
+    goToEventAssignment(itemId) {
+        const parentId = this.parseParentIdFromItem_({ id: itemId });
+
+        if (!parentId) {
+            this.showAlert('No se pudo identificar el item para asignación a eventos.', 'warning');
+            return;
+        }
+
+        window.location.href = `/inventory/item/${parentId}/asignar-eventos`;
+    }
+
     showCalendarView(itemId) {
         // Colapsar todos los items expandidos
         expandedItems.clear();
@@ -2943,8 +2954,8 @@ class InventoryCatalog {
                             <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.showItemDetails('${item.id}')">
                                 <i class="mdi mdi-eye me-2"></i>Ver Detalles
                             </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.showCalendarView('${item.id}')">
-                                <i class="mdi mdi-calendar me-2"></i>Calendario
+                            <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.goToEventAssignment('${item.id}')">
+                                <i class="mdi mdi-calendar-check me-2"></i>Asignar a Eventos
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" onclick="inventoryCatalog.editItem('${item.id}')">
@@ -3154,6 +3165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.inventoryCatalog = {
     showItemDetails: (itemId) => inventoryCatalog.showItemDetails(itemId),
     showCalendarView: (itemId) => inventoryCatalog.showCalendarView(itemId),
+    goToEventAssignment: (itemId) => inventoryCatalog.goToEventAssignment(itemId),
     editItem: (itemId) => inventoryCatalog.editItem(itemId),
     selectCalendarDate: (dateString) => inventoryCatalog.selectCalendarDate(dateString),
     addItemToParent: (itemId) => inventoryCatalog.addItemToParent(itemId),
