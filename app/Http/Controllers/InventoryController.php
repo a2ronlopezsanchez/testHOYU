@@ -1255,6 +1255,7 @@ class InventoryController extends Controller
             'category',
             'brand',
             'items.location',
+            'items.assignments.event',
             'items' => function ($query) {
                 $query->where('is_active', true)->orderBy('id');
             }

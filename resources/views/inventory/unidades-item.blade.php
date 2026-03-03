@@ -228,6 +228,26 @@
             </thead>
             <tbody id="unitsTableBody">
               @forelse($inventoryItems as $index => $unit)
+                @php
+                  $assignments = $unit->assignments ?? collect();
+
+                  $lastReturned = $assignments
+                    ->where('assignment_status', 'DEVUELTO')
+                    ->sortByDesc(fn($a) => $a->returned_at ?? $a->assigned_until ?? $a->assigned_from)
+                    ->first();
+
+                  $lastUseLabel = optional(optional($lastReturned)->event)->name ?? 'No asignado';
+
+                  $nextAssigned = $assignments
+                    ->filter(function ($a) {
+                      return strtoupper((string) $a->assignment_status) === 'ASIGNADO'
+                        && optional($a->assigned_from)->toDateString() >= now()->toDateString();
+                    })
+                    ->sortBy(fn($a) => $a->assigned_from)
+                    ->first();
+
+                  $nextEventLabel = optional(optional($nextAssigned)->event)->name ?? 'No asignado';
+                @endphp
                 <tr>
                   <td>{{ $index + 1 }}</td>
                   <td>
@@ -242,12 +262,23 @@
                     <span class="badge {{ $conditionBadgeClass($unit->condition) }}">{{ $prettyLabel($unit->condition) }}</span>
                   </td>
                   <td>{{ $unit->location->name ?? 'Falta' }}</td>
-                  <td>{{ optional($unit->updated_at)->format('d/m/Y') ?: 'Falta' }}</td>
-                  <td>Falta</td>
+                  <td>{{ $lastUseLabel }}</td>
+                  <td>{{ $nextEventLabel }}</td>
                   <td class="text-center">
-                    <a class="btn btn-sm btn-outline-primary" href="{{ route('inventory.detalle.unidad', ['id' => $unit->id]) }}">
-                      <i class="mdi mdi-eye"></i>
-                    </a>
+                    <div class="d-flex gap-1 justify-content-center">
+                      <a class="btn btn-icon btn-sm btn-outline-primary" title="Ver" href="{{ route('inventory.detalle.unidad', ['id' => $unit->id]) }}">
+                        <i class="mdi mdi-eye"></i>
+                      </a>
+                      <a class="btn btn-icon btn-sm btn-outline-secondary" title="Ver historial" href="{{ route('inventory.detalle.unidad', ['id' => $unit->id]) }}#uso">
+                        <i class="mdi mdi-history"></i>
+                      </a>
+                      <form method="POST" action="{{ route('inventory.unidad.dar-de-baja', ['id' => $unit->id]) }}" onsubmit="return confirm('¿Dar de baja esta unidad?');">
+                        @csrf
+                        <button type="submit" class="btn btn-icon btn-sm btn-outline-danger" title="Eliminar unidad">
+                          <i class="mdi mdi-trash-can-outline"></i>
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               @empty
