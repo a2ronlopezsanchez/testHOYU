@@ -1392,14 +1392,31 @@ class InventoryController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
+        $baseCode = 'EVT-' . now()->format('Ymd');
+        $eventCode = null;
+
+        for ($i = 1; $i <= 9999; $i++) {
+            $candidate = $baseCode . '-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+            $exists = Event::where('event_code', $candidate)->exists();
+            if (!$exists) {
+                $eventCode = $candidate;
+                break;
+            }
+        }
+
+        if (!$eventCode) {
+            $eventCode = 'EVT-' . strtoupper(Str::random(10));
+        }
+
         Event::create([
+            'event_code' => $eventCode,
             'name' => $validated['name'],
             'client_name' => $validated['client_name'] ?? null,
             'venue_name' => $validated['venue_name'] ?? null,
             'venue_address' => $validated['venue_address'] ?? null,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
-            'status' => $validated['status'] ?? 'ACTIVO',
+            'status' => $validated['status'] ?? 'PLANIFICADO',
             'description' => $validated['description'] ?? null,
             'created_by' => auth()->id(),
         ]);

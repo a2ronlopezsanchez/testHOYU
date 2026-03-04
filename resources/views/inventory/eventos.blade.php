@@ -25,7 +25,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Estado</label>
-          <input type="text" name="status" class="form-control" value="ACTIVO">
+          <input type="text" name="status" class="form-control" value="PLANIFICADO">
         </div>
         <div class="col-md-4">
           <label class="form-label">Inicio</label>
