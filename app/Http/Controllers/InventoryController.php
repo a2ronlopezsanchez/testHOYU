@@ -20,6 +20,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Str;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
@@ -1244,6 +1245,183 @@ class InventoryController extends Controller
     public function disponibilidad()
     {
         return view('inventory.disponibilidad');
+    }
+
+
+    /**
+     * Lista de eventos disponibles para asignación de unidades
+     */
+    public function assignableEvents(): JsonResponse
+    {
+        $today = now()->toDateString();
+
+        $events = Event::query()
+            ->whereDate('end_date', '>=', $today)
+            ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->orderBy('start_date', 'asc')
+            ->get([
+                'id',
+                'name',
+                'client_name',
+                'venue_name',
+                'venue_address',
+                'start_date',
+                'end_date',
+                'status',
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $events,
+        ]);
+    }
+
+
+    /**
+     * Asigna unidades a un evento evitando duplicados existentes
+     */
+    public function assignUnitsToEvent(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'event_id' => ['required', 'integer', 'exists:events,id'],
+            'unit_ids' => ['required', 'array', 'min:1'],
+            'unit_ids.*' => ['integer', 'exists:inventory_items,id'],
+        ]);
+
+        $event = Event::findOrFail($validated['event_id']);
+        $unitIds = collect($validated['unit_ids'])->unique()->values();
+
+        $existing = EventAssignment::where('event_id', $event->id)
+            ->whereIn('inventory_item_id', $unitIds)
+            ->pluck('inventory_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $toInsert = $unitIds->reject(fn ($id) => in_array((int) $id, $existing, true))->values();
+
+        $created = 0;
+        DB::beginTransaction();
+        try {
+            foreach ($toInsert as $unitId) {
+                EventAssignment::create([
+                    'event_id' => $event->id,
+                    'inventory_item_id' => (int) $unitId,
+                    'assigned_from' => $event->start_date ?? now()->toDateString(),
+                    'assigned_until' => $event->end_date ?? now()->toDateString(),
+                    'assignment_status' => 'ASIGNADO',
+                ]);
+                $created++;
+            }
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudieron guardar las asignaciones.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asignación procesada.',
+            'data' => [
+                'created_count' => $created,
+                'skipped_count' => count($existing),
+                'total_requested' => $unitIds->count(),
+                'skipped_unit_ids' => $existing,
+            ],
+        ]);
+    }
+
+    /**
+     * Vista para asignar unidades a eventos
+     */
+    public function asignarEventos($id)
+    {
+        $itemParent = ItemParent::with([
+            'category',
+            'brand',
+            'items.location',
+            'items.assignments.event',
+            'items' => function ($query) {
+                $query->where('is_active', true)->orderBy('id');
+            }
+        ])->findOrFail($id);
+
+        $inventoryItems = $itemParent->items;
+
+        $upcomingEvents = Event::query()
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->orderBy('start_date', 'asc')
+            ->limit(6)
+            ->get(['id', 'name', 'client_name', 'start_date', 'venue_name']);
+
+        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents'));
+    }
+
+
+    /**
+     * Vista de eventos activos y próximos
+     */
+    public function eventosIndex()
+    {
+        $events = Event::query()
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->orderBy('start_date', 'asc')
+            ->get();
+
+        return view('inventory.eventos', compact('events'));
+    }
+
+    /**
+     * Crear evento desde la vista de eventos
+     */
+    public function eventosStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'client_name' => ['nullable', 'string', 'max:255'],
+            'venue_name' => ['nullable', 'string', 'max:255'],
+            'venue_address' => ['nullable', 'string', 'max:500'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'status' => ['nullable', 'string', 'max:40'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $baseCode = 'EVT-' . now()->format('Ymd');
+        $eventCode = null;
+
+        for ($i = 1; $i <= 9999; $i++) {
+            $candidate = $baseCode . '-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+            $exists = Event::where('event_code', $candidate)->exists();
+            if (!$exists) {
+                $eventCode = $candidate;
+                break;
+            }
+        }
+
+        if (!$eventCode) {
+            $eventCode = 'EVT-' . strtoupper(Str::random(10));
+        }
+
+        Event::create([
+            'event_code' => $eventCode,
+            'name' => $validated['name'],
+            'client_name' => $validated['client_name'] ?? null,
+            'venue_name' => $validated['venue_name'] ?? null,
+            'venue_address' => $validated['venue_address'] ?? null,
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'status' => $validated['status'] ?? 'PLANIFICADO',
+            'description' => $validated['description'] ?? null,
+            'created_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('inventory.eventos.index')->with('success', 'Evento creado correctamente.');
     }
 
     /**
