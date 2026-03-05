@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\Location;
 use App\Models\ItemParent;
 use App\Models\InventoryItem;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class InventoryCSVImportSeeder extends Seeder
@@ -480,15 +479,18 @@ class InventoryCSVImportSeeder extends Seeder
 
     private function getOrCreateUnassignedItemParentId(): int
     {
-        if (ItemParent::whereKey(0)->exists()) {
-            return 0;
+        $existing = ItemParent::where('name', 'NO ASOCIADO')
+            ->where('public_name', 'NO ASOCIADO')
+            ->first();
+
+        if ($existing) {
+            return (int) $existing->id;
         }
 
         $brandId = $this->getOrCreateBrand('SIN MARCA');
         $categoryId = $this->getOrCreateCategory('SIN CATEGORIA');
 
-        DB::table((new ItemParent())->getTable())->insert([
-            'id' => 0,
+        $itemParent = ItemParent::create([
             'name' => 'NO ASOCIADO',
             'public_name' => 'NO ASOCIADO',
             'category_id' => $categoryId,
@@ -499,11 +501,9 @@ class InventoryCSVImportSeeder extends Seeder
             'color' => null,
             'is_active' => true,
             'created_by' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
-        return 0;
+        return (int) $itemParent->id;
     }
 
     /**
