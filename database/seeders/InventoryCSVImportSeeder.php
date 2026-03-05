@@ -8,10 +8,17 @@ use App\Models\Category;
 use App\Models\Location;
 use App\Models\ItemParent;
 use App\Models\InventoryItem;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class InventoryCSVImportSeeder extends Seeder
 {
+    /** @var array<string, array{signature:string, compatible:bool}> */
+    private array $groupRules = [];
+
+    /** @var array<string, int> */
+    private array $groupParentCache = [];
+
     /**
      * Run the database seeds.
      */
@@ -52,8 +59,9 @@ class InventoryCSVImportSeeder extends Seeder
         $created = 0;
         $skipped = 0;
         $errors = 0;
+        $mappedRows = [];
 
-        // Procesar cada fila
+        // Leer CSV y mapear filas
         while (($row = fgetcsv($file)) !== false) {
             $rowNumber++;
 
@@ -62,21 +70,7 @@ class InventoryCSVImportSeeder extends Seeder
                 $data = array_combine($headers, $row);
 
                 // Mapear los datos del CSV al formato que usa nuestro seeder
-                $mappedData = $this->mapCSVRow($data);
-
-                // Crear el item
-                $result = $this->createInventoryItem($mappedData);
-
-                if ($result === 'created') {
-                    $created++;
-                } elseif ($result === 'skipped') {
-                    $skipped++;
-                }
-
-                // Mostrar progreso cada 100 registros
-                if ($rowNumber % 100 === 0) {
-                    $this->command->info("📊 Procesados: {$rowNumber} | Creados: {$created} | Omitidos: {$skipped} | Errores: {$errors}");
-                }
+                $mappedRows[] = $this->mapCSVRow($data);
 
             } catch (\Exception $e) {
                 $errors++;
@@ -91,6 +85,35 @@ class InventoryCSVImportSeeder extends Seeder
         }
 
         fclose($file);
+
+        $this->buildGroupRules($mappedRows);
+
+        // Procesar filas mapeadas
+        foreach ($mappedRows as $index => $mappedData) {
+            $currentRow = $index + 2; // +1 headers, +1 index base 0
+
+            try {
+                $result = $this->createInventoryItem($mappedData);
+
+                if ($result === 'created') {
+                    $created++;
+                } elseif ($result === 'skipped') {
+                    $skipped++;
+                }
+
+                if ($currentRow % 100 === 0) {
+                    $this->command->info("📊 Procesados: {$currentRow} | Creados: {$created} | Omitidos: {$skipped} | Errores: {$errors}");
+                }
+            } catch (\Exception $e) {
+                $errors++;
+                $this->command->error("❌ Error en fila {$currentRow}: " . $e->getMessage());
+
+                if ($errors > 50) {
+                    $this->command->error("⚠️ Demasiados errores. Deteniendo importación.");
+                    break;
+                }
+            }
+        }
 
         // Resumen final
         $this->command->info("\n" . str_repeat('=', 60));
@@ -273,15 +296,17 @@ class InventoryCSVImportSeeder extends Seeder
      * Un nuevo padre se crea solo si difiere en:
      * - MODELO, FAMILIA, SUB FAMILIA o NOMBRE PARA COTIZACIONES
      */
-    private function getOrCreateItemParent(array $row): int
+    private function getOrCreateItemParent(array $row, ?string $baseTechnicalName = null): int
     {
         $brandId = $this->getOrCreateBrand($row['marca']);
         $categoryId = $this->getOrCreateCategory($row['categoria']);
+        $parentName = $baseTechnicalName ?: $row['nombre_cotizaciones'];
 
         // Buscar si ya existe un ItemParent con esta combinación exacta
         // de modelo, familia, sub_familia, nombre_cotizaciones
         $query = ItemParent::where('brand_id', $brandId)
             ->where('category_id', $categoryId)
+            ->where('name', $parentName)
             ->where('public_name', $row['nombre_cotizaciones']);
 
         // Comparar modelo (puede ser null)
@@ -309,7 +334,7 @@ class InventoryCSVImportSeeder extends Seeder
 
         if (!$itemParent) {
             $itemParent = ItemParent::create([
-                'name' => $row['nombre_cotizaciones'], // Usar nombre de cotizaciones
+                'name' => $parentName,
                 'public_name' => $row['nombre_cotizaciones'],
                 'category_id' => $categoryId,
                 'brand_id' => $brandId,
@@ -345,7 +370,7 @@ class InventoryCSVImportSeeder extends Seeder
         }
 
         // Obtener/crear relaciones
-        $itemParentId = $this->getOrCreateItemParent($row);
+        $itemParentId = $this->resolveItemParentId($row);
         $locationId = $this->getOrCreateLocation($row['ubicacion'] ?? 'ALMACEN GENERAL');
 
         // Crear el item de inventario
@@ -374,6 +399,111 @@ class InventoryCSVImportSeeder extends Seeder
         ]);
 
         return 'created';
+    }
+
+    private function resolveItemParentId(array $row): int
+    {
+        $baseName = $this->extractBaseTechnicalName($row['nombre_tecnico_interno'] ?? '');
+
+        if ($baseName === '') {
+            return $this->getOrCreateItemParent($row);
+        }
+
+        $rule = $this->groupRules[$baseName] ?? null;
+
+        if ($rule && !$rule['compatible']) {
+            return $this->getOrCreateUnassignedItemParentId();
+        }
+
+        if (isset($this->groupParentCache[$baseName])) {
+            return $this->groupParentCache[$baseName];
+        }
+
+        $this->groupParentCache[$baseName] = $this->getOrCreateItemParent($row, $baseName);
+        return $this->groupParentCache[$baseName];
+    }
+
+    private function buildGroupRules(array $mappedRows): void
+    {
+        foreach ($mappedRows as $row) {
+            $baseName = $this->extractBaseTechnicalName($row['nombre_tecnico_interno'] ?? '');
+
+            if ($baseName === '') {
+                continue;
+            }
+
+            $signature = $this->buildGroupSignature($row);
+
+            if (!isset($this->groupRules[$baseName])) {
+                $this->groupRules[$baseName] = [
+                    'signature' => $signature,
+                    'compatible' => true,
+                ];
+                continue;
+            }
+
+            if ($this->groupRules[$baseName]['signature'] !== $signature) {
+                $this->groupRules[$baseName]['compatible'] = false;
+            }
+        }
+    }
+
+    private function buildGroupSignature(array $row): string
+    {
+        $parts = [
+            $row['marca'] ?? '',
+            $row['categoria'] ?? '',
+            $row['nombre_cotizaciones'] ?? '',
+            $row['modelo'] ?? '',
+            $row['familia'] ?? '',
+            $row['sub_familia'] ?? '',
+        ];
+
+        return implode('|', array_map(function ($value) {
+            return Str::upper(trim((string) $value));
+        }, $parts));
+    }
+
+    private function extractBaseTechnicalName(string $technicalName): string
+    {
+        $normalized = trim(preg_replace('/\s+/', ' ', $technicalName));
+
+        if ($normalized === '') {
+            return '';
+        }
+
+        $withoutId = preg_replace('/\s*\|\s*(?:ID\s*)?[A-Z0-9\-_.]+\s*$/iu', '', $normalized);
+        $baseName = trim($withoutId ?? $normalized, " \t\n\r\0\x0B|");
+
+        return $baseName !== '' ? $baseName : $normalized;
+    }
+
+    private function getOrCreateUnassignedItemParentId(): int
+    {
+        if (ItemParent::whereKey(0)->exists()) {
+            return 0;
+        }
+
+        $brandId = $this->getOrCreateBrand('SIN MARCA');
+        $categoryId = $this->getOrCreateCategory('SIN CATEGORIA');
+
+        DB::table((new ItemParent())->getTable())->insert([
+            'id' => 0,
+            'name' => 'NO ASOCIADO',
+            'public_name' => 'NO ASOCIADO',
+            'category_id' => $categoryId,
+            'brand_id' => $brandId,
+            'model' => null,
+            'family' => null,
+            'sub_family' => null,
+            'color' => null,
+            'is_active' => true,
+            'created_by' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return 0;
     }
 
     /**
