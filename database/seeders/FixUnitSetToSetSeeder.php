@@ -34,12 +34,12 @@ class FixUnitSetToSetSeeder extends Seeder
 
         // Por si son muchos, hacemos chunks
         foreach (array_chunk($skus, 500) as $chunk) {
-            $updated += DB::table('inventory_items')
+            $updated += DB::table('units')
                 ->whereIn('sku', $chunk)
                 ->update(['unit_set' => 'SET']);
         }
 
-        $found = DB::table('inventory_items')->whereIn('sku', $skus)->count();
+        $found = DB::table('units')->whereIn('sku', $skus)->count();
         $missing = count($skus) - $found;
 
         $this->command?->info("✅ unit_set='SET' aplicado. Filas actualizadas: {$updated}");

@@ -9,7 +9,7 @@ class ItemParent extends Model
 {
     use HasFactory;
         
-    protected $table = 'item_parents';
+    protected $table = 'items';
     protected $fillable = [
         'name','public_name','category_id','brand_id',
         'model','family','sub_family','color','tags',

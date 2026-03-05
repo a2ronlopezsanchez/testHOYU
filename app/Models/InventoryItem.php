@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class InventoryItem extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $table = 'units';
     protected $fillable = [
         'sku',
         'item_id',

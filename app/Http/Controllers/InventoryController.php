@@ -362,9 +362,9 @@ class InventoryController extends Controller
         // Validación según payload que envías desde el front
         // Si es borrador, validación laxa; si es final, validación completa
         $rules = [
-            'item_parent_id'      => ['required','integer','exists:item_parents,id'],
-            'sku'                 => ['nullable','string','max:50','unique:inventory_items,sku'],
-            'item_id'             => ['nullable','string','max:50','unique:inventory_items,item_id'],
+            'item_parent_id'      => ['required','integer','exists:items,id'],
+            'sku'                 => ['nullable','string','max:50','unique:units,sku'],
+            'item_id'             => ['nullable','string','max:50','unique:units,item_id'],
             'name'                => [$isDraft ? 'nullable' : 'required','string','max:255'],
             'public_name'         => ['nullable','string','max:255'],
             'description'         => ['nullable','string'],
@@ -1285,7 +1285,7 @@ class InventoryController extends Controller
         $validated = $request->validate([
             'event_id' => ['required', 'integer', 'exists:events,id'],
             'unit_ids' => ['required', 'array', 'min:1'],
-            'unit_ids.*' => ['integer', 'exists:inventory_items,id'],
+            'unit_ids.*' => ['integer', 'exists:units,id'],
         ]);
 
         $event = Event::findOrFail($validated['event_id']);
