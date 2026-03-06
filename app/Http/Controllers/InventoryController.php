@@ -1350,10 +1350,22 @@ class InventoryController extends Controller
         ])->findOrFail($id);
 
         $inventoryItems = $itemParent->items;
+        $inventoryItemIds = $inventoryItems->pluck('id')->filter()->values();
 
         $upcomingEvents = Event::query()
             ->whereDate('end_date', '>=', now()->toDateString())
             ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
+            ->when($inventoryItemIds->isNotEmpty(), function ($query) use ($inventoryItemIds) {
+                $query->whereHas('assignments', function ($assignments) use ($inventoryItemIds) {
+                    $assignments->whereIn('inventory_item_id', $inventoryItemIds)
+                        ->where(function ($statusQuery) {
+                            $statusQuery->whereNull('assignment_status')
+                                ->orWhereRaw("UPPER(COALESCE(assignment_status, '')) <> ?", ['DEVUELTO']);
+                        });
+                });
+            }, function ($query) {
+                $query->whereRaw('1 = 0');
+            })
             ->orderBy('start_date', 'asc')
             ->limit(6)
             ->get(['id', 'name', 'client_name', 'start_date', 'venue_name']);

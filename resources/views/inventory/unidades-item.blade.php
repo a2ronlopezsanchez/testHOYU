@@ -64,6 +64,9 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/vista-unidades-item.css') }}" />
+<style>
+  .event-select-row { cursor: pointer; }
+</style>
 @endsection
 
 @section('content')
@@ -286,6 +289,7 @@
                   data-status="{{ $statusLabel }}"
                   data-condition="{{ $conditionLabel }}"
                   data-search="{{ $searchBlob }}"
+                  data-item-id="{{ $unit->item_id ?? '' }}"
                   data-serial="{{ $unit->serial_number ?? '' }}"
                   data-rfid="{{ $unit->rfid_tag ?? '' }}"
                   data-location="{{ $unit->location->name ?? '' }}"
@@ -550,7 +554,7 @@
         </div>
         <div class="table-responsive" style="max-height:320px; overflow-y:auto;">
           <table class="table table-hover mb-0" id="assignUnitsTable">
-            <thead class="table-light sticky-top"><tr><th style="width:50px;"></th><th style="width:120px;">SERIAL / RFID</th><th style="width:110px;">CONDICIÓN</th><th>UBICACIÓN ACTUAL</th><th style="width:110px;">ÚLTIMO USO</th></tr></thead>
+            <thead class="table-light sticky-top"><tr><th style="width:50px;"></th><th style="width:160px;">ITEM ID / SERIAL / RFID</th><th style="width:110px;">CONDICIÓN</th><th>UBICACIÓN ACTUAL</th><th style="width:110px;">ÚLTIMO USO</th></tr></thead>
             <tbody id="assignUnitsTableBody"><tr><td colspan="5" class="text-center py-4 text-muted">Falta</td></tr></tbody>
           </table>
         </div>
@@ -644,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const mon = d ? monthNames[d.getMonth()].toUpperCase() : '';
           const dateBoxClass = eventDueBadge(ev.start_date).includes('Hoy') ? 'bg-label-success' : 'bg-label-primary';
           return `
-            <tr>
+            <tr class="event-select-row" role="button" tabindex="0" data-event-id="${ev.id}">
               <td>
                 <div class="rounded ${dateBoxClass} text-center px-2 py-1" style="min-width:52px;">
                   <div class="fw-bold">${day}</div>
@@ -717,6 +721,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function collectUnitsForAssignment() {
     return Array.from(document.querySelectorAll('#unitsTableBody tr[data-unit-id]')).map((row) => ({
       id: row.dataset.unitId,
+      itemId: row.dataset.itemId || '',
       serial: row.dataset.serial || '',
       rfid: row.dataset.rfid || '',
       condition: row.dataset.condition || '',
@@ -760,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function () {
       tbody.innerHTML = units.map((u) => `
         <tr>
           <td><input class="form-check-input assign-unit-check" type="checkbox" value="${u.id}"></td>
-          <td><div class="fw-medium">${u.serial || '—'}</div><small class="text-muted d-block">${u.rfid || ''}</small></td>
+          <td><div class="fw-medium">${u.itemId || '—'}</div><small class="text-muted d-block">${u.serial || '—'}</small><small class="text-muted d-block">${u.rfid || ''}</small></td>
           <td><span class="badge bg-label-secondary">${u.condition || '—'}</span></td>
           <td>${u.location || '—'}</td>
           <td>${u.lastUse || '—'}</td>
@@ -909,14 +914,26 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
 
+  const openEventFromTarget = (target) => {
+    const row = target.closest('[data-event-id]');
+    if (!row) return;
+    const eventId = row.getAttribute('data-event-id');
+    const ev = eventRowsCache.find((x) => String(x.id) === String(eventId));
+    if (!ev) return;
+    openAssignUnitsModal(ev);
+  };
+
   if (eventTableBody) {
     eventTableBody.addEventListener('click', function (e) {
-      const btn = e.target.closest('button[data-event-id]');
-      if (!btn) return;
-      const eventId = btn.getAttribute('data-event-id');
-      const ev = eventRowsCache.find((x) => String(x.id) === String(eventId));
-      if (!ev) return;
-      openAssignUnitsModal(ev);
+      openEventFromTarget(e.target);
+    });
+
+    eventTableBody.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const row = e.target.closest('tr[data-event-id]');
+      if (!row) return;
+      e.preventDefault();
+      openEventFromTarget(row);
     });
   }
 
