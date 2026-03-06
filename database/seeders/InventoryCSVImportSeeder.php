@@ -133,7 +133,10 @@ class InventoryCSVImportSeeder extends Seeder
         // Mapeo de columnas del CSV
         return [
             'nombre_tecnico_interno' => trim($csvRow['NOMBRE TECNICO INTERNO CON ID'] ?? $csvRow['NOMBRE_TECNICO_INTERNO_CON_ID'] ?? ''),
-            'nombre_cotizaciones' => trim($csvRow['NOMBRE PARA COTIZACIONES'] ?? $csvRow['NOMBRE_PARA_COTIZACIONES'] ?? ''),
+            'nombre_cotizaciones' => $this->alignPublicNameWithTechnicalName(
+                trim($csvRow['NOMBRE TECNICO INTERNO CON ID'] ?? $csvRow['NOMBRE_TECNICO_INTERNO_CON_ID'] ?? ''),
+                trim($csvRow['NOMBRE PARA COTIZACIONES'] ?? $csvRow['NOMBRE_PARA_COTIZACIONES'] ?? '')
+            ),
             'categoria' => trim($csvRow['CATEGORIA'] ?? ''),
             'marca' => trim($csvRow['MARCA'] ?? ''),
             'modelo' => !empty($csvRow['MODELO']) ? trim($csvRow['MODELO']) : null,
@@ -143,13 +146,14 @@ class InventoryCSVImportSeeder extends Seeder
             'sku' => trim($csvRow['SKU'] ?? ''),
             'item_id' => trim($csvRow['ID'] ?? ''),
             'etiquetado' => $csvRow['ETIQUETADO'] ?? 'NO',
+            'cambio' => trim($csvRow['¿CAMBIO?'] ?? $csvRow['CAMBIO'] ?? ''),
             'comentarios' => $csvRow['COMENTARIOS'] ?? $csvRow['COMENTARIO'] ?? 'BIEN',
             'status' => $csvRow['STATUS'] ?? 'ACTIVO',
             'ubicacion' => $csvRow['UBICACION'] ?? 'INDIVIDUAL',
-            'units_set' => !empty($csvRow['UNITS/SET']) ? trim($csvRow['UNITS/SET']) : (!empty($csvRow['UNITS_SET']) ? trim($csvRow['UNITS_SET']) : 'INDIVIDUAL'),
+            'units_set' => !empty($csvRow['UNIT/SET']) ? trim($csvRow['UNIT/SET']) : (!empty($csvRow['UNITS/SET']) ? trim($csvRow['UNITS/SET']) : (!empty($csvRow['UNITS_SET']) ? trim($csvRow['UNITS_SET']) : 'INDIVIDUAL')), 
             'rack' => !empty($csvRow['RACK']) ? $csvRow['RACK'] : null,
             'panel' => !empty($csvRow['PANEL']) ? $csvRow['PANEL'] : null,
-            'identificador' => !empty($csvRow['IDENTIFICADOR']) ? $csvRow['IDENTIFICADOR'] : null,
+            'identificador' => !empty($csvRow['IDENTIFICADOR RFID']) ? $csvRow['IDENTIFICADOR RFID'] : (!empty($csvRow['IDENTIFICADOR']) ? $csvRow['IDENTIFICADOR'] : null),
             'numero_serie' => !empty($csvRow['NUMERO DE SERIE']) && strtoupper(trim($csvRow['NUMERO DE SERIE'])) !== 'COLOCAR COMPLETO' ? trim($csvRow['NUMERO DE SERIE']) : null,
             'numero_garantia_vip' => !empty($csvRow['NUMERO DE GARANTIA VIP']) || !empty($csvRow['NUMERO_GARANTIA_VIP']) ? ($csvRow['NUMERO DE GARANTIA VIP'] ?? $csvRow['NUMERO_GARANTIA_VIP'] ?? null) : null,
             'precio_original' => $this->parsePrice($csvRow['PRECIO ORIGINAL'] ?? $csvRow['PRECIO_ORIGINAL'] ?? '0'),
@@ -354,6 +358,10 @@ class InventoryCSVImportSeeder extends Seeder
      */
     private function createInventoryItem(array $row): string
     {
+        if (stripos((string) ($row['cambio'] ?? ''), 'ELIMINAR ITEM') !== false) {
+            return 'skipped';
+        }
+
         // Validar datos requeridos
         if (empty($row['sku']) || empty($row['item_id'])) {
             throw new \Exception("SKU o ID vacío");
@@ -452,7 +460,7 @@ class InventoryCSVImportSeeder extends Seeder
         $parts = [
             $row['marca'] ?? '',
             $row['categoria'] ?? '',
-            $row['nombre_cotizaciones'] ?? '',
+            $this->normalizePublicNameForGrouping($row['nombre_cotizaciones'] ?? ''),
             $row['modelo'] ?? '',
             $row['familia'] ?? '',
             $row['sub_familia'] ?? '',
@@ -504,6 +512,51 @@ class InventoryCSVImportSeeder extends Seeder
         ]);
 
         return (int) $itemParent->id;
+    }
+
+
+    private function normalizePublicNameForGrouping(string $value): string
+    {
+        $normalized = trim(preg_replace('/\s+/', ' ', $value));
+        $normalized = preg_replace('/\s*\(\(\s*JUEGO\s*\d+\s*\)\)\s*$/iu', '', $normalized) ?? $normalized;
+        $normalized = preg_replace('/^ANTENAS\s+DE\s+MEDIA\s+ONDA/iu', 'Antena de Media Onda', $normalized) ?? $normalized;
+
+        return trim($normalized);
+    }
+
+    private function alignPublicNameWithTechnicalName(string $technicalName, string $publicName): string
+    {
+        $publicName = $this->normalizePublicNameForGrouping($publicName);
+
+        if ($publicName === '') {
+            return $publicName;
+        }
+
+        $baseTechnical = $this->extractBaseTechnicalName($technicalName);
+        $technicalParts = array_values(array_filter(array_map('trim', explode('|', $baseTechnical)), fn ($part) => $part !== ''));
+
+        if (count($technicalParts) < 2) {
+            return $publicName;
+        }
+
+        $technicalTail = end($technicalParts);
+
+        if (!preg_match('/\|/', $publicName)) {
+            return $publicName;
+        }
+
+        $publicParts = array_map('trim', explode('|', $publicName));
+        $lastIndex = count($publicParts) - 1;
+
+        if ($lastIndex < 0) {
+            return $publicName;
+        }
+
+        if (mb_strtoupper($publicParts[$lastIndex]) !== mb_strtoupper($technicalTail)) {
+            $publicParts[$lastIndex] = $technicalTail;
+        }
+
+        return trim(implode(' | ', $publicParts));
     }
 
     /**
