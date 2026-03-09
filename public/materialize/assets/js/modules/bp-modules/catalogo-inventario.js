@@ -662,6 +662,97 @@ class InventoryCatalog {
         document.getElementById('tableViewBtn').addEventListener('click', () => this.switchToTableView());
         document.getElementById('cardViewBtn').addEventListener('click', () => this.switchToGridView());
 
+        this.setupTableActionDropdownPortal();
+
+    }
+
+    setupTableActionDropdownPortal() {
+        if (this.tableActionDropdownPortalBound) {
+            return;
+        }
+        this.tableActionDropdownPortalBound = true;
+
+        document.addEventListener('shown.bs.dropdown', (event) => {
+            const dropdown = event.target instanceof Element ? event.target.closest('.dropdown') || event.target : null;
+            if (!(dropdown instanceof Element) || !dropdown.closest('.inventory-table-container')) {
+                return;
+            }
+
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            if (!dropdown || !menu) {
+                return;
+            }
+
+            if (!menu.dataset.portalOriginalParent) {
+                menu.dataset.portalOriginalParent = '1';
+            }
+
+            dropdown.classList.add('dropdown-portal-open');
+            menu.classList.add('dropdown-menu-portal');
+            document.body.appendChild(menu);
+
+            const positionMenu = () => {
+                if (!menu.classList.contains('show')) {
+                    return;
+                }
+
+                const rect = toggle.getBoundingClientRect();
+                const menuRect = menu.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const gap = 6;
+
+                let top = rect.top - menuRect.height - gap;
+                if (top < gap) {
+                    top = Math.min(viewportHeight - menuRect.height - gap, rect.bottom + gap);
+                }
+
+                let left = rect.right - menuRect.width;
+                if (left < gap) {
+                    left = gap;
+                } else if (left + menuRect.width > viewportWidth - gap) {
+                    left = viewportWidth - menuRect.width - gap;
+                }
+
+                menu.style.position = 'fixed';
+                menu.style.top = `${top}px`;
+                menu.style.left = `${left}px`;
+                menu.style.zIndex = '200000';
+            };
+
+            menu._portalPositionHandler = positionMenu;
+            positionMenu();
+            window.addEventListener('scroll', positionMenu, true);
+            window.addEventListener('resize', positionMenu);
+        });
+
+        document.addEventListener('hide.bs.dropdown', (event) => {
+            const dropdown = event.target instanceof Element ? event.target.closest('.dropdown') || event.target : null;
+            if (!(dropdown instanceof Element) || !dropdown.closest('.inventory-table-container')) {
+                return;
+            }
+
+            const menu = document.body.querySelector('.dropdown-menu-portal.show') || dropdown.querySelector('.dropdown-menu-portal');
+            if (!dropdown || !menu) {
+                return;
+            }
+
+            const cleanup = menu._portalPositionHandler;
+            if (cleanup) {
+                window.removeEventListener('scroll', cleanup, true);
+                window.removeEventListener('resize', cleanup);
+                delete menu._portalPositionHandler;
+            }
+
+            menu.style.position = '';
+            menu.style.top = '';
+            menu.style.left = '';
+            menu.style.zIndex = '';
+            menu.classList.remove('dropdown-menu-portal');
+            dropdown.classList.remove('dropdown-portal-open');
+            dropdown.appendChild(menu);
+        });
     }
     
     // ===== MANEJO DE FECHAS =====
