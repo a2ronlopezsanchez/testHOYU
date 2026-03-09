@@ -937,6 +937,17 @@ class InventoryController extends Controller
     }
 
 
+    private function firstAlpha(string $value): string
+    {
+        $normalized = Str::upper(Str::ascii($value));
+
+        if (preg_match('/[A-Z]/', $normalized, $matches)) {
+            return $matches[0];
+        }
+
+        return '';
+    }
+
     /**
      * Generate unique SKU
      */
