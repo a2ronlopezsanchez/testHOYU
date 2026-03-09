@@ -231,8 +231,8 @@
             <h5 class="card-title mb-0">Unidades Individuales</h5>
             <small class="text-muted" id="unitsCountLabel">{{ $totalUnits }} registradas</small>
           </div>
-          <a class="btn btn-primary btn-sm" id="addUnitBtn" href="{{ route('inventory.formulario', ['id' => $itemParent->id, 'mode' => 'new-from-parent']) }}">
-            <i class="mdi mdi-plus me-1"></i>Agregar Unidad
+          <a class="btn btn-primary btn-sm" id="addUnitBtn" href="{{ route('inventory.formulario', ['id' => $itemParent->id, 'mode' => 'new-from-parent']) }}" data-default-href="{{ route('inventory.formulario', ['id' => $itemParent->id, 'mode' => 'new-from-parent']) }}">
+            @if(($isUnassignedItem ?? false))<i class="mdi mdi-link-variant-plus me-1"></i>Seleccionar Ítem @else <i class="mdi mdi-plus me-1"></i>Agregar Unidad @endif
           </a>
         </div>
 
@@ -497,7 +497,7 @@
         </div>
         <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
           <table class="table table-hover mb-0" id="catalogTable">
-            <thead class="table-light sticky-top"><tr><th style="width:50px;">ACTIVO</th><th style="width:120px;">SKU</th><th>NOMBRE DE PRODUCTO</th><th style="width:140px;">CATEGORÍA</th><th style="width:90px;">ID</th><th style="width:70px;" class="text-center">VER</th></tr></thead>
+            <thead class="table-light sticky-top"><tr><th style="width:50px;">ACTIVO</th><th style="width:120px;">MARCA</th><th>NOMBRE DE PRODUCTO</th><th style="width:140px;">CATEGORÍA</th><th style="width:90px;">ID</th><th style="width:100px;" class="text-center">SELECCIONAR</th></tr></thead>
             <tbody id="catalogTableBody"><tr><td colspan="6" class="text-center py-4 text-muted">Falta</td></tr></tbody>
           </table>
         </div>
@@ -576,12 +576,22 @@
 @section('script')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const isUnassignedItem = @json($isUnassignedItem ?? false);
+  const currentItemParentId = @json($itemParent->id);
   const searchInput = document.getElementById('unitsSearchInput');
   const clearSearchBtn = document.getElementById('clearUnitsSearch');
   const statusSelect = document.getElementById('statusFilterSelect');
   const conditionSelect = document.getElementById('conditionFilterSelect');
   const clearAllBtn = document.getElementById('clearAllUnitsFilters');
   const rows = Array.from(document.querySelectorAll('#unitsTableBody tr[data-status]'));
+
+  const addUnitBtn = document.getElementById('addUnitBtn');
+  const selectItemModalEl = document.getElementById('selectItemModal');
+  const catalogSearchInput = document.getElementById('catalogSearchInput');
+  const clearCatalogSearch = document.getElementById('clearCatalogSearch');
+  const catalogCategoryFilter = document.getElementById('catalogCategoryFilter');
+  const catalogResultCount = document.getElementById('catalogResultCount');
+  const catalogTableBody = document.getElementById('catalogTableBody');
 
   const assignToEventBtn = document.getElementById('assignToEventBtn');
   const eventModalEl = document.getElementById('eventCatalogModal');
@@ -615,6 +625,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   let eventRowsCache = [];
+  let catalogRowsCache = [];
 
   function eventDueBadge(startDate) {
     const d = parseDateSafe(startDate);
@@ -627,6 +638,107 @@ document.addEventListener('DOMContentLoaded', function () {
     if (diffDays === 0) return '<span class="badge bg-label-success">Hoy</span>';
     if (diffDays > 0) return `<span class="badge bg-label-warning">En ${diffDays} día${diffDays === 1 ? '' : 's'}</span>`;
     return '';
+  }
+
+
+  function renderCatalogRows() {
+    if (!catalogTableBody) return;
+
+    const term = (catalogSearchInput?.value || '').trim().toLowerCase();
+    const category = catalogCategoryFilter?.value || 'all';
+
+    const rowsFiltered = catalogRowsCache.filter((item) => {
+      const inSearch = !term || `${item.public_name} ${item.name} ${item.brand} ${item.category}`.toLowerCase().includes(term);
+      const inCategory = category === 'all' || (item.category || '').toLowerCase() === category;
+      return inSearch && inCategory;
+    });
+
+    catalogTableBody.innerHTML = rowsFiltered.length
+      ? rowsFiltered.map((item) => `
+          <tr>
+            <td><span class="badge bg-label-${item.units_count > 0 ? 'success' : 'secondary'}">${item.units_count > 0 ? 'SI' : 'NO'}</span></td>
+            <td>${item.brand || '—'}</td>
+            <td><div class="fw-medium">${item.public_name || item.name || 'Sin nombre'}</div><small class="text-muted">${item.model || '—'}</small></td>
+            <td>${item.category || '—'}</td>
+            <td>${item.id}</td>
+            <td class="text-center"><button class="btn btn-sm btn-primary" data-select-parent-id="${item.id}">Seleccionar</button></td>
+          </tr>
+        `).join('')
+      : '<tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron ítems.</td></tr>';
+
+    if (catalogResultCount) {
+      catalogResultCount.textContent = `${rowsFiltered.length} ítem${rowsFiltered.length === 1 ? '' : 's'}`;
+    }
+
+    if (clearCatalogSearch) {
+      clearCatalogSearch.classList.toggle('d-none', !term);
+    }
+  }
+
+  async function openSelectItemModal() {
+    if (!selectItemModalEl || typeof bootstrap === 'undefined') return;
+    bootstrap.Modal.getOrCreateInstance(selectItemModalEl).show();
+
+    if (!catalogTableBody) return;
+    catalogTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div><span class="text-muted">Cargando catálogo...</span></td></tr>';
+
+    try {
+      const res = await fetch('{{ route('inventory.parents.index') }}', { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo cargar el catálogo.');
+
+      catalogRowsCache = (data.data || []).filter((item) => Number(item.id) !== Number(currentItemParentId));
+
+      const categories = Array.from(new Set(catalogRowsCache.map(i => (i.category || '').trim().toLowerCase()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'es'));
+      if (catalogCategoryFilter) {
+        catalogCategoryFilter.innerHTML = '<option value="all">Todas las categorías</option>' + categories.map((c) => `<option value="${c}">${c}</option>`).join('');
+      }
+
+      renderCatalogRows();
+    } catch (error) {
+      catalogTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">${error.message || 'No se pudo cargar el catálogo.'}</td></tr>`;
+    }
+  }
+
+  async function confirmAssociateToParent(targetParentId) {
+    if (!targetParentId) return;
+
+    const proceed = await (typeof Swal !== 'undefined'
+      ? Swal.fire({
+          title: '¿Asociar unidades?',
+          text: 'Se asociarán las unidades de este item SIN ASIGNAR al ítem seleccionado.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, asociar',
+          cancelButtonText: 'Cancelar',
+        })
+      : Promise.resolve({ isConfirmed: confirm('¿Asociar unidades al ítem seleccionado?') }));
+
+    if (!proceed.isConfirmed) return;
+
+    try {
+      const res = await fetch(`{{ url('inventory/item') }}/${currentItemParentId}/associate-to-parent`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        },
+        body: JSON.stringify({ target_parent_id: Number(targetParentId) }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo asociar.');
+
+      if (typeof Swal !== 'undefined') {
+        await Swal.fire('Listo', data.message || 'Unidades asociadas correctamente.', 'success');
+      }
+      window.location.reload();
+    } catch (error) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Error', error.message || 'No se pudo asociar.', 'error');
+      }
+    }
   }
 
   function renderEventRows() {
@@ -893,6 +1005,37 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+
+  if (addUnitBtn) {
+    addUnitBtn.addEventListener('click', function (e) {
+      if (!isUnassignedItem) return;
+      e.preventDefault();
+      openSelectItemModal();
+    });
+  }
+
+  if (catalogSearchInput) {
+    catalogSearchInput.addEventListener('input', renderCatalogRows);
+  }
+
+  if (catalogCategoryFilter) {
+    catalogCategoryFilter.addEventListener('change', renderCatalogRows);
+  }
+
+  if (clearCatalogSearch) {
+    clearCatalogSearch.addEventListener('click', function () {
+      if (catalogSearchInput) catalogSearchInput.value = '';
+      renderCatalogRows();
+    });
+  }
+
+  if (catalogTableBody) {
+    catalogTableBody.addEventListener('click', function (e) {
+      const btn = e.target.closest('button[data-select-parent-id]');
+      if (!btn) return;
+      confirmAssociateToParent(btn.getAttribute('data-select-parent-id'));
+    });
+  }
 
   if (assignToEventBtn) {
     assignToEventBtn.addEventListener('click', openEventModal);

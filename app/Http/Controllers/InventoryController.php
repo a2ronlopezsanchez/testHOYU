@@ -362,7 +362,7 @@ class InventoryController extends Controller
         // Validación según payload que envías desde el front
         // Si es borrador, validación laxa; si es final, validación completa
         $rules = [
-            'item_parent_id'      => ['required','integer','exists:items,id'],
+            'item_parent_id'      => ['nullable','integer','exists:items,id'],
             'sku'                 => ['nullable','string','max:50','unique:units,sku'],
             'item_id'             => ['nullable','string','max:50','unique:units,item_id'],
             'name'                => [$isDraft ? 'nullable' : 'required','string','max:255'],
@@ -408,8 +408,12 @@ class InventoryController extends Controller
 
         try {
             // 1) Padre (traemos categoría/marca para ID y respuesta)
+            $parentId = $request->filled('item_parent_id')
+                ? $request->integer('item_parent_id')
+                : $this->getOrCreateUnassignedItemParent()->id;
+
             $parent = ItemParent::with(['category:id,name','brand:id,name'])
-                ->findOrFail($request->integer('item_parent_id'));
+                ->findOrFail($parentId);
 
             // 2) Resolver ubicación por ID o por NOMBRE (case/acento-insensible)
             // Para borradores sin ubicación, usamos la ubicación especial "PENDIENTE"
@@ -979,6 +983,119 @@ class InventoryController extends Controller
     }
 
 
+    private function getOrCreateUnassignedItemParent(): ItemParent
+    {
+        $existing = ItemParent::where('name', 'SIN ASIGNAR')
+            ->orWhere('public_name', 'SIN ASIGNAR')
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        $category = Category::firstOrCreate(
+            ['name' => 'SIN CATEGORIA'],
+            [
+                'code' => 'SC',
+                'description' => 'Categoría para unidades sin asignar',
+                'is_active' => true,
+            ]
+        );
+
+        $brand = Brand::firstOrCreate(
+            ['name' => 'SIN MARCA'],
+            [
+                'code' => 'SM',
+                'full_name' => 'Sin Marca',
+                'is_active' => true,
+            ]
+        );
+
+        return ItemParent::create([
+            'name' => 'SIN ASIGNAR',
+            'public_name' => 'SIN ASIGNAR',
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'model' => null,
+            'family' => null,
+            'sub_family' => null,
+            'color' => null,
+            'is_active' => true,
+            'created_by' => auth()->id() ?? 1,
+        ]);
+    }
+
+    private function nextSequentialItemIdsForParent(ItemParent $parent, int $count): array
+    {
+        $catName = strtoupper((string)($parent->category?->name ?? ''));
+        $brName  = strtoupper((string)($parent->brand?->name ?? ''));
+
+        $catInitial = $this->firstAlpha($catName) ?: 'X';
+        $brInitial  = $this->firstAlpha($brName) ?: 'X';
+        $prefix = $catInitial . $brInitial;
+
+        $ids = InventoryItem::where('item_id', 'like', $prefix . '%')->pluck('item_id');
+        $max = 0;
+        $regex = '/^'.preg_quote($prefix, '/').'(\d+)$/i';
+        foreach ($ids as $id) {
+            if (preg_match($regex, $id, $m)) {
+                $max = max($max, (int) $m[1]);
+            }
+        }
+
+        $result = [];
+        for ($i = 1; $i <= $count; $i++) {
+            $n = $max + $i;
+            $suffix = $n <= 999 ? str_pad((string) $n, 3, '0', STR_PAD_LEFT) : (string) $n;
+            $result[] = $prefix . $suffix;
+        }
+
+        return $result;
+    }
+
+    public function associateUnitsToParent(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'target_parent_id' => ['required', 'integer', 'exists:items,id'],
+        ]);
+
+        $sourceParent = ItemParent::findOrFail($id);
+        $targetParent = ItemParent::with(['category:id,name', 'brand:id,name'])->findOrFail((int) $validated['target_parent_id']);
+
+        $units = InventoryItem::where('item_parent_id', $sourceParent->id)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get();
+
+        if ($units->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay unidades activas para asociar en este item.',
+            ], 422);
+        }
+
+        $newItemIds = $this->nextSequentialItemIdsForParent($targetParent, $units->count());
+
+        DB::transaction(function () use ($units, $targetParent, $newItemIds) {
+            foreach ($units as $index => $unit) {
+                $unit->item_parent_id = $targetParent->id;
+                $unit->item_id = $newItemIds[$index] ?? $unit->item_id;
+                $unit->save();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Unidades asociadas correctamente.',
+            'data' => [
+                'updated' => $units->count(),
+                'target_parent_id' => $targetParent->id,
+                'target_parent_name' => $targetParent->public_name ?: $targetParent->name,
+            ],
+        ]);
+    }
+
+
     public function parentsList(): JsonResponse
     {
         // Asegúrate de tener: public function items(){ return $this->hasMany(InventoryItem::class, 'item_parent_id'); }
@@ -1370,7 +1487,10 @@ class InventoryController extends Controller
             ->limit(6)
             ->get(['id', 'name', 'client_name', 'start_date', 'venue_name']);
 
-        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents'));
+        $unassignedParent = $this->getOrCreateUnassignedItemParent();
+        $isUnassignedItem = (int) $itemParent->id === (int) $unassignedParent->id;
+
+        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents', 'isUnassignedItem'));
     }
 
 

@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/item/{id}/asignar-eventos', [App\Http\Controllers\InventoryController::class, 'asignarEventos'])->name('asignar-eventos');
             Route::get('/events/assignable', [App\Http\Controllers\InventoryController::class, 'assignableEvents'])->name('events.assignable');
             Route::post('/events/assign', [App\Http\Controllers\InventoryController::class, 'assignUnitsToEvent'])->name('events.assign');
+            Route::post('/item/{id}/associate-to-parent', [App\Http\Controllers\InventoryController::class, 'associateUnitsToParent'])->name('item.associate-parent');
             Route::get('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosIndex'])->name('eventos.index');
             Route::post('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosStore'])->name('eventos.store');
             Route::get('/unidad/{id}', [App\Http\Controllers\InventoryController::class, 'detalleUnidad'])->name('detalle.unidad');
