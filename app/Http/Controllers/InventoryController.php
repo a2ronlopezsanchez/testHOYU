@@ -1131,14 +1131,14 @@ class InventoryController extends Controller
 
     public function nextIdForParent(ItemParent $parent): JsonResponse
     {
-        // Usar los codes de category y brand directamente
-        $categoryCode = strtoupper((string)($parent->category?->code ?? 'X'));
-        $brandCode    = strtoupper((string)($parent->brand?->code ?? 'X'));
+        $catName = strtoupper((string)($parent->category?->name ?? ''));
+        $brName  = strtoupper((string)($parent->brand?->name ?? ''));
 
-        // Prefijo combinado: ej. "AUSH" (Audio + Shure), "VIAL" (Video + Alfa)
-        $prefix = $categoryCode . $brandCode;
+        // Prefijo corto por iniciales (ej: Cable + Generico => CG)
+        $catInitial = $this->firstAlpha($catName) ?: 'X';
+        $brInitial  = $this->firstAlpha($brName) ?: 'X';
+        $prefix = $catInitial . $brInitial;
 
-        // Buscar el mayor correlativo existente para ese prefijo
         $ids = InventoryItem::where('item_id', 'like', $prefix . '%')->pluck('item_id');
 
         $max = 0;
@@ -1151,15 +1151,14 @@ class InventoryController extends Controller
         }
         $next = $max + 1;
 
-        // Formatear: 001..999 y de ahí 1000, 1001, ...
         $suffix = $next <= 999 ? str_pad((string)$next, 3, '0', STR_PAD_LEFT) : (string)$next;
         $nextId = $prefix . $suffix;
 
         return response()->json([
             'success' => true,
             'prefix'  => $prefix,
-            'category_code' => $categoryCode,
-            'brand_code' => $brandCode,
+            'category_initial' => $catInitial,
+            'brand_initial' => $brInitial,
             'next'    => $next,
             'id'      => $nextId,
         ]);
