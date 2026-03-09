@@ -376,10 +376,19 @@ class ItemFormManager {
             }
         } catch (error) {
             console.error('Error generando siguiente ID:', error);
-            // Mostrar placeholder en caso de error
             const idInput = document.getElementById('itemId');
             if (idInput) {
-                idInput.value = 'Se generará automáticamente';
+                const parent = window.bladeFormData?.itemParent || null;
+                const categoryName = (parent?.category?.name || parent?.category || '').toString();
+                const brandName = (parent?.brand?.name || parent?.brand || '').toString();
+                const firstAlpha = (txt) => {
+                    const m = (txt || '').toUpperCase().match(/[A-ZÁÉÍÓÚÑ]/);
+                    if (!m) return 'X';
+                    const map = { 'Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ñ':'N' };
+                    return map[m[0]] || m[0];
+                };
+                const fallbackId = `${firstAlpha(categoryName)}${firstAlpha(brandName)}001`;
+                idInput.value = fallbackId;
                 idInput.disabled = true;
             }
         }

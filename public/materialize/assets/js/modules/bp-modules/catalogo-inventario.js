@@ -126,6 +126,7 @@ let detailsCache = new Map();
 class InventoryCatalog {
     constructor() {
         this.tagifyInitialized = false;
+        this.editingItemParentId = null;
         this.init();
     }
 
@@ -2210,36 +2211,58 @@ class InventoryCatalog {
     }
 
 
-    showAddItemPModal() {
+    showAddItemPModal(itemToEdit = null) {
     const modal = new bootstrap.Modal(document.getElementById('addItemPModal'));
 
-    // Inicializa Tagify si hace falta
     if (!this.tagifyInitialized) {
         this.initializeTagifyFields();
         this.tagifyInitialized = true;
     }
 
-    // Limpia SOLO el formulario del PADRE
     const form = document.getElementById('addItemPForm');
     if (form) form.reset();
 
-    // Oculta preview (si lo usas compartido)
     const preview = document.getElementById('imagePreview');
     if (preview) preview.style.display = 'none';
 
-    // Limpia Tagify del PADRE
     if (this.itemPCategoryTagify)   this.itemPCategoryTagify.removeAllTags();
     if (this.itemPBrandTagify)      this.itemPBrandTagify.removeAllTags();
     if (this.itemPModelTagify)      this.itemPModelTagify.removeAllTags();
     if (this.itemPFamilyTagify)     this.itemPFamilyTagify.removeAllTags();
     if (this.itemPSubFamilyTagify)  this.itemPSubFamilyTagify.removeAllTags();
     if (this.itemPColorTagify)      this.itemPColorTagify.removeAllTags();
-    // Nota: ya NO hay status/location en el Padre
 
-    // Limpia clases de error
     document.querySelectorAll('.is-invalid, .tagify--invalid').forEach(el => {
         el.classList.remove('is-invalid', 'tagify--invalid');
     });
+
+    const titleEl = document.getElementById('addItemPModalTitle');
+    const saveBtn = document.getElementById('saveItemPBtn');
+
+    if (itemToEdit) {
+        this.editingItemParentId = this.parseParentIdFromItem_(itemToEdit);
+        if (titleEl) titleEl.textContent = 'Editar Item';
+        if (saveBtn) saveBtn.textContent = 'Actualizar Item';
+
+        const setInput = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value || '';
+        };
+
+        setInput('ItemPName', itemToEdit.nombreProducto || itemToEdit.nombrePublico || '');
+        setInput('ItemPPublicName', itemToEdit.nombrePublico || '');
+
+        if (this.itemPCategoryTagify && itemToEdit.categoria) this.itemPCategoryTagify.addTags([itemToEdit.categoria]);
+        if (this.itemPBrandTagify && itemToEdit.marca) this.itemPBrandTagify.addTags([itemToEdit.marca]);
+        if (this.itemPModelTagify && itemToEdit.modelo) this.itemPModelTagify.addTags([itemToEdit.modelo]);
+        if (this.itemPFamilyTagify && itemToEdit.familia) this.itemPFamilyTagify.addTags([itemToEdit.familia]);
+        if (this.itemPSubFamilyTagify && itemToEdit.subFamilia) this.itemPSubFamilyTagify.addTags([itemToEdit.subFamilia]);
+        if (this.itemPColorTagify && itemToEdit.color) this.itemPColorTagify.addTags([itemToEdit.color]);
+    } else {
+        this.editingItemParentId = null;
+        if (titleEl) titleEl.textContent = 'Agregar Nuevo Item';
+        if (saveBtn) saveBtn.textContent = 'Guardar Item';
+    }
 
     modal.show();
     }
@@ -2630,8 +2653,12 @@ class InventoryCatalog {
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
-        const res = await fetch('/inventory/item-parents', {
-        method: 'POST',
+        const isEdit = Number.isInteger(this.editingItemParentId) && this.editingItemParentId > 0;
+        const endpoint = isEdit ? `/inventory/items/${this.editingItemParentId}` : '/inventory/item-parents';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const res = await fetch(endpoint, {
+        method,
         headers: {
             'Content-Type': 'application/json',
             ...(token ? {'X-CSRF-TOKEN': token} : {})
@@ -2702,7 +2729,8 @@ class InventoryCatalog {
         bootstrap.Modal.getInstance(document.getElementById('addItemPModal'))?.hide();
         // ✅ REFRESCAR grilla + select con el nuevo padre
         await this.refreshGridAfterParentCreate_(data.data);
-        this.showAlert(`Item Padre "${newParentForGrid.nombrePublico}" agregado.`, 'success');
+        this.editingItemParentId = null;
+        this.showAlert(`Item "${newParentForGrid.nombrePublico}" ${method === 'PUT' ? 'actualizado' : 'agregado'}.`, 'success');
          
     } catch (err) {
         console.error(err);
@@ -2755,7 +2783,12 @@ class InventoryCatalog {
     }
 
     editItem(itemId) {
-        this.showAlert('Función de edición en desarrollo.', 'info');
+        const item = inventoryData.find(i => i.id === itemId);
+        if (!item) {
+            this.showAlert('No se encontró el item para editar.', 'warning');
+            return;
+        }
+        this.showAddItemPModal(item);
     }
 
     // ===== UTILIDADES DE UI =====
