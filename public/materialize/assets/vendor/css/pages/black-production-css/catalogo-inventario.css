@@ -1719,3 +1719,22 @@ html {
 }
 
 /* ===== END OF CSS ===== */
+
+/* Ajuste de apilamiento para dropdown de Acciones en tabla de inventario */
+.inventory-table-container .table tbody tr,
+.inventory-table-container .table tbody tr:hover {
+    position: relative;
+    z-index: 1;
+}
+
+.inventory-table-container .table .dropdown,
+.inventory-table-container .table .dropdown.show {
+    position: relative;
+    z-index: 200001 !important;
+}
+
+.inventory-table-container .table .dropdown-menu,
+.inventory-table-container .table .dropdown-menu.show {
+    position: absolute !important;
+    z-index: 200002 !important;
+}

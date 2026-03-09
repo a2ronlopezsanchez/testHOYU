@@ -336,12 +336,21 @@ class ItemFormManager {
 
     // ===== HACER CAMPOS READONLY =====
     makeFieldsReadonly(fieldIds) {
+        const tagifyKeyByFieldId = {
+            itemCategory: 'category',
+            itemFamily: 'family',
+            itemSubFamily: 'subFamily',
+            itemBrand: 'brand',
+            itemModel: 'model'
+        };
+
         fieldIds.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
                 // Si es un Tagify input
-                if (tagifyInstances[fieldId]) {
-                    tagifyInstances[fieldId].setReadonly(true);
+                const tagifyKey = tagifyKeyByFieldId[fieldId];
+                if (tagifyKey && tagifyInstances[tagifyKey]) {
+                    tagifyInstances[tagifyKey].setReadonly(true);
                     // Añadir clase visual para indicar readonly
                     field.closest('.form-floating')?.classList.add('readonly-field');
                 } else {

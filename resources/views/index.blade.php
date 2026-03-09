@@ -38,24 +38,6 @@
       z-index: 2050 !important; /* > modal backdrop (1040/1050), > header sticky */
     }
 
-    /* FIX dropdown Acciones en tabla: evitar que quede debajo/al fondo al hover */
-    .inventory-table-container .table-responsive,
-    .inventory-table-container .table,
-    .inventory-table-container .table tbody,
-    .inventory-table-container .table tbody tr {
-      overflow: visible !important;
-    }
-
-    .inventory-table-container .table .dropdown-menu {
-      position: absolute !important;
-      z-index: 99999 !important;
-    }
-
-    .inventory-table-container .table tbody tr:hover {
-      position: static !important;
-      z-index: auto !important;
-    }
-
     </style>
 @endsection
 @section('content')
