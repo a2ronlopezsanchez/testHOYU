@@ -184,6 +184,26 @@
                     <div data-i18n="Almacén">Almacén</div>
                   </a>
                 </li>
+
+                <li class="menu-item
+                @if (trim($__env->yieldContent('subleve')) == "AltaUnidad")
+                  active 
+                @endif
+                ">
+                  <a href="{{ route('inventory.unidad.sin-item') }}" class="menu-link">
+                    <div data-i18n="Alta Unidad">Alta Unidad (Sin Ítem)</div>
+                  </a>
+                </li>
+
+                <li class="menu-item
+                @if (trim($__env->yieldContent('subleve')) == "Eventos")
+                  active 
+                @endif
+                ">
+                  <a href="{{ route('inventory.eventos.index') }}" class="menu-link">
+                    <div data-i18n="Eventos">Eventos</div>
+                  </a>
+                </li>
               </ul>
             </li>
             <!--Marcas-->

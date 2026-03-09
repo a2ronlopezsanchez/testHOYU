@@ -1580,6 +1580,17 @@ class InventoryController extends Controller
     /**
      * Vista de formulario para crear o editar item
      */
+
+    public function altaUnidadSinItem()
+    {
+        $unassignedParent = $this->getOrCreateUnassignedItemParent();
+
+        return redirect()->route('inventory.formulario', [
+            'id' => $unassignedParent->id,
+            'mode' => 'new-from-parent',
+        ]);
+    }
+
     public function formulario($id = null)
     {
         $itemParent = null;
