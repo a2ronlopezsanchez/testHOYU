@@ -1086,7 +1086,7 @@ class InventoryCatalog {
                 <span class="badge bg-warning">${availability.maintenance}</span>
             </td>
             <td class="text-center">
-                <div class="dropdown" data-item-id="${item.id}">
+                <div class="dropdown dropup" data-item-id="${item.id}">
                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
                             type="button" 
                             data-bs-toggle="dropdown"
@@ -2977,7 +2977,7 @@ class InventoryCatalog {
             <div class="item-card-footer">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="dynamic">
                             <i class="mdi mdi-dots-vertical">Acciones</i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
