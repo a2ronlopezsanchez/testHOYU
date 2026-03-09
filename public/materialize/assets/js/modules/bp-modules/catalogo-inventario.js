@@ -666,6 +666,29 @@ class InventoryCatalog {
 
     }
 
+    closeTableActionDropdown() {
+        if (this.activeTableDropdownToggle) {
+            const instance = bootstrap.Dropdown.getOrCreateInstance(this.activeTableDropdownToggle);
+            instance.hide();
+            this.activeTableDropdownToggle = null;
+            return;
+        }
+
+        const orphanMenu = document.body.querySelector('.dropdown-menu-portal.show');
+        if (orphanMenu) {
+            orphanMenu.classList.remove('show', 'dropdown-menu-portal');
+            orphanMenu.style.position = '';
+            orphanMenu.style.top = '';
+            orphanMenu.style.left = '';
+            orphanMenu.style.zIndex = '';
+            const originalDropdown = document.querySelector('.inventory-table-container .dropdown.dropdown-portal-open');
+            if (originalDropdown) {
+                originalDropdown.classList.remove('dropdown-portal-open');
+                originalDropdown.appendChild(orphanMenu);
+            }
+        }
+    }
+
     setupTableActionDropdownPortal() {
         if (this.tableActionDropdownPortalBound) {
             return;
@@ -680,9 +703,11 @@ class InventoryCatalog {
 
             const toggle = dropdown.querySelector('.dropdown-toggle');
             const menu = dropdown.querySelector('.dropdown-menu');
-            if (!dropdown || !menu) {
+            if (!dropdown || !toggle || !menu) {
                 return;
             }
+
+            this.activeTableDropdownToggle = toggle;
 
             if (!menu.dataset.portalOriginalParent) {
                 menu.dataset.portalOriginalParent = '1';
@@ -737,6 +762,8 @@ class InventoryCatalog {
             if (!dropdown || !menu) {
                 return;
             }
+
+            this.activeTableDropdownToggle = null;
 
             const cleanup = menu._portalPositionHandler;
             if (cleanup) {
@@ -1098,6 +1125,8 @@ class InventoryCatalog {
     // ===== RENDERIZADO DE TABLA =====
     async renderTable() {
             console.log('🎨 renderTable iniciado - items a renderizar:', filteredData.length);
+
+        this.closeTableActionDropdown();
 
         const tbody = document.getElementById('inventoryTableBody');
         tbody.innerHTML = '';
@@ -1534,6 +1563,8 @@ class InventoryCatalog {
     }
     // ===== FUNCIONES DE UTILIDAD =====
     toggleItemExpansion(itemId) {
+        this.closeTableActionDropdown();
+
         if (expandedItems.has(itemId)) {
             // Si el item ya está expandido, colapsarlo
             expandedItems.delete(itemId);
@@ -1874,6 +1905,8 @@ class InventoryCatalog {
     }
 
     changePage(newPage) {
+        this.closeTableActionDropdown();
+
         const totalPages = Math.ceil(filteredData.length / CONFIG.itemsPerPage);
         
         if (newPage < 1 || newPage > totalPages) return;
