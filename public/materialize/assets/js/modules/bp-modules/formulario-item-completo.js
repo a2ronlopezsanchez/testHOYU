@@ -555,13 +555,34 @@ class ItemFormManager {
             originalInputValueFormat: valuesArr => valuesArr.map(item => item.value).join(',')
         };
 
+        let dynamicCategories = [];
+        let dynamicBrands = [];
+
+        try {
+            const response = await fetch('/inventory/lookups', { headers: { 'Accept': 'application/json' } });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                dynamicCategories = Array.from(new Set((result.categories || []).map(v => String(v).trim()).filter(Boolean)));
+                dynamicBrands = Array.from(new Set((result.brands || []).map(v => String(v).trim()).filter(Boolean)));
+            }
+        } catch (error) {
+            console.warn('No se pudieron cargar categorías/marcas dinámicas:', error);
+        }
+
+        const categoryWhitelist = dynamicCategories.length
+            ? dynamicCategories
+            : ['AUDIO', 'ILUMINACION', 'VIDEO', 'MICROFONIA', 'BACKLINE', 'CABLE', 'COMPUTO', 'ENERGIA', 'ESTRUCTURA', 'MOBILIARIO'];
+
+        const brandWhitelist = dynamicBrands.length
+            ? dynamicBrands
+            : ['SHURE', 'SENNHEISER', 'JBL', 'YAMAHA', 'MARTIN', 'CHAUVET', 'BLACKMAGIC', 'SONY', 'BOSE', 'QSC'];
+
         // Categoría
         const categoryInput = document.querySelector('#itemCategory');
         if (categoryInput) {
             tagifyInstances.category = new Tagify(categoryInput, {
                 ...tagifyConfig,
-                whitelist: ['AUDIO', 'ILUMINACION', 'VIDEO', 'MICROFONIA', 'BACKLINE', 
-                           'CABLE', 'COMPUTO', 'ENERGIA', 'ESTRUCTURA', 'MOBILIARIO'],
+                whitelist: categoryWhitelist,
                 enforceWhitelist: true
             });
             
@@ -579,8 +600,7 @@ class ItemFormManager {
             if (brandInput) {
                 tagifyInstances.brand = new Tagify(brandInput, {
                     ...tagifyConfig,
-                    whitelist: ['SHURE', 'SENNHEISER', 'JBL', 'YAMAHA', 'MARTIN', 
-                            'CHAUVET', 'BLACKMAGIC', 'SONY', 'BOSE', 'QSC'],
+                    whitelist: brandWhitelist,
                     enforceWhitelist: false
                 });
                 
