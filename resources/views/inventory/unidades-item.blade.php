@@ -286,7 +286,7 @@
 
                   $unitEventHistory = $assignments
                     ->sortByDesc(fn($a) => $a->assigned_from ?? $a->created_at)
-                    ->map(function ($a) use ($formatShortDate) {
+                    ->map(function ($a) use ($formatShortDate, $prettyLabel) {
                       $event = $a->event;
                       return [
                         'event' => $event?->name ?? 'Evento sin nombre',

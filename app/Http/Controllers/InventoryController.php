@@ -1987,7 +1987,7 @@ class InventoryController extends Controller
                 'actual_date' => now(),
                 'technician_name' => $validated['technician_name'],
                 'total_cost' => $validated['total_cost'] ?? 0,
-                'work_description' => $validated['work_description'] ?? null,
+                'work_description' => trim((string) ($validated['work_description'] ?? '')) !== '' ? trim((string) $validated['work_description']) : ' ',
                 'maintenance_status' => $status,
                 'created_by' => auth()->id()
             ]);
