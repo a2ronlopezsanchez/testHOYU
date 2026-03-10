@@ -370,7 +370,6 @@
             <nav>
               <ul class="pagination pagination-sm mb-0" id="unitsPagination">
                 <li class="page-item disabled" id="prevUnitPage"><a class="page-link" href="javascript:void(0);"><i class="mdi mdi-chevron-left"></i></a></li>
-                <li class="page-item active"><a class="page-link" href="javascript:void(0);">1</a></li>
                 <li class="page-item disabled" id="nextUnitPage"><a class="page-link" href="javascript:void(0);"><i class="mdi mdi-chevron-right"></i></a></li>
               </ul>
             </nav>
