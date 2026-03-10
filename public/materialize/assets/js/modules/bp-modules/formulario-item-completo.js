@@ -287,6 +287,8 @@ class ItemFormManager {
         console.log('Cargando datos desde parent para nueva unidad:', bladeData);
 
         const { itemParent } = bladeData;
+        const isUnassignedParent = ['SIN ASIGNAR', 'NO ASOCIADO'].includes(String(itemParent?.name || '').toUpperCase())
+            || ['SIN ASIGNAR', 'NO ASOCIADO'].includes(String(itemParent?.public_name || '').toUpperCase());
 
         // Cargar datos del parent en los campos correspondientes
         const formData = {
@@ -312,7 +314,9 @@ class ItemFormManager {
             numeroSerie: '',
             identificadorRfid: '',
             unitSet: 'UNIT',
-            totalUnits: 1
+            totalUnits: 1,
+            ubicacion: isUnassignedParent ? 'PENDIENTE' : '',
+            status: isUnassignedParent ? 'INACTIVO' : 'ACTIVO'
         };
 
         // Poblar el formulario

@@ -1027,7 +1027,7 @@ class InventoryController extends Controller
             'public_name' => 'SIN ASIGNAR',
             'category_id' => $category->id,
             'brand_id' => $brand->id,
-            'model' => null,
+            'model' => 'SIN MODELO',
             'family' => null,
             'sub_family' => null,
             'color' => null,
