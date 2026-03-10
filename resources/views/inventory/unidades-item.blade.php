@@ -232,7 +232,7 @@
             <small class="text-muted" id="unitsCountLabel">{{ $totalUnits }} registradas</small>
           </div>
           <a class="btn btn-primary btn-sm" id="addUnitBtn" href="{{ route('inventory.formulario', ['id' => $itemParent->id, 'mode' => 'new-from-parent']) }}" data-default-href="{{ route('inventory.formulario', ['id' => $itemParent->id, 'mode' => 'new-from-parent']) }}">
-            @if(($isUnassignedItem ?? false))<i class="mdi mdi-link-variant-plus me-1"></i>Seleccionar Ítem @else <i class="mdi mdi-plus me-1"></i>Agregar Unidad @endif
+            <i class="mdi mdi-format-list-checks me-1"></i>Seleccionar Unidad
           </a>
         </div>
 
@@ -485,8 +485,8 @@
     <div class="modal-content">
       <div class="modal-header">
         <div>
-          <h5 class="modal-title">Seleccionar Ítem del Catálogo</h5>
-          <small class="text-muted">Busca y selecciona el ítem al que deseas agregar una unidad</small>
+          <h5 class="modal-title" id="selectCatalogModalTitle">Seleccionar Ítem del Catálogo</h5>
+          <small class="text-muted" id="selectCatalogModalSubtitle">Busca y selecciona el ítem al que deseas agregar una unidad</small>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -497,7 +497,7 @@
         </div>
         <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
           <table class="table table-hover mb-0" id="catalogTable">
-            <thead class="table-light sticky-top"><tr><th style="width:50px;">ACTIVO</th><th style="width:120px;">MARCA</th><th>NOMBRE DE PRODUCTO</th><th style="width:140px;">CATEGORÍA</th><th style="width:90px;">ID</th><th style="width:100px;" class="text-center">SELECCIONAR</th></tr></thead>
+            <thead class="table-light sticky-top" id="catalogTableHeadRow"><tr><th style="width:50px;">ACTIVO</th><th style="width:120px;">MARCA</th><th>NOMBRE DE PRODUCTO</th><th style="width:140px;">CATEGORÍA</th><th style="width:90px;">ID</th><th style="width:100px;" class="text-center">SELECCIONAR</th></tr></thead>
             <tbody id="catalogTableBody"><tr><td colspan="6" class="text-center py-4 text-muted">Falta</td></tr></tbody>
           </table>
         </div>
@@ -578,6 +578,8 @@
 document.addEventListener('DOMContentLoaded', function () {
   const isUnassignedItem = @json($isUnassignedItem ?? false);
   const currentItemParentId = @json($itemParent->id);
+  const unassignedParentId = @json($unassignedParentId ?? null);
+  const selectionMode = isUnassignedItem ? 'parents' : 'units';
   const searchInput = document.getElementById('unitsSearchInput');
   const clearSearchBtn = document.getElementById('clearUnitsSearch');
   const statusSelect = document.getElementById('statusFilterSelect');
@@ -592,6 +594,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const catalogCategoryFilter = document.getElementById('catalogCategoryFilter');
   const catalogResultCount = document.getElementById('catalogResultCount');
   const catalogTableBody = document.getElementById('catalogTableBody');
+  const catalogTableHeadRow = document.getElementById('catalogTableHeadRow');
+  const selectCatalogModalTitle = document.getElementById('selectCatalogModalTitle');
+  const selectCatalogModalSubtitle = document.getElementById('selectCatalogModalSubtitle');
 
   const assignToEventBtn = document.getElementById('assignToEventBtn');
   const eventModalEl = document.getElementById('eventCatalogModal');
@@ -647,27 +652,52 @@ document.addEventListener('DOMContentLoaded', function () {
     const term = (catalogSearchInput?.value || '').trim().toLowerCase();
     const category = catalogCategoryFilter?.value || 'all';
 
-    const rowsFiltered = catalogRowsCache.filter((item) => {
-      const inSearch = !term || `${item.public_name} ${item.name} ${item.brand} ${item.category}`.toLowerCase().includes(term);
-      const inCategory = category === 'all' || (item.category || '').toLowerCase() === category;
+    const rowsFiltered = catalogRowsCache.filter((entry) => {
+      if (selectionMode === 'units') {
+        const inSearch = !term || `${entry.item_id} ${entry.serial || ''} ${entry.location || ''} ${entry.status || ''}`.toLowerCase().includes(term);
+        const inCategory = category === 'all' || (entry.status || '').toLowerCase() === category;
+        return inSearch && inCategory;
+      }
+
+      const inSearch = !term || `${entry.public_name} ${entry.name} ${entry.brand} ${entry.category}`.toLowerCase().includes(term);
+      const inCategory = category === 'all' || (entry.category || '').toLowerCase() === category;
       return inSearch && inCategory;
     });
 
-    catalogTableBody.innerHTML = rowsFiltered.length
-      ? rowsFiltered.map((item) => `
-          <tr>
-            <td><span class="badge bg-label-${item.units_count > 0 ? 'success' : 'secondary'}">${item.units_count > 0 ? 'SI' : 'NO'}</span></td>
-            <td>${item.brand || '—'}</td>
-            <td><div class="fw-medium">${item.public_name || item.name || 'Sin nombre'}</div><small class="text-muted">${item.model || '—'}</small></td>
-            <td>${item.category || '—'}</td>
-            <td>${item.id}</td>
-            <td class="text-center"><button class="btn btn-sm btn-primary" data-select-parent-id="${item.id}">Seleccionar</button></td>
-          </tr>
-        `).join('')
-      : '<tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron ítems.</td></tr>';
+    if (selectionMode === 'units') {
+      catalogTableBody.innerHTML = rowsFiltered.length
+        ? rowsFiltered.map((unit) => `
+            <tr>
+              <td><span class="badge bg-label-${String(unit.status || '').toUpperCase() === 'ACTIVO' ? 'success' : 'secondary'}">${unit.status || '—'}</span></td>
+              <td>${unit.item_id || '—'}</td>
+              <td><div class="fw-medium">${unit.serial || '—'}</div><small class="text-muted">${unit.location || '—'}</small></td>
+              <td>${unit.condition || '—'}</td>
+              <td>${unit.id}</td>
+              <td class="text-center"><button class="btn btn-sm btn-primary" data-select-unit-id="${unit.id}">Seleccionar</button></td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron unidades SIN ASIGNAR.</td></tr>';
 
-    if (catalogResultCount) {
-      catalogResultCount.textContent = `${rowsFiltered.length} ítem${rowsFiltered.length === 1 ? '' : 's'}`;
+      if (catalogResultCount) {
+        catalogResultCount.textContent = `${rowsFiltered.length} unidad${rowsFiltered.length === 1 ? '' : 'es'}`;
+      }
+    } else {
+      catalogTableBody.innerHTML = rowsFiltered.length
+        ? rowsFiltered.map((item) => `
+            <tr>
+              <td><span class="badge bg-label-${item.units_count > 0 ? 'success' : 'secondary'}">${item.units_count > 0 ? 'SI' : 'NO'}</span></td>
+              <td>${item.brand || '—'}</td>
+              <td><div class="fw-medium">${item.public_name || item.name || 'Sin nombre'}</div><small class="text-muted">${item.model || '—'}</small></td>
+              <td>${item.category || '—'}</td>
+              <td>${item.id}</td>
+              <td class="text-center"><button class="btn btn-sm btn-primary" data-select-parent-id="${item.id}">Seleccionar</button></td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron ítems.</td></tr>';
+
+      if (catalogResultCount) {
+        catalogResultCount.textContent = `${rowsFiltered.length} ítem${rowsFiltered.length === 1 ? '' : 's'}`;
+      }
     }
 
     if (clearCatalogSearch) {
@@ -680,18 +710,46 @@ document.addEventListener('DOMContentLoaded', function () {
     bootstrap.Modal.getOrCreateInstance(selectItemModalEl).show();
 
     if (!catalogTableBody) return;
+
+    if (selectCatalogModalTitle) {
+      selectCatalogModalTitle.textContent = selectionMode === 'units' ? 'Seleccionar Unidad SIN ASIGNAR' : 'Seleccionar Ítem del Catálogo';
+    }
+    if (selectCatalogModalSubtitle) {
+      selectCatalogModalSubtitle.textContent = selectionMode === 'units'
+        ? 'Selecciona una unidad del item SIN ASIGNAR para asociarla a este item.'
+        : 'Busca y selecciona el ítem al que deseas agregar una unidad';
+    }
+    if (catalogTableHeadRow) {
+      catalogTableHeadRow.innerHTML = selectionMode === 'units'
+        ? '<tr><th style="width:120px;">ESTADO</th><th style="width:110px;">ITEM ID</th><th>SERIAL / UBICACIÓN</th><th style="width:130px;">CONDICIÓN</th><th style="width:90px;">ID</th><th style="width:100px;" class="text-center">SELECCIONAR</th></tr>'
+        : '<tr><th style="width:50px;">ACTIVO</th><th style="width:120px;">MARCA</th><th>NOMBRE DE PRODUCTO</th><th style="width:140px;">CATEGORÍA</th><th style="width:90px;">ID</th><th style="width:100px;" class="text-center">SELECCIONAR</th></tr>';
+    }
+
     catalogTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div><span class="text-muted">Cargando catálogo...</span></td></tr>';
 
     try {
-      const res = await fetch('{{ route('inventory.parents.index') }}', { headers: { 'Accept': 'application/json' } });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo cargar el catálogo.');
+      if (selectionMode === 'units') {
+        const res = await fetch(`{{ url('inventory/item-parents') }}/${unassignedParentId}/items`, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'No se pudieron cargar las unidades SIN ASIGNAR.');
 
-      catalogRowsCache = (data.data || []).filter((item) => Number(item.id) !== Number(currentItemParentId));
+        catalogRowsCache = (data.data || []).filter((unit) => String(unit.status || '').toUpperCase() === 'ACTIVO');
 
-      const categories = Array.from(new Set(catalogRowsCache.map(i => (i.category || '').trim().toLowerCase()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'es'));
-      if (catalogCategoryFilter) {
-        catalogCategoryFilter.innerHTML = '<option value="all">Todas las categorías</option>' + categories.map((c) => `<option value="${c}">${c}</option>`).join('');
+        const statuses = Array.from(new Set(catalogRowsCache.map(i => (i.status || '').trim().toLowerCase()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'es'));
+        if (catalogCategoryFilter) {
+          catalogCategoryFilter.innerHTML = '<option value="all">Todos los estados</option>' + statuses.map((st) => `<option value="${st}">${st}</option>`).join('');
+        }
+      } else {
+        const res = await fetch('{{ route('inventory.parents.index') }}', { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo cargar el catálogo.');
+
+        catalogRowsCache = (data.data || []).filter((item) => Number(item.id) !== Number(currentItemParentId));
+
+        const categories = Array.from(new Set(catalogRowsCache.map(i => (i.category || '').trim().toLowerCase()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'es'));
+        if (catalogCategoryFilter) {
+          catalogCategoryFilter.innerHTML = '<option value="all">Todas las categorías</option>' + categories.map((c) => `<option value="${c}">${c}</option>`).join('');
+        }
       }
 
       renderCatalogRows();
@@ -740,6 +798,51 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   }
+
+  async function confirmAttachUnitToCurrentItem(unitId) {
+    if (!unitId || !unassignedParentId) return;
+
+    const proceed = await (typeof Swal !== 'undefined'
+      ? Swal.fire({
+          title: '¿Asociar unidad?',
+          text: 'La unidad seleccionada de SIN ASIGNAR se asociará a este item.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, asociar',
+          cancelButtonText: 'Cancelar',
+        })
+      : Promise.resolve({ isConfirmed: confirm('¿Asociar esta unidad al item actual?') }));
+
+    if (!proceed.isConfirmed) return;
+
+    try {
+      const res = await fetch(`{{ url('inventory/item') }}/${unassignedParentId}/associate-to-parent`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        },
+        body: JSON.stringify({
+          target_parent_id: Number(currentItemParentId),
+          unit_ids: [Number(unitId)],
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo asociar la unidad.');
+
+      if (typeof Swal !== 'undefined') {
+        await Swal.fire('Listo', data.message || 'Unidad asociada correctamente.', 'success');
+      }
+      window.location.reload();
+    } catch (error) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Error', error.message || 'No se pudo asociar la unidad.', 'error');
+      }
+    }
+  }
+
 
   function renderEventRows() {
     if (!eventTableBody) return;
@@ -1008,7 +1111,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (addUnitBtn) {
     addUnitBtn.addEventListener('click', function (e) {
-      if (!isUnassignedItem) return;
       e.preventDefault();
       openSelectItemModal();
     });
@@ -1031,9 +1133,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (catalogTableBody) {
     catalogTableBody.addEventListener('click', function (e) {
-      const btn = e.target.closest('button[data-select-parent-id]');
-      if (!btn) return;
-      confirmAssociateToParent(btn.getAttribute('data-select-parent-id'));
+      const parentBtn = e.target.closest('button[data-select-parent-id]');
+      if (parentBtn) {
+        confirmAssociateToParent(parentBtn.getAttribute('data-select-parent-id'));
+        return;
+      }
+
+      const unitBtn = e.target.closest('button[data-select-unit-id]');
+      if (unitBtn) {
+        confirmAttachUnitToCurrentItem(unitBtn.getAttribute('data-select-unit-id'));
+      }
     });
   }
 

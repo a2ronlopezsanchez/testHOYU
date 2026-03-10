@@ -1068,20 +1068,30 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'target_parent_id' => ['required', 'integer', 'exists:items,id'],
+            'unit_ids' => ['nullable', 'array', 'min:1'],
+            'unit_ids.*' => ['integer', 'exists:units,id'],
         ]);
 
         $sourceParent = ItemParent::findOrFail($id);
         $targetParent = ItemParent::with(['category:id,name', 'brand:id,name'])->findOrFail((int) $validated['target_parent_id']);
 
-        $units = InventoryItem::where('item_parent_id', $sourceParent->id)
-            ->where('is_active', true)
+        $unitsQuery = InventoryItem::where('item_parent_id', $sourceParent->id)
+            ->where('is_active', true);
+
+        if (!empty($validated['unit_ids'])) {
+            $unitsQuery->whereIn('id', $validated['unit_ids']);
+        }
+
+        $units = $unitsQuery
             ->orderBy('id')
             ->get();
 
         if ($units->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'No hay unidades activas para asociar en este item.',
+                'message' => !empty($validated['unit_ids'])
+                    ? 'No se encontraron unidades válidas para asociar.'
+                    : 'No hay unidades activas para asociar en este item.',
             ], 422);
         }
 
@@ -1499,8 +1509,9 @@ class InventoryController extends Controller
 
         $unassignedParent = $this->getOrCreateUnassignedItemParent();
         $isUnassignedItem = (int) $itemParent->id === (int) $unassignedParent->id;
+        $unassignedParentId = (int) $unassignedParent->id;
 
-        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents', 'isUnassignedItem'));
+        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents', 'isUnassignedItem', 'unassignedParentId'));
     }
 
 
