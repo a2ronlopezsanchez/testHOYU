@@ -323,6 +323,8 @@
                       </a>
                       <form method="POST" action="{{ route('inventory.unidad.dar-de-baja', ['id' => $unit->id]) }}" onsubmit="return confirm('¿Dar de baja esta unidad?');">
                         @csrf
+                        <input type="hidden" name="decommission_reason" value="BAJA_MANUAL">
+                        <input type="hidden" name="decommission_comments" value="Baja solicitada desde listado de unidades">
                         <button type="submit" class="btn btn-icon btn-sm btn-outline-danger" title="Eliminar unidad">
                           <i class="mdi mdi-trash-can-outline"></i>
                         </button>
