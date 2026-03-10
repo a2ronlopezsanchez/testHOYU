@@ -1126,7 +1126,7 @@ class ItemDetailManager {
                 buttonsStyling: false
             }).then(() => {
                 // Redirigir al catálogo
-                window.location.href = '/inventory/disponibilidad';
+                window.location.href = '/';
             });
 
         } catch (error) {

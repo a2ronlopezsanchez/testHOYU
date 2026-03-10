@@ -77,7 +77,7 @@
     <div class="card-body">
       <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
         <div class="d-flex align-items-start gap-3">
-          <a class="btn btn-icon btn-sm btn-outline-secondary flex-shrink-0" href="{{ route('inventory.disponibilidad') }}">
+          <a class="btn btn-icon btn-sm btn-outline-secondary flex-shrink-0" href="{{ url('/') }}">
             <i class="mdi mdi-arrow-left"></i>
           </a>
           <div>
@@ -283,6 +283,21 @@
                     (string) $conditionLabel,
                     (string) $nextEventName,
                   ])));
+
+                  $unitEventHistory = $assignments
+                    ->sortByDesc(fn($a) => $a->assigned_from ?? $a->created_at)
+                    ->map(function ($a) use ($formatShortDate) {
+                      $event = $a->event;
+                      return [
+                        'event' => $event?->name ?? 'Evento sin nombre',
+                        'client' => $event?->client_name ?? '—',
+                        'venue' => $event?->venue_name ?? ($event?->venue_address ?? '—'),
+                        'from' => $formatShortDate($a->assigned_from ?? $event?->start_date),
+                        'until' => $formatShortDate($a->assigned_until ?? $event?->end_date),
+                        'status' => $prettyLabel($a->assignment_status ?? 'ASIGNADO'),
+                      ];
+                    })
+                    ->values();
                 @endphp
                 <tr
                   data-unit-id="{{ $unit->id }}"
@@ -293,7 +308,8 @@
                   data-serial="{{ $unit->serial_number ?? '' }}"
                   data-rfid="{{ $unit->rfid_tag ?? '' }}"
                   data-location="{{ $unit->location->name ?? '' }}"
-                  data-last-use="{{ $lastUseDate }}">
+                  data-last-use="{{ $lastUseDate }}"
+                  data-history='@json($unitEventHistory)'>
 
                   <td>{{ $index + 1 }}</td>
                   <td>
@@ -318,9 +334,9 @@
                       <a class="btn btn-icon btn-sm btn-outline-primary" title="Ver" href="{{ route('inventory.detalle.unidad', ['id' => $unit->id]) }}">
                         <i class="mdi mdi-eye"></i>
                       </a>
-                      <a class="btn btn-icon btn-sm btn-outline-secondary" title="Ver historial" href="{{ route('inventory.detalle.unidad', ['id' => $unit->id]) }}#uso">
+                      <button type="button" class="btn btn-icon btn-sm btn-outline-secondary view-history-btn" title="Ver historial" data-unit-id="{{ $unit->id }}" data-unit-label="{{ $unit->item_id ?: ('UNIDAD-' . $unit->id) }}">
                         <i class="mdi mdi-history"></i>
-                      </a>
+                      </button>
                       <form method="POST" action="{{ route('inventory.unidad.dar-de-baja', ['id' => $unit->id]) }}" onsubmit="return confirm('¿Dar de baja esta unidad?');">
                         @csrf
                         <input type="hidden" name="decommission_reason" value="BAJA_MANUAL">
@@ -589,6 +605,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const conditionSelect = document.getElementById('conditionFilterSelect');
   const clearAllBtn = document.getElementById('clearAllUnitsFilters');
   const rows = Array.from(document.querySelectorAll('#unitsTableBody tr[data-status]'));
+  const unitsPerPage = 20;
+  let currentUnitsPage = 1;
+  let filteredRows = [...rows];
 
   const addUnitBtn = document.getElementById('addUnitBtn');
   const selectItemModalEl = document.getElementById('selectItemModal');
@@ -1087,34 +1106,70 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function renderUnitsPagination(totalPages) {
+    const pagination = document.getElementById('unitsPagination');
+    const prevLi = document.getElementById('prevUnitPage');
+    const nextLi = document.getElementById('nextUnitPage');
+    if (!pagination || !prevLi || !nextLi) return;
+
+    pagination.querySelectorAll('.unit-page-number').forEach((el) => el.remove());
+
+    prevLi.classList.toggle('disabled', currentUnitsPage <= 1);
+    nextLi.classList.toggle('disabled', currentUnitsPage >= totalPages);
+
+    for (let p = 1; p <= totalPages; p++) {
+      const li = document.createElement('li');
+      li.className = `page-item unit-page-number ${p === currentUnitsPage ? 'active' : ''}`;
+      li.innerHTML = `<a class="page-link" href="javascript:void(0);">${p}</a>`;
+      li.addEventListener('click', () => {
+        currentUnitsPage = p;
+        applyFilters();
+      });
+      pagination.insertBefore(li, nextLi);
+    }
+  }
+
   function applyFilters() {
     const term = (searchInput?.value || '').trim().toLowerCase();
     const status = statusSelect?.value || 'all';
     const condition = conditionSelect?.value || 'all';
 
-    let visible = 0;
-    rows.forEach((row) => {
+    filteredRows = rows.filter((row) => {
       const bySearch = !term || (row.dataset.search || '').includes(term);
       const byStatus = status === 'all' || row.dataset.status === status;
       const byCondition = condition === 'all' || row.dataset.condition === condition;
-      const show = (bySearch && byStatus && byCondition);
-      row.style.display = show ? '' : 'none';
-      if (show) visible++;
+      return bySearch && byStatus && byCondition;
+    });
+
+    const totalFiltered = filteredRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalFiltered / unitsPerPage));
+    if (currentUnitsPage > totalPages) currentUnitsPage = totalPages;
+
+    const start = (currentUnitsPage - 1) * unitsPerPage;
+    const end = start + unitsPerPage;
+
+    rows.forEach((row) => { row.style.display = 'none'; });
+    filteredRows.slice(start, end).forEach((row, idx) => {
+      row.style.display = '';
+      const idxCell = row.querySelector('td:first-child');
+      if (idxCell) idxCell.textContent = String(start + idx + 1);
     });
 
     const unitsCountLabel = document.getElementById('unitsCountLabel');
     if (unitsCountLabel) {
-      unitsCountLabel.textContent = `${visible} unidad${visible === 1 ? '' : 'es'} encontrada${visible === 1 ? '' : 's'}`;
+      unitsCountLabel.textContent = `${totalFiltered} unidad${totalFiltered === 1 ? '' : 'es'} encontrada${totalFiltered === 1 ? '' : 's'}`;
     }
 
     const showingFrom = document.getElementById('showingFrom');
     const showingTo = document.getElementById('showingTo');
     const totalUnits = document.getElementById('totalUnits');
     if (showingFrom && showingTo && totalUnits) {
-      showingFrom.textContent = visible ? '1' : '0';
-      showingTo.textContent = String(visible);
-      totalUnits.textContent = String(visible);
+      showingFrom.textContent = totalFiltered ? String(start + 1) : '0';
+      showingTo.textContent = totalFiltered ? String(Math.min(end, totalFiltered)) : '0';
+      totalUnits.textContent = String(totalFiltered);
     }
+
+    renderUnitsPagination(totalPages);
 
     if (clearSearchBtn) clearSearchBtn.classList.toggle('d-none', !term);
   }
@@ -1137,6 +1192,60 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+
+  const prevUnitPage = document.getElementById('prevUnitPage');
+  const nextUnitPage = document.getElementById('nextUnitPage');
+
+  if (prevUnitPage) {
+    prevUnitPage.addEventListener('click', function () {
+      if (currentUnitsPage <= 1) return;
+      currentUnitsPage--;
+      applyFilters();
+    });
+  }
+
+  if (nextUnitPage) {
+    nextUnitPage.addEventListener('click', function () {
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / unitsPerPage));
+      if (currentUnitsPage >= totalPages) return;
+      currentUnitsPage++;
+      applyFilters();
+    });
+  }
+
+  function openUnitHistoryModal(row) {
+    const modalEl = document.getElementById('unitHistoryModal');
+    const titleEl = document.getElementById('unitHistoryTitle');
+    const bodyEl = document.getElementById('unitHistoryBody');
+    if (!modalEl || !bodyEl) return;
+
+    const unitLabel = row?.dataset?.itemId || row?.dataset?.unitId || 'UNIDAD';
+    const history = JSON.parse(row?.dataset?.history || '[]');
+    if (titleEl) titleEl.textContent = `Historial — ${unitLabel}`;
+
+    if (!history.length) {
+      bodyEl.innerHTML = '<div class="text-center text-muted py-4"><i class="mdi mdi-history mdi-36px d-block mb-2"></i>Sin historial de eventos</div>';
+    } else {
+      bodyEl.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light"><tr><th>Evento</th><th>Cliente</th><th>Lugar</th><th>Desde</th><th>Hasta</th><th>Estado</th></tr></thead>
+            <tbody>
+              ${history.map((h) => `<tr><td>${h.event || '—'}</td><td>${h.client || '—'}</td><td>${h.venue || '—'}</td><td>${h.from || '—'}</td><td>${h.until || '—'}</td><td>${h.status || '—'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  }
+
+  document.querySelectorAll('.view-history-btn').forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const row = this.closest('tr[data-unit-id]');
+      openUnitHistoryModal(row);
+    });
+  });
 
   if (addUnitBtn) {
     addUnitBtn.addEventListener('click', function (e) {
