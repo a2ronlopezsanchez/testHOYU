@@ -1101,6 +1101,10 @@ class InventoryController extends Controller
             foreach ($units as $index => $unit) {
                 $unit->item_parent_id = $targetParent->id;
                 $unit->item_id = $newItemIds[$index] ?? $unit->item_id;
+                $unit->name = $targetParent->name ?: $unit->name;
+                $unit->public_name = $targetParent->public_name ?: $targetParent->name ?: $unit->public_name;
+                $unit->description = $targetParent->description ?: $unit->description;
+                $unit->color = $targetParent->color ?: $unit->color;
                 $unit->save();
             }
         });
