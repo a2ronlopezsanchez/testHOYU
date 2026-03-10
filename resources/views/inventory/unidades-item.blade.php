@@ -60,6 +60,9 @@
 
       return $date->day . ' ' . ($months[(int) $date->month] ?? '') . ' ' . $date->year;
   };
+
+  $lastMaintenanceDate = $formatShortDate(optional($latestMaintenanceRecord)->actual_date ?? optional($latestMaintenanceRecord)->created_at);
+  $lastMaintenanceUnitId = optional($latestMaintenanceRecord)->inventory_item_id;
 @endphp
 
 @section('css')
@@ -131,7 +134,7 @@
                   <ul class="list-unstyled mb-0 small">
                     <li class="mb-1"><span class="text-muted">Categoría:</span><span id="infoCategory" class="ms-1 fw-medium">{{ $itemParent->category->name ?? 'Falta' }}</span></li>
                     <li class="mb-1"><span class="text-muted">Marca:</span><span id="infoBrand" class="ms-1 fw-medium">{{ $itemParent->brand->name ?? 'Falta' }}</span></li>
-                    <li class="mb-1"><span class="text-muted">Modelo:</span><span id="infoModel" class="ms-1 fw-medium">{{ $itemParent->model ?: 'Falta' }}</span></li>
+                    <li class="mb-1"><span class="text-muted">Modelo:</span><span id="infoModel" class="ms-1 fw-medium">{{ $itemParent->model ?: '—' }}</span></li>
                   </ul>
                 </div>
                 <div class="col-md-6">
@@ -402,11 +405,11 @@
       <div class="card mb-4">
         <div class="card-header"><h5 class="card-title mb-0">Mantenimiento</h5></div>
         <div class="card-body">
-          <div class="d-flex justify-content-between mb-2"><small class="text-muted">Total mantenimientos:</small><span class="fw-medium" id="sideMaintenanceTotal">Falta</span></div>
+          <div class="d-flex justify-content-between mb-2"><small class="text-muted">Total mantenimientos:</small><span class="fw-medium" id="sideMaintenanceTotal">{{ $totalMaintenanceRecords ?? 0 }}</span></div>
           <div class="d-flex justify-content-between mb-2"><small class="text-muted">En mantenimiento:</small><span class="fw-medium text-warning" id="sideMaintenanceCurrent">{{ $maintenanceUnits }}</span></div>
-          <div class="d-flex justify-content-between mb-3"><small class="text-muted">Último registro:</small><span class="fw-medium" id="sideMaintenanceLast">Falta</span></div>
+          <div class="d-flex justify-content-between mb-3"><small class="text-muted">Último registro:</small><span class="fw-medium" id="sideMaintenanceLast">{{ $lastMaintenanceDate ?: '—' }}</span></div>
           <hr class="my-2">
-          <a href="{{ route('inventory.detalle', ['id' => $itemParent->id]) }}" class="btn btn-sm btn-outline-secondary w-100">
+          <a href="{{ $lastMaintenanceUnitId ? route('inventory.detalle.unidad', ['id' => $lastMaintenanceUnitId]) : route('inventory.detalle', ['id' => $itemParent->id]) }}" class="btn btn-sm btn-outline-secondary w-100">
             <i class="mdi mdi-history me-1"></i>Ver historial
           </a>
         </div>
@@ -1220,20 +1223,54 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!modalEl || !bodyEl) return;
 
     const unitLabel = row?.dataset?.itemId || row?.dataset?.unitId || 'UNIDAD';
+    const unitStatus = row?.dataset?.status || '—';
+    const unitCondition = row?.dataset?.condition || '—';
+    const unitLocation = row?.dataset?.location || '—';
+    const unitRfid = row?.dataset?.rfid || '—';
     const history = JSON.parse(row?.dataset?.history || '[]');
     if (titleEl) titleEl.textContent = `Historial — ${unitLabel}`;
 
     if (!history.length) {
       bodyEl.innerHTML = '<div class="text-center text-muted py-4"><i class="mdi mdi-history mdi-36px d-block mb-2"></i>Sin historial de eventos</div>';
     } else {
+      const eventTypeLabel = (status) => {
+        const normalized = String(status || '').trim().toUpperCase();
+        if (normalized === 'ASIGNADO') return 'Asignado a evento';
+        if (normalized === 'DEVUELTO') return 'Regresó a almacén';
+        return 'Movimiento de unidad';
+      };
+
       bodyEl.innerHTML = `
-        <div class="table-responsive">
-          <table class="table table-sm table-hover mb-0">
-            <thead class="table-light"><tr><th>Evento</th><th>Cliente</th><th>Lugar</th><th>Desde</th><th>Hasta</th><th>Estado</th></tr></thead>
-            <tbody>
-              ${history.map((h) => `<tr><td>${h.event || '—'}</td><td>${h.client || '—'}</td><td>${h.venue || '—'}</td><td>${h.from || '—'}</td><td>${h.until || '—'}</td><td>${h.status || '—'}</td></tr>`).join('')}
-            </tbody>
-          </table>
+        <div class="border rounded p-3 mb-3 bg-light">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold">${unitLabel}</div>
+              <small class="text-muted">RFID ${unitRfid}</small>
+            </div>
+            <div class="d-flex gap-2 flex-wrap justify-content-end">
+              <span class="badge bg-label-primary">${unitStatus}</span>
+              <span class="badge bg-label-success">${unitCondition}</span>
+            </div>
+          </div>
+          <small class="text-muted d-block mt-1">${unitLocation}</small>
+        </div>`;
+
+      bodyEl.innerHTML += `
+        <div class="history-timeline">
+          ${history.map((h) => `
+            <div class="d-flex gap-2 py-2 border-bottom">
+              <div class="text-primary mt-1"><i class="mdi mdi-radiobox-blank"></i></div>
+              <div class="flex-grow-1">
+                <div class="fw-medium">${eventTypeLabel(h.status)}</div>
+                <div>${h.event || '—'}</div>
+                <small class="text-muted d-block"><i class="mdi mdi-calendar-month-outline me-1"></i>${h.from || h.until || '—'}</small>
+              </div>
+              <div class="text-muted small text-end">
+                <div>${h.client || '—'}</div>
+                <div>${h.venue || '—'}</div>
+              </div>
+            </div>
+          `).join('')}
         </div>`;
     }
 
@@ -1347,5 +1384,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
-
-

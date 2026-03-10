@@ -1497,6 +1497,17 @@ class InventoryController extends Controller
         $inventoryItems = $itemParent->items;
         $inventoryItemIds = $inventoryItems->pluck('id')->filter()->values();
 
+        $totalMaintenanceRecords = 0;
+        $latestMaintenanceRecord = null;
+        if ($inventoryItemIds->isNotEmpty()) {
+            $maintenanceQuery = MaintenanceRecord::query()->whereIn('inventory_item_id', $inventoryItemIds);
+            $totalMaintenanceRecords = (clone $maintenanceQuery)->count();
+            $latestMaintenanceRecord = (clone $maintenanceQuery)
+                ->orderByDesc('actual_date')
+                ->orderByDesc('created_at')
+                ->first(['id', 'inventory_item_id', 'actual_date', 'created_at']);
+        }
+
         $upcomingEvents = Event::query()
             ->whereDate('end_date', '>=', now()->toDateString())
             ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
@@ -1519,7 +1530,15 @@ class InventoryController extends Controller
         $isUnassignedItem = (int) $itemParent->id === (int) $unassignedParent->id;
         $unassignedParentId = (int) $unassignedParent->id;
 
-        return view('inventory.unidades-item', compact('itemParent', 'inventoryItems', 'upcomingEvents', 'isUnassignedItem', 'unassignedParentId'));
+        return view('inventory.unidades-item', compact(
+            'itemParent',
+            'inventoryItems',
+            'upcomingEvents',
+            'isUnassignedItem',
+            'unassignedParentId',
+            'totalMaintenanceRecords',
+            'latestMaintenanceRecord'
+        ));
     }
 
 
