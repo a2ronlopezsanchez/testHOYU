@@ -759,7 +759,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = await res.json();
         if (!res.ok || !data.success) throw new Error(data.message || 'No se pudieron cargar las unidades SIN ASIGNAR.');
 
-        catalogRowsCache = (data.data || []).filter((unit) => String(unit.status || '').toUpperCase() === 'ACTIVO');
+        catalogRowsCache = (data.data || []);
 
         const statuses = Array.from(new Set(catalogRowsCache.map(i => (i.status || '').trim().toLowerCase()).filter(Boolean))).sort((a,b) => a.localeCompare(b,'es'));
         if (catalogCategoryFilter) {
