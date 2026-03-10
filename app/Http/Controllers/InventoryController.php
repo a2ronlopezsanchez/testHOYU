@@ -414,6 +414,8 @@ class InventoryController extends Controller
 
             $parent = ItemParent::with(['category:id,name','brand:id,name'])
                 ->findOrFail($parentId);
+            $isUnassignedParent = in_array(strtoupper((string) $parent->name), ['SIN ASIGNAR', 'NO ASOCIADO'], true)
+                || in_array(strtoupper((string) $parent->public_name), ['SIN ASIGNAR', 'NO ASOCIADO'], true);
 
             // 2) Resolver ubicación por ID o por NOMBRE (case/acento-insensible)
             // Para borradores sin ubicación, usamos la ubicación especial "PENDIENTE"
@@ -446,7 +448,7 @@ class InventoryController extends Controller
                 }
 
                 // Si NO es borrador, validar que no sea PENDIENTE
-                if (!$isDraft && $locName === 'PENDIENTE') {
+                if (!$isDraft && $locName === 'PENDIENTE' && !$isUnassignedParent) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Debes seleccionar una ubicación válida para guardar el item.'
@@ -720,6 +722,8 @@ class InventoryController extends Controller
 
         try {
             $inventoryItem = InventoryItem::findOrFail($inventoryItemId);
+            $isUnassignedParent = in_array(strtoupper((string) ($inventoryItem->parent?->name ?? '')), ['SIN ASIGNAR', 'NO ASOCIADO'], true)
+                || in_array(strtoupper((string) ($inventoryItem->parent?->public_name ?? '')), ['SIN ASIGNAR', 'NO ASOCIADO'], true);
 
             // Resolver ubicación si viene
             $locationId = $inventoryItem->location_id; // Mantener la actual por defecto
@@ -746,7 +750,7 @@ class InventoryController extends Controller
                 }
 
                 // Si NO es borrador, validar que no sea PENDIENTE
-                if (!$isDraft && $locName === 'PENDIENTE') {
+                if (!$isDraft && $locName === 'PENDIENTE' && !$isUnassignedParent) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Debes seleccionar una ubicación válida para guardar el item.'
