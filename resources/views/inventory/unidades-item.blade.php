@@ -579,6 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const isUnassignedItem = @json($isUnassignedItem ?? false);
   const currentItemParentId = @json($itemParent->id);
   const unassignedParentId = @json($unassignedParentId ?? null);
+  let resolvedUnassignedParentId = Number(unassignedParentId) || null;
   const selectionMode = isUnassignedItem ? 'parents' : 'units';
   const searchInput = document.getElementById('unitsSearchInput');
   const clearSearchBtn = document.getElementById('clearUnitsSearch');
@@ -705,6 +706,30 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+
+  async function resolveUnassignedParentId() {
+    if (resolvedUnassignedParentId) return resolvedUnassignedParentId;
+
+    const res = await fetch('{{ route('inventory.parents.index') }}', { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'No se pudo obtener el ítem SIN ASIGNAR.');
+    }
+
+    const unassigned = (data.data || []).find((item) => {
+      const n = String(item.name || '').trim().toUpperCase();
+      const pn = String(item.public_name || '').trim().toUpperCase();
+      return n === 'SIN ASIGNAR' || pn === 'SIN ASIGNAR';
+    });
+
+    if (!unassigned?.id) {
+      throw new Error('No se encontró el ítem SIN ASIGNAR en el catálogo.');
+    }
+
+    resolvedUnassignedParentId = Number(unassigned.id);
+    return resolvedUnassignedParentId;
+  }
+
   async function openSelectItemModal() {
     if (!selectItemModalEl || typeof bootstrap === 'undefined') return;
     bootstrap.Modal.getOrCreateInstance(selectItemModalEl).show();
@@ -729,7 +754,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
       if (selectionMode === 'units') {
-        const res = await fetch(`{{ url('inventory/item-parents') }}/${unassignedParentId}/items`, { headers: { 'Accept': 'application/json' } });
+        const unassignedId = await resolveUnassignedParentId();
+        const res = await fetch(`{{ url('inventory/item-parents') }}/${unassignedId}/items`, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (!res.ok || !data.success) throw new Error(data.message || 'No se pudieron cargar las unidades SIN ASIGNAR.');
 
@@ -800,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function confirmAttachUnitToCurrentItem(unitId) {
-    if (!unitId || !unassignedParentId) return;
+    if (!unitId) return;
 
     const proceed = await (typeof Swal !== 'undefined'
       ? Swal.fire({
@@ -816,7 +842,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!proceed.isConfirmed) return;
 
     try {
-      const res = await fetch(`{{ url('inventory/item') }}/${unassignedParentId}/associate-to-parent`, {
+      const sourceUnassignedId = await resolveUnassignedParentId();
+      const res = await fetch(`{{ url('inventory/item') }}/${sourceUnassignedId}/associate-to-parent`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
