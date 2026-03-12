@@ -95,7 +95,9 @@ Route::middleware('auth')->group(function () {
         // Dashboard y estadísticas
         Route::get('inventory/dashboard/stats', [App\Http\Controllers\InventoryController::class, 'getDashboardStats']);
 
-        Route::get('/catalogo', [App\Http\Controllers\ItemController::class,  'index'])->name('catalogo');
+        Route::get('/catalogo', [App\Http\Controllers\ItemController::class, 'index'])->name('catalogo');
+        Route::get('/catalogo/data', [App\Http\Controllers\ItemController::class, 'data'])->name('catalogo.data');
+        Route::patch('/catalogo/{item}/toggle-active', [App\Http\Controllers\ItemController::class, 'toggleActive'])->name('catalogo.toggle-active');
         // Vistas de Inventario
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/disponibilidad', [App\Http\Controllers\InventoryController::class, 'disponibilidad'])->name('disponibilidad');
