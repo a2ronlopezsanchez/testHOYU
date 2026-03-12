@@ -9,13 +9,23 @@ class ItemController extends Controller
 {
     public function index()
     {
-        $items = InventoryItem::with([
-            'parent.category',   // ← viene del padre
-            'parent.brand',      // ← viene del padre
-            'location',          // ← sigue en el hijo
-        ])
-        ->orderBy('sku')
-        ->get();
+        $items = InventoryItem::query()
+            ->select([
+                'id',
+                'sku',
+                'name',
+                'item_id',
+                'is_active',
+                'item_parent_id',
+            ])
+            ->with([
+                'parent:id,category_id',
+                'parent.category:id,name',
+            ])
+            ->orderBy('sku')
+            ->simplePaginate(25)
+            ->withQueryString();
+
         return view('catalogo',compact('items'));
     }
 }
