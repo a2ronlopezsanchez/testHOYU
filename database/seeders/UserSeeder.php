@@ -2,31 +2,47 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
+        $superAdminUsers = [
+            [
+                'name' => 'Nach Díaz',
+                'email' => 'nach.diaz@happeningnm.com',
+                'password' => '123456',
+            ],
+            [
+                'name' => 'Administrador Demo',
+                'email' => 'admin@demo.com',
+                'password' => '12345678',
+            ],
+        ];
 
-        $user1 = User::create([
-            'name' => 'Nach Díaz',
-            'email' => 'nach.diaz@happeningnm.com',
-            'password' => Hash::make('123456'),
-        ]);
-        $user1->assignRole('Superadministrador');
+        foreach ($superAdminUsers as $superAdminData) {
+            $user = User::updateOrCreate(
+                ['email' => $superAdminData['email']],
+                [
+                    'name' => $superAdminData['name'],
+                    'password' => Hash::make($superAdminData['password']),
+                ]
+            );
+
+            $user->syncRoles(['Superadministrador']);
+        }
+
+        User::query()
+            ->whereNotIn('email', array_column($superAdminUsers, 'email'))
+            ->get()
+            ->each(function (User $user): void {
+                $user->syncRoles(['Administrador']);
+            });
     }
 }

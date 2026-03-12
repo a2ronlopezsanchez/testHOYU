@@ -75,6 +75,7 @@
 
         $(function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const canDelete = @json(auth()->user()?->hasRole('Superadministrador') ?? false);
 
             const table = $('#productos-table').DataTable({
                 processing: false,
@@ -140,12 +141,22 @@
                         data: 'view_url',
                         orderable: false,
                         searchable: false,
-                        render: function (data) {
-                            return `<a href="${data}" class="btn btn-icon btn-label-primary waves-effect" title="Ver detalle">
+                        render: function (data, type, row) {
+                            const viewButton = `<a href="${data}" class="btn btn-icon btn-label-primary waves-effect" title="Ver detalle">
                                         <span class="icon-base icon-22px">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M1.182 12C2.122 6.88 6.608 3 12 3s9.878 3.88 10.819 9c-.94 5.12-5.427 9-10.819 9s-9.878-3.88-10.818-9M12 17a5 5 0 1 0 0-10a5 5 0 0 0 0 10m0-2a3 3 0 1 1 0-6a3 3 0 0 1 0 6"/></svg>
                                         </span>
                                     </a>`;
+
+                            if (!canDelete) {
+                                return viewButton;
+                            }
+
+                            const deleteButton = `<button type="button" class="btn btn-icon btn-label-danger waves-effect ms-1 btn-delete-item" data-id="${row.id}" data-sku="${row.sku || ''}" title="Eliminar SKU">
+                                        <span class="icon-base icon-22px"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4zm1 6h2v9h-2zm4 0h2v9h-2zM7 9h2v9H7z"/></svg></span>
+                                    </button>`;
+
+                            return `<div class="d-flex align-items-center">${viewButton}${deleteButton}</div>`;
                         }
                     }
                 ]
@@ -200,6 +211,55 @@
                     window.showAlert(error.message || 'Error al actualizar el estado.', 'error');
                 } finally {
                     checkbox.disabled = false;
+                }
+            });
+
+            $('#productos-table').on('click', '.btn-delete-item', async function () {
+                if (!canDelete) {
+                    return;
+                }
+
+                const button = this;
+                const id = button.dataset.id;
+                const sku = button.dataset.sku || 'Sin SKU';
+
+                const confirmation = await Swal.fire({
+                    title: '¿Deseas eliminar este SKU?',
+                    text: `SKU: ${sku}`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true,
+                    confirmButtonColor: '#d33',
+                });
+
+                if (!confirmation.isConfirmed) {
+                    return;
+                }
+
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(`/catalogo/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                    });
+
+                    const payload = await response.json();
+                    if (!response.ok || !payload.success) {
+                        throw new Error(payload.message || 'No se pudo eliminar el SKU.');
+                    }
+
+                    window.showAlert(`SKU ${sku} eliminado correctamente.`, 'success');
+                    table.ajax.reload(null, false);
+                } catch (error) {
+                    window.showAlert(error.message || 'Error al eliminar el SKU.', 'error');
+                } finally {
+                    button.disabled = false;
                 }
             });
         });

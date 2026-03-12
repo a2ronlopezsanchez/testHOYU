@@ -2,30 +2,40 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
-        $admin = Role::create(['name' => 'Superadministrador']);
-        
-        $user = User::create([
-            'name' => 'Administrador',
-            'email' => 'admin@demo.com',
-            'password' => bcrypt('12345678'),
-        ]);
-        $user->assignRole('Superadministrador');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
+        $superAdminRole = Role::firstOrCreate(['name' => 'Superadministrador']);
+        $adminRole = Role::firstOrCreate(['name' => 'Administrador']);
+
+        $superAdminEmails = [
+            'nach.diaz@happeningnm.com',
+            'admin@demo.com',
+        ];
+
+        User::query()
+            ->whereIn('email', $superAdminEmails)
+            ->get()
+            ->each(function (User $user) use ($superAdminRole): void {
+                $user->syncRoles([$superAdminRole->name]);
+            });
+
+        User::query()
+            ->whereNotIn('email', $superAdminEmails)
+            ->get()
+            ->each(function (User $user) use ($adminRole): void {
+                $user->syncRoles([$adminRole->name]);
+            });
     }
 }

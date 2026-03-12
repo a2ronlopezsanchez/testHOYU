@@ -37,7 +37,7 @@ Route::get('/logout', function () {
 })->name('logout');
 
 Route::middleware('auth')->group(function () {
-    Route::group(["middleware" => "role:Superadministrador"],function(){
+    Route::group(["middleware" => "role:Superadministrador|Administrador"],function(){
         Route::get('/', function () {
             return view('index');
         })->name('dashboard');
@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/catalogo', [App\Http\Controllers\ItemController::class, 'index'])->name('catalogo');
         Route::get('/catalogo/data', [App\Http\Controllers\ItemController::class, 'data'])->name('catalogo.data');
         Route::patch('/catalogo/{item}/toggle-active', [App\Http\Controllers\ItemController::class, 'toggleActive'])->name('catalogo.toggle-active');
+        Route::delete('/catalogo/{item}', [App\Http\Controllers\ItemController::class, 'destroy'])->name('catalogo.destroy');
         // Vistas de Inventario
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/disponibilidad', [App\Http\Controllers\InventoryController::class, 'disponibilidad'])->name('disponibilidad');

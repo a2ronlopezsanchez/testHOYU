@@ -106,4 +106,18 @@ class ItemController extends Controller
             ],
         ]);
     }
+
+
+    public function destroy(InventoryItem $item): JsonResponse
+    {
+        abort_unless(auth()->user()?->hasRole('Superadministrador'), 403);
+
+        $item->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'SKU eliminado correctamente.',
+        ]);
+    }
+
 }
