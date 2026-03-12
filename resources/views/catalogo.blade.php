@@ -77,7 +77,7 @@
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
             const table = $('#productos-table').DataTable({
-                processing: true,
+                processing: false,
                 serverSide: true,
                 deferRender: true,
                 searchDelay: 350,
@@ -102,7 +102,8 @@
                     infoEmpty: 'Mostrando 0 registros',
                     infoFiltered: '(filtrado de _MAX_ totales)',
                     zeroRecords: 'No se encontraron resultados',
-                    paginate: { first: 'Primero', last: 'Último', next: 'Siguiente', previous: 'Anterior' }
+                    paginate: { first: 'Primero', last: 'Último', next: 'Siguiente', previous: 'Anterior' },
+                    processing: ''
                 },
                 pageLength: 25,
                 lengthMenu: [[25,50,100],[25,50,100]],
@@ -140,7 +141,9 @@
                         searchable: false,
                         render: function (data) {
                             return `<a href="${data}" class="btn btn-icon btn-label-primary waves-effect" title="Ver detalle">
-                                        <span class="icon-base ri ri-eye-line icon-22px"></span>
+                                        <span class="icon-base icon-22px">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M1.182 12C2.122 6.88 6.608 3 12 3s9.878 3.88 10.819 9c-.94 5.12-5.427 9-10.819 9s-9.878-3.88-10.818-9M12 17a5 5 0 1 0 0-10a5 5 0 0 0 0 10m0-2a3 3 0 1 1 0-6a3 3 0 0 1 0 6"/></svg>
+                                        </span>
                                     </a>`;
                         }
                     }
