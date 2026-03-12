@@ -121,6 +121,7 @@
                                         type="checkbox"
                                         class="switch-input toggle-active"
                                         data-id="${row.id}"
+                                        data-sku="${row.sku || ''}"
                                         ${data ? 'checked' : ''}
                                     />
                                     <span class="switch-toggle-slider"><span class="switch-on"></span><span class="switch-off"></span></span>
@@ -155,7 +156,26 @@
             $('#productos-table').on('change', '.toggle-active', async function () {
                 const checkbox = this;
                 const id = checkbox.dataset.id;
+                const sku = checkbox.dataset.sku || 'Sin SKU';
                 const isActive = checkbox.checked;
+                const actionText = isActive ? 'RE ACTIVAR' : 'DES ACTIVAR';
+                const successText = isActive ? 'reactivado' : 'desactivado';
+
+                const confirmation = await Swal.fire({
+                    title: `¿Confirmas ${actionText} este SKU?`,
+                    text: `SKU: ${sku}`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, confirmar',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true,
+                });
+
+                if (!confirmation.isConfirmed) {
+                    checkbox.checked = !isActive;
+                    return;
+                }
+
                 checkbox.disabled = true;
 
                 try {
@@ -174,7 +194,7 @@
                         throw new Error(payload.message || 'No se pudo actualizar el estado.');
                     }
 
-                    window.showAlert('Estado actualizado.', 'success');
+                    window.showAlert(`SKU ${sku} ${successText} correctamente.`, 'success');
                 } catch (error) {
                     checkbox.checked = !isActive;
                     window.showAlert(error.message || 'Error al actualizar el estado.', 'error');
