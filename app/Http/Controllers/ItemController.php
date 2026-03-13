@@ -112,6 +112,10 @@ class ItemController extends Controller
     {
         abort_unless(auth()->user()?->hasRole('Superadministrador'), 403);
 
+        $item->update([
+            'item_id' => null,
+        ]);
+
         $item->delete();
 
         return response()->json([
