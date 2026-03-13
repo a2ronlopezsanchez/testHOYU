@@ -13,36 +13,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $superAdminUsers = [
+        $user = User::firstOrCreate(
+            ['email' => 'nach.diaz@happeningnm.com'],
             [
                 'name' => 'Nach Díaz',
-                'email' => 'nach.diaz@happeningnm.com',
-                'password' => '123456',
-            ],
-            [
-                'name' => 'Administrador Demo',
-                'email' => 'admin@demo.com',
-                'password' => '12345678',
-            ],
-        ];
+                'password' => Hash::make('123456'),
+            ]
+        );
 
-        foreach ($superAdminUsers as $superAdminData) {
-            $user = User::updateOrCreate(
-                ['email' => $superAdminData['email']],
-                [
-                    'name' => $superAdminData['name'],
-                    'password' => Hash::make($superAdminData['password']),
-                ]
-            );
-
-            $user->syncRoles(['Superadministrador']);
+        if (!$user->hasRole('Superadministrador')) {
+            $user->assignRole('Superadministrador');
         }
-
-        User::query()
-            ->whereNotIn('email', array_column($superAdminUsers, 'email'))
-            ->get()
-            ->each(function (User $user): void {
-                $user->syncRoles(['Administrador']);
-            });
     }
 }
