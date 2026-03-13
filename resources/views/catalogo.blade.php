@@ -142,6 +142,12 @@
                         orderable: false,
                         searchable: false,
                         render: function (data, type, row) {
+                            const editButton = `<a href="${row.edit_url}" class="btn btn-icon btn-label-warning waves-effect me-1" title="Editar unidad">
+                                        <span class="icon-base icon-22px">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="m14.06 9.02l.92.92L5.92 19H5v-.92zM17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83l3.75 3.75l1.83-1.83a.99.99 0 0 0 0-1.41l-2.34-2.34A.99.99 0 0 0 17.66 3M14.06 6.19L3 17.25V21h3.75L17.81 9.94z"/></svg>
+                                        </span>
+                                    </a>`;
+
                             const viewButton = `<a href="${data}" class="btn btn-icon btn-label-primary waves-effect" title="Ver detalle">
                                         <span class="icon-base icon-22px">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M1.182 12C2.122 6.88 6.608 3 12 3s9.878 3.88 10.819 9c-.94 5.12-5.427 9-10.819 9s-9.878-3.88-10.818-9M12 17a5 5 0 1 0 0-10a5 5 0 0 0 0 10m0-2a3 3 0 1 1 0-6a3 3 0 0 1 0 6"/></svg>
@@ -149,14 +155,14 @@
                                     </a>`;
 
                             if (!canDelete) {
-                                return viewButton;
+                                return `<div class="d-flex align-items-center">${editButton}${viewButton}</div>`;
                             }
 
                             const deleteButton = `<button type="button" class="btn btn-icon btn-label-danger waves-effect ms-1 btn-delete-item" data-id="${row.id}" data-sku="${row.sku || ''}" title="Eliminar SKU">
                                         <span class="icon-base icon-22px"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4zm1 6h2v9h-2zm4 0h2v9h-2zM7 9h2v9H7z"/></svg></span>
                                     </button>`;
 
-                            return `<div class="d-flex align-items-center">${viewButton}${deleteButton}</div>`;
+                            return `<div class="d-flex align-items-center">${editButton}${viewButton}${deleteButton}</div>`;
                         }
                     }
                 ]

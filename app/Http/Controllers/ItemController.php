@@ -76,6 +76,7 @@ class ItemController extends Controller
                 'item_id' => $item->item_id,
                 'is_active' => (bool) $item->is_active,
                 'view_url' => route('inventory.detalle.unidad', ['id' => $item->id]),
+                'edit_url' => route('inventory.formulario', ['id' => $item->item_parent_id]) . '?mode=edit-unit&unit_id=' . $item->id,
             ];
         });
 
