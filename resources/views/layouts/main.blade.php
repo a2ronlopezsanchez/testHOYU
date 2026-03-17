@@ -206,6 +206,37 @@
                 </li>
               </ul>
             </li>
+
+            <!-- Clientes -->
+            <li class="menu-item 
+              @if (trim($__env->yieldContent('leve')) == "Clientes")
+                  active open
+              @endif">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-account-group-outline"></i>
+                <div data-i18n="Clientes">Clientes</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item
+                @if (trim($__env->yieldContent('subleve')) == "Catalogo")
+                  active 
+                @endif
+                ">
+                  <a href="{{ route('clientes.catalogo') }}" class="menu-link">
+                    <div data-i18n="Directorio">Directorio</div>
+                  </a>
+                </li>
+                <li class="menu-item
+                @if (trim($__env->yieldContent('subleve')) == "Formulario")
+                  active 
+                @endif
+                ">
+                  <a href="{{ route('clientes.formulario') }}?mode=new" class="menu-link">
+                    <div data-i18n="Nuevo Cliente">Nuevo Cliente</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
             <!--Marcas-->
             <li class="menu-item
               @if (trim($__env->yieldContent('leve')) == "Brand")

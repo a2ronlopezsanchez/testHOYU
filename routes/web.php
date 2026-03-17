@@ -128,6 +128,13 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/formulario/{id?}', [App\Http\Controllers\InventoryController::class, 'formulario'])->name('formulario');
         });
+
+        Route::prefix('clientes')->name('clientes.')->group(function () {
+            Route::view('/catalogo', 'clientes.catalogo')->name('catalogo');
+            Route::view('/formulario', 'clientes.formulario')->name('formulario');
+            Route::view('/detalle', 'clientes.detalle')->name('detalle');
+        });
+
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
