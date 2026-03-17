@@ -1,0 +1,691 @@
+<!doctype html>
+<html
+  lang="es"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../../assets/"
+  data-template="vertical-menu-template-no-customizer">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Clientes | Black Production</title>
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="../../assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="../../assets/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" />
+    <link rel="stylesheet" href="../../assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/black-production-css/clientes.css" />
+
+    <!-- Helpers -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- ===================== MENU LATERAL ===================== -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard.html" class="app-brand-link">
+              <span class="app-brand-text demo menu-text fw-bold ms-2">BLCK</span>
+            </a>
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z" fill="currentColor" fill-opacity="0.6"/>
+                <path d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z" fill="currentColor" fill-opacity="0.38"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+
+            <!-- Dashboard -->
+            <li class="menu-item">
+              <a href="../black-productions/dashboard.html" class="menu-link">
+                <i class="menu-icon tf-icons mdi mdi-view-dashboard-outline"></i>
+                <div data-i18n="Dashboard">Dashboard</div>
+              </a>
+            </li>
+
+            <!-- Inventario -->
+            <li class="menu-item open">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-package-variant-closed"></i>
+                <div data-i18n="Inventario">Inventario</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="../black-productions/catalogo-inventario.html" class="menu-link">
+                    <div>Disponibilidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../black-productions/formulario-item-completo.html" class="menu-link">
+                    <div>Nuevo Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../black-productions/vista-detalle-item.html" class="menu-link">
+                    <div>Detalle Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../black-productions/vista-unidades-item.html" class="menu-link">
+                    <div>Detalle Unidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/inventario/eventos-inventario.html" class="menu-link">
+                    <div>Eventos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/inventario/reportes-inventario.html" class="menu-link">
+                    <div>Reportes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Almacén -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-warehouse"></i>
+                <div data-i18n="Almacén">Almacén</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/almacen/ubicaciones.html" class="menu-link">
+                    <div>Ubicaciones</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/almacen/movimientos.html" class="menu-link">
+                    <div>Movimientos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/almacen/zonas.html" class="menu-link">
+                    <div>Zonas</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Clientes -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-account-group-outline"></i>
+                <div data-i18n="Clientes">Clientes</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/clientes/catalogo-clientes.html" class="menu-link">
+                    <div>Directorio</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../../html/nach-tests/black-productions/formulario-cliente.html?mode=new" class="menu-link">
+                    <div>Nuevo Cliente</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Cotizaciones -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-file-document-edit-outline"></i>
+                <div data-i18n="Cotizaciones">Cotizaciones</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/cotizaciones/formulario-cotizacion.html?mode=new" class="menu-link">
+                    <div>Nueva Cotización</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cotizaciones/catalogo-cotizaciones.html?status=proceso" class="menu-link">
+                    <div>En Proceso</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cotizaciones/catalogo-cotizaciones.html?status=aprobada" class="menu-link">
+                    <div>Aprobadas</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cotizaciones/catalogo-cotizaciones.html" class="menu-link">
+                    <div>Historial</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Eventos -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-calendar-star"></i>
+                <div data-i18n="Eventos">Eventos</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/eventos/catalogo-eventos.html" class="menu-link">
+                    <div>Calendario</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos/formulario-evento.html?mode=new" class="menu-link">
+                    <div>Nuevo Evento</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos/catalogo-eventos.html?status=preparacion" class="menu-link">
+                    <div>En Preparación</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos/catalogo-eventos.html?status=realizado" class="menu-link">
+                    <div>Realizados</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Cobranza / Cartera -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-cash-clock"></i>
+                <div data-i18n="Cobranza">Cobranza / Cartera</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/cobranza/catalogo-cobranza.html?status=activa" class="menu-link">
+                    <div>Cartera Activa</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cobranza/catalogo-cobranza.html?status=vencida" class="menu-link">
+                    <div>Vencida</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cobranza/catalogo-cobranza.html" class="menu-link">
+                    <div>Historial</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Facturación -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-receipt-text-outline"></i>
+                <div data-i18n="Facturación">Facturación</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/facturacion/catalogo-facturacion.html?status=emitida" class="menu-link">
+                    <div>Emitidas</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/facturacion/catalogo-facturacion.html?status=pendiente" class="menu-link">
+                    <div>Pendientes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Logística -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-clipboard-list-outline"></i>
+                <div data-i18n="Logística">Logística</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/logistica/horarios.html" class="menu-link">
+                    <div>Horarios</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/logistica/traslados.html" class="menu-link">
+                    <div>Traslados</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Transporte -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-truck-outline"></i>
+                <div data-i18n="Transporte">Transporte</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/transporte/catalogo-vehiculos.html" class="menu-link">
+                    <div>Vehículos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/transporte/rutas.html" class="menu-link">
+                    <div>Rutas</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/transporte/conductores.html" class="menu-link">
+                    <div>Conductores</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/transporte/asignaciones.html" class="menu-link">
+                    <div>Asignaciones</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Personal -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-account-hard-hat-outline"></i>
+                <div data-i18n="Personal">Personal</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/personal/catalogo-personal.html" class="menu-link">
+                    <div>Staff</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/personal/asignaciones.html" class="menu-link">
+                    <div>Asignaciones</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Administración -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-currency-usd"></i>
+                <div data-i18n="Administración">Administración</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/administracion/facturacion.html" class="menu-link">
+                    <div>Facturación</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/administracion/ingresos.html" class="menu-link">
+                    <div>Ingresos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/administracion/gastos.html" class="menu-link">
+                    <div>Gastos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/administracion/cuentas-por-cobrar.html" class="menu-link">
+                    <div>Cuentas por Cobrar</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Configuración -->
+            <li class="menu-item">
+              <a href="/configuracion.html" class="menu-link">
+                <i class="menu-icon tf-icons mdi mdi-cog-outline"></i>
+                <div data-i18n="Configuración">Configuración</div>
+              </a>
+            </li>
+
+          </ul>
+        </aside>
+        <!-- ===================== / MENU LATERAL ===================== -->
+
+        <div class="layout-page">
+
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="mdi mdi-menu mdi-24px"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <div class="navbar-nav align-items-center">
+                <div class="nav-item navbar-search-wrapper mb-0">
+                  <a class="nav-item nav-link search-toggler fw-normal px-0" href="javascript:void(0);">
+                    <i class="mdi mdi-magnify mdi-24px scaleX-n1-rtl"></i>
+                    <span class="d-none d-md-inline-block text-muted">Buscar (Ctrl+f)</span>
+                  </a>
+                </div>
+              </div>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="../../assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">Nach Díaz</span>
+                            <small class="text-muted">Super Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-account-outline me-2"></i>Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-cog-outline me-2"></i>Configuración</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-logout me-2"></i>Log Out</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+              <!-- Header -->
+              <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+                <div>
+                  <h4 class="mb-1">Directorio de Clientes</h4>
+                  <small class="text-muted">Gestión completa de clientes y prospectos</small>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="btn btn-outline-secondary btn-sm" id="exportClientesBtn">
+                    <i class="mdi mdi-download me-1"></i>
+                    <span class="d-none d-sm-inline">Exportar</span>
+                  </button>
+                  <a href="/clientes/formulario-cliente.html?mode=new" class="btn btn-primary btn-sm">
+                    <i class="mdi mdi-plus me-1"></i>
+                    <span class="d-none d-sm-inline">Nuevo Cliente</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Stats cards -->
+              <div class="row g-4 mb-4">
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 mb-0 text-primary" id="statTotalClientes">--</div>
+                      <small class="text-muted">Total Clientes</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 mb-0 text-success" id="statClientesActivos">--</div>
+                      <small class="text-muted">Activos</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 mb-0 text-warning" id="statClientesProspectos">--</div>
+                      <small class="text-muted">Prospectos</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 mb-0 text-info" id="statClientesVip">--</div>
+                      <small class="text-muted">VIP</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filtros -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="row g-3 align-items-center">
+                    <div class="col-md-5">
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="mdi mdi-magnify"></i></span>
+                        <input type="text" class="form-control"
+                               placeholder="Buscar por nombre, RFC, email o teléfono..."
+                               id="clientesSearchInput">
+                        <button class="btn btn-outline-secondary d-none" type="button" id="clearClientesSearch">
+                          <i class="mdi mdi-close"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="col-md-7">
+                      <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                        <select class="form-select w-auto" id="tipoClienteFilter">
+                          <option value="all">Todos los tipos</option>
+                          <option value="Persona Física">Persona Física</option>
+                          <option value="Persona Moral">Persona Moral</option>
+                        </select>
+                        <select class="form-select w-auto" id="statusClienteFilter">
+                          <option value="all">Todos los estatus</option>
+                          <option value="Activo">Activos</option>
+                          <option value="Prospecto">Prospectos</option>
+                          <option value="VIP">VIP</option>
+                          <option value="Inactivo">Inactivos</option>
+                        </select>
+                        <select class="form-select w-auto" id="ordenarClienteFilter">
+                          <option value="nombre">Ordenar: Nombre</option>
+                          <option value="reciente">Más recientes</option>
+                          <option value="eventos">Más eventos</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" id="clearClientesFilters" title="Limpiar filtros">
+                          <i class="mdi mdi-refresh"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabla -->
+              <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                  <div>
+                    <h5 class="card-title mb-0">Clientes</h5>
+                    <small class="text-muted" id="clientesCountLabel">Cargando...</small>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary active" id="viewTableBtn" title="Vista tabla">
+                      <i class="mdi mdi-view-list"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="viewCardsBtn" title="Vista tarjetas">
+                      <i class="mdi mdi-view-grid"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Vista tabla -->
+                <div id="viewTable">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="clientesTable">
+                      <thead class="table-light">
+                        <tr>
+                          <th style="width:50px;"></th>
+                          <th>CLIENTE</th>
+                          <th style="width:130px;">TIPO</th>
+                          <th style="width:120px;">RFC</th>
+                          <th style="width:160px;">CONTACTO</th>
+                          <th style="width:80px;" class="text-center">EVENTOS</th>
+                          <th style="width:100px;" class="text-center">ESTATUS</th>
+                          <th style="width:100px;" class="text-center">ACCIONES</th>
+                        </tr>
+                      </thead>
+                      <tbody id="clientesTableBody">
+                        <tr>
+                          <td colspan="8" class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                            <span class="text-muted">Cargando clientes...</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Vista tarjetas -->
+                <div id="viewCards" class="d-none">
+                  <div class="card-body">
+                    <div class="row g-3" id="clientesCardsBody">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Paginación -->
+                <div class="card-footer">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <small class="text-muted">
+                      Mostrando <span id="clientesShowingFrom">1</span>–<span id="clientesShowingTo">10</span>
+                      de <span id="clientesTotal">0</span> clientes
+                    </small>
+                    <nav>
+                      <ul class="pagination pagination-sm mb-0" id="clientesPagination"></ul>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- / Content -->
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                  <div class="mb-2 mb-md-0">
+                    ©<script>document.write(new Date().getFullYear());</script>,
+                    hecho con <span class="text-danger"><i class="tf-icons mdi mdi-heart"></i></span> por
+                    <a href="#" class="footer-link fw-medium">Happening</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- / Content wrapper -->
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+      <div class="drag-target"></div>
+    </div>
+    <!-- ══ MODAL: VISTA RÁPIDA CLIENTE ══ -->
+    <div class="modal fade" id="quickViewClienteModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="quickViewClienteTitle">Detalle Cliente</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="quickViewClienteBody">
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary"></div>
+            </div>
+          </div>
+          <div class="modal-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal">Cerrar</button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-primary" id="quickViewEditBtn">
+                <i class="mdi mdi-pencil-outline me-1"></i>Editar
+              </button>
+              <button type="button" class="btn btn-primary" id="quickViewDetalleBtn">
+                <i class="mdi mdi-eye-outline me-1"></i>Ver Perfil Completo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL: CONFIRMAR ELIMINAR ══ -->
+    <div class="modal fade" id="deleteClienteModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center px-4 pb-4">
+            <i class="mdi mdi-alert-circle-outline mdi-48px text-danger d-block mb-3"></i>
+            <h5 class="mb-2">¿Eliminar cliente?</h5>
+            <p class="text-muted mb-0" id="deleteClienteMsg">
+              Esta acción no se puede deshacer.
+            </p>
+          </div>
+          <div class="modal-footer border-0 justify-content-center gap-2">
+            <button type="button" class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteClienteBtn">
+              <i class="mdi mdi-trash-can-outline me-1"></i>Sí, eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core JS -->
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/vendor/libs/moment/moment.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/modules/bp-modules/catalogo-clientes.js"></script>
+  </body>
+</html>

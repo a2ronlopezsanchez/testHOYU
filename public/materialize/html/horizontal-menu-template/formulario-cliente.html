@@ -1,0 +1,1099 @@
+<!doctype html>
+<html
+  lang="es"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../../assets/"
+  data-template="vertical-menu-template-no-customizer">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Formulario Cliente | Black Production</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="../../assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="../../assets/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" />
+    <link rel="stylesheet" href="../../assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/black-production-css/clientes.css" />
+
+    <!-- Helpers -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- ===================== MENU LATERAL ===================== -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard.html" class="app-brand-link">
+              <span class="app-brand-text demo menu-text fw-bold ms-2">BLCK</span>
+            </a>
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z" fill="currentColor" fill-opacity="0.6"/>
+                <path d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z" fill="currentColor" fill-opacity="0.38"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+
+            <!-- Dashboard -->
+            <li class="menu-item">
+              <a href="../black-productions/dashboard.html" class="menu-link">
+                <i class="menu-icon tf-icons mdi mdi-view-dashboard-outline"></i>
+                <div data-i18n="Dashboard">Dashboard</div>
+              </a>
+            </li>
+
+            <!-- Inventario -->
+            <li class="menu-item open">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-package-variant-closed"></i>
+                <div data-i18n="Inventario">Inventario</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="../black-productions/catalogo-inventario.html" class="menu-link">
+                    <div>Disponibilidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../black-productions/formulario-item-completo.html" class="menu-link">
+                    <div>Nuevo Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../black-productions/vista-detalle-item.html" class="menu-link">
+                    <div>Detalle Item</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="../black-productions/vista-unidades-item.html" class="menu-link">
+                    <div>Detalle Unidad</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/inventario/eventos-inventario.html" class="menu-link">
+                    <div>Eventos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/inventario/reportes-inventario.html" class="menu-link">
+                    <div>Reportes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Almacén -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-warehouse"></i>
+                <div data-i18n="Almacén">Almacén</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/almacen/ubicaciones.html" class="menu-link">
+                    <div>Ubicaciones</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/almacen/movimientos.html" class="menu-link">
+                    <div>Movimientos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/almacen/zonas.html" class="menu-link">
+                    <div>Zonas</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Clientes -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-account-group-outline"></i>
+                <div data-i18n="Clientes">Clientes</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/clientes/catalogo-clientes.html" class="menu-link">
+                    <div>Directorio</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/clientes/formulario-cliente.html?mode=new" class="menu-link">
+                    <div>Nuevo Cliente</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Cotizaciones -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-file-document-edit-outline"></i>
+                <div data-i18n="Cotizaciones">Cotizaciones</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/cotizaciones/formulario-cotizacion.html?mode=new" class="menu-link">
+                    <div>Nueva Cotización</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cotizaciones/catalogo-cotizaciones.html?status=proceso" class="menu-link">
+                    <div>En Proceso</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cotizaciones/catalogo-cotizaciones.html?status=aprobada" class="menu-link">
+                    <div>Aprobadas</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cotizaciones/catalogo-cotizaciones.html" class="menu-link">
+                    <div>Historial</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Eventos -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-calendar-star"></i>
+                <div data-i18n="Eventos">Eventos</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/eventos/catalogo-eventos.html" class="menu-link">
+                    <div>Calendario</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos/formulario-evento.html?mode=new" class="menu-link">
+                    <div>Nuevo Evento</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos/catalogo-eventos.html?status=preparacion" class="menu-link">
+                    <div>En Preparación</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/eventos/catalogo-eventos.html?status=realizado" class="menu-link">
+                    <div>Realizados</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Cobranza / Cartera -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-cash-clock"></i>
+                <div data-i18n="Cobranza">Cobranza / Cartera</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/cobranza/catalogo-cobranza.html?status=activa" class="menu-link">
+                    <div>Cartera Activa</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cobranza/catalogo-cobranza.html?status=vencida" class="menu-link">
+                    <div>Vencida</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/cobranza/catalogo-cobranza.html" class="menu-link">
+                    <div>Historial</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Facturación -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-receipt-text-outline"></i>
+                <div data-i18n="Facturación">Facturación</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/facturacion/catalogo-facturacion.html?status=emitida" class="menu-link">
+                    <div>Emitidas</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/facturacion/catalogo-facturacion.html?status=pendiente" class="menu-link">
+                    <div>Pendientes</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Logística -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-clipboard-list-outline"></i>
+                <div data-i18n="Logística">Logística</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/logistica/horarios.html" class="menu-link">
+                    <div>Horarios</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/logistica/traslados.html" class="menu-link">
+                    <div>Traslados</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Transporte -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-truck-outline"></i>
+                <div data-i18n="Transporte">Transporte</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/transporte/catalogo-vehiculos.html" class="menu-link">
+                    <div>Vehículos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/transporte/rutas.html" class="menu-link">
+                    <div>Rutas</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/transporte/conductores.html" class="menu-link">
+                    <div>Conductores</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/transporte/asignaciones.html" class="menu-link">
+                    <div>Asignaciones</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Personal -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-account-hard-hat-outline"></i>
+                <div data-i18n="Personal">Personal</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/personal/catalogo-personal.html" class="menu-link">
+                    <div>Staff</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/personal/asignaciones.html" class="menu-link">
+                    <div>Asignaciones</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Administración -->
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-currency-usd"></i>
+                <div data-i18n="Administración">Administración</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/administracion/facturacion.html" class="menu-link">
+                    <div>Facturación</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/administracion/ingresos.html" class="menu-link">
+                    <div>Ingresos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/administracion/gastos.html" class="menu-link">
+                    <div>Gastos</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/administracion/cuentas-por-cobrar.html" class="menu-link">
+                    <div>Cuentas por Cobrar</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Configuración -->
+            <li class="menu-item">
+              <a href="/configuracion.html" class="menu-link">
+                <i class="menu-icon tf-icons mdi mdi-cog-outline"></i>
+                <div data-i18n="Configuración">Configuración</div>
+              </a>
+            </li>
+
+          </ul>
+        </aside>
+        <!-- ===================== / MENU LATERAL ===================== -->
+
+        <div class="layout-page">
+
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="mdi mdi-menu mdi-24px"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="../../assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">Nach Díaz</span>
+                            <small class="text-muted">Super Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-account-outline me-2"></i>Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-cog-outline me-2"></i>Configuración</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-logout me-2"></i>Log Out</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+              <!-- Header -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                      <button class="btn btn-icon btn-sm btn-outline-secondary"
+                              onclick="window.location.href='catalogo-clientes.html'">
+                        <i class="mdi mdi-arrow-left"></i>
+                      </button>
+                      <div>
+                        <h4 class="mb-1" id="formTitle">Nuevo Cliente</h4>
+                        <small class="text-muted" id="formSubtitle">
+                          Completa la información del cliente
+                        </small>
+                      </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-outline-secondary btn-sm" id="cancelFormBtn"
+                              onclick="window.location.href='catalogo-clientes.html'">
+                        Cancelar
+                      </button>
+                      <button class="btn btn-primary btn-sm" id="saveClienteBtn">
+                        <i class="mdi mdi-content-save me-1"></i>
+                        Guardar Cliente
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Progress steps -->
+                  <div class="form-steps mt-4">
+                    <div class="steps-track">
+                      <div class="step-item active" data-step="1">
+                        <div class="step-dot">1</div>
+                        <div class="step-label">General</div>
+                      </div>
+                      <div class="step-line"></div>
+                      <div class="step-item" data-step="2">
+                        <div class="step-dot">2</div>
+                        <div class="step-label">Fiscal</div>
+                      </div>
+                      <div class="step-line"></div>
+                      <div class="step-item" data-step="3">
+                        <div class="step-dot">3</div>
+                        <div class="step-label">Contactos</div>
+                      </div>
+                      <div class="step-line"></div>
+                      <div class="step-item" data-step="4">
+                        <div class="step-dot">4</div>
+                        <div class="step-label">Notas</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-4">
+
+                <!-- ══ COLUMNA PRINCIPAL ══ -->
+                <div class="col-lg-8">
+
+                  <!-- PASO 1: Información General -->
+                  <div class="card mb-4 form-section" id="section1">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">
+                        <span class="step-badge">1</span>
+                        Información General
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="row g-3">
+
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <select class="form-select" id="clienteTipo">
+                              <option value="Persona Moral">Persona Moral</option>
+                              <option value="Persona Física">Persona Física</option>
+                            </select>
+                            <label for="clienteTipo">Tipo de Cliente *</label>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <select class="form-select" id="clienteStatus">
+                              <option value="Prospecto">Prospecto</option>
+                              <option value="Activo">Activo</option>
+                              <option value="VIP">VIP</option>
+                              <option value="Inactivo">Inactivo</option>
+                            </select>
+                            <label for="clienteStatus">Estatus *</label>
+                          </div>
+                        </div>
+
+                        <!-- Campos Persona Moral -->
+                        <div class="col-12" id="camposMoral">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="clienteRazonSocial"
+                                       placeholder="Razón Social">
+                                <label for="clienteRazonSocial">Razón Social *</label>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="clienteNombreColoquial"
+                                       placeholder="Nombre Coloquial">
+                                <label for="clienteNombreColoquial">Nombre Coloquial</label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Campos Persona Física -->
+                        <div class="col-12 d-none" id="camposFisica">
+                          <div class="row g-3">
+                            <div class="col-md-4">
+                              <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="clienteNombre"
+                                       placeholder="Nombre(s)">
+                                <label for="clienteNombre">Nombre(s) *</label>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="clienteApellidoP"
+                                       placeholder="Apellido Paterno">
+                                <label for="clienteApellidoP">Apellido Paterno *</label>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="form-floating form-floating-outline">
+                                <input type="text" class="form-control" id="clienteApellidoM"
+                                       placeholder="Apellido Materno">
+                                <label for="clienteApellidoM">Apellido Materno</label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control font-monospace" id="clienteRfc"
+                                   placeholder="RFC" maxlength="13"
+                                   style="text-transform:uppercase;">
+                            <label for="clienteRfc">RFC *</label>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="clienteGiro"
+                                   placeholder="Giro o industria">
+                            <label for="clienteGiro">Giro / Industria</label>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- PASO 2: Información Fiscal -->
+                  <div class="card mb-4 form-section" id="section2">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">
+                        <span class="step-badge">2</span>
+                        Información Fiscal y Dirección
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      <h6 class="text-muted text-uppercase small fw-semibold mb-3">
+                        Dirección Fiscal
+                      </h6>
+                      <div class="row g-3">
+                        <div class="col-md-8">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="fiscalCalle"
+                                   placeholder="Calle y número">
+                            <label for="fiscalCalle">Calle y Número</label>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="fiscalCp"
+                                   placeholder="CP" maxlength="5">
+                            <label for="fiscalCp">Código Postal</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="fiscalColonia"
+                                   placeholder="Colonia">
+                            <label for="fiscalColonia">Colonia</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" id="fiscalCiudad"
+                                   placeholder="Ciudad">
+                            <label for="fiscalCiudad">Ciudad / Municipio</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <select class="form-select" id="fiscalEstado">
+                              <option value="">Selecciona estado...</option>
+                              <option>Aguascalientes</option><option>Baja California</option>
+                              <option>Baja California Sur</option><option>Campeche</option>
+                              <option>Chiapas</option><option>Chihuahua</option>
+                              <option>CDMX</option><option>Coahuila</option>
+                              <option>Colima</option><option>Durango</option>
+                              <option>Estado de México</option><option>Guanajuato</option>
+                              <option>Guerrero</option><option>Hidalgo</option>
+                              <option>Jalisco</option><option>Michoacán</option>
+                              <option>Morelos</option><option>Nayarit</option>
+                              <option>Nuevo León</option><option>Oaxaca</option>
+                              <option>Puebla</option><option>Querétaro</option>
+                              <option>Quintana Roo</option><option>San Luis Potosí</option>
+                              <option>Sinaloa</option><option>Sonora</option>
+                              <option>Tabasco</option><option>Tamaulipas</option>
+                              <option>Tlaxcala</option><option>Veracruz</option>
+                              <option>Yucatán</option><option>Zacatecas</option>
+                            </select>
+                            <label for="fiscalEstado">Estado</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <select class="form-select" id="fiscalRegimenFiscal">
+                              <option value="">Selecciona régimen...</option>
+                              <option value="601">601 - General de Ley Personas Morales</option>
+                              <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
+                              <option value="605">605 - Sueldos y Salarios</option>
+                              <option value="606">606 - Arrendamiento</option>
+                              <option value="612">612 - Personas Físicas con Actividades Empresariales</option>
+                              <option value="616">616 - Sin Obligaciones Fiscales</option>
+                              <option value="621">621 - Incorporación Fiscal</option>
+                              <option value="626">626 - Régimen Simplificado de Confianza</option>
+                            </select>
+                            <label for="fiscalRegimenFiscal">Régimen Fiscal</label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Toggle dirección física -->
+                      <div class="form-check form-switch mt-4 mb-3">
+                        <input class="form-check-input" type="checkbox"
+                               id="toggleDireccionFisica">
+                        <label class="form-check-label fw-medium"
+                               for="toggleDireccionFisica">
+                          Agregar dirección física (diferente a la fiscal)
+                        </label>
+                      </div>
+
+                      <div id="seccionDireccionFisica" class="d-none">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-3">
+                          Dirección Física
+                        </h6>
+                        <div class="row g-3">
+                          <div class="col-md-8">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control" id="fisicaCalle"
+                                     placeholder="Calle y número">
+                              <label for="fisicaCalle">Calle y Número</label>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control" id="fisicaCp"
+                                     placeholder="CP" maxlength="5">
+                              <label for="fisicaCp">Código Postal</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control" id="fisicaColonia"
+                                     placeholder="Colonia">
+                              <label for="fisicaColonia">Colonia</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control" id="fisicaCiudad"
+                                     placeholder="Ciudad">
+                              <label for="fisicaCiudad">Ciudad / Municipio</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <select class="form-select" id="fisicaEstado">
+                                <option value="">Selecciona estado...</option>
+                                <option>Aguascalientes</option><option>Baja California</option>
+                                <option>Baja California Sur</option><option>Campeche</option>
+                                <option>Chiapas</option><option>Chihuahua</option>
+                                <option>CDMX</option><option>Coahuila</option>
+                                <option>Colima</option><option>Durango</option>
+                                <option>Estado de México</option><option>Guanajuato</option>
+                                <option>Guerrero</option><option>Hidalgo</option>
+                                <option>Jalisco</option><option>Michoacán</option>
+                                <option>Morelos</option><option>Nayarit</option>
+                                <option>Nuevo León</option><option>Oaxaca</option>
+                                <option>Puebla</option><option>Querétaro</option>
+                                <option>Quintana Roo</option><option>San Luis Potosí</option>
+                                <option>Sinaloa</option><option>Sonora</option>
+                                <option>Tabasco</option><option>Tamaulipas</option>
+                                <option>Tlaxcala</option><option>Veracruz</option>
+                                <option>Yucatán</option><option>Zacatecas</option>
+                              </select>
+                              <label for="fisicaEstado">Estado</label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- PASO 3: Contactos -->
+                  <div class="card mb-4 form-section" id="section3">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                      <h5 class="card-title mb-0">
+                        <span class="step-badge">3</span>
+                        Contactos
+                      </h5>
+                    </div>
+                    <div class="card-body">
+
+                      <!-- Contacto Principal -->
+                      <h6 class="text-muted text-uppercase small fw-semibold mb-3">
+                        <i class="mdi mdi-account-star-outline me-1 text-primary"></i>
+                        Contacto Principal
+                      </h6>
+                      <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control"
+                                   id="cp1Nombre" placeholder="Nombre completo">
+                            <label for="cp1Nombre">Nombre Completo *</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control"
+                                   id="cp1Cargo" placeholder="Cargo o puesto">
+                            <label for="cp1Cargo">Cargo / Puesto</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="email" class="form-control"
+                                   id="cp1Email" placeholder="email@ejemplo.com">
+                            <label for="cp1Email">Email *</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="tel" class="form-control"
+                                   id="cp1Tel" placeholder="55 1234 5678">
+                            <label for="cp1Tel">Teléfono *</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="tel" class="form-control"
+                                   id="cp1Whatsapp" placeholder="55 1234 5678">
+                            <label for="cp1Whatsapp">WhatsApp</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control"
+                                   id="cp1Cumpleanos" placeholder="DD/MM">
+                            <label for="cp1Cumpleanos">Cumpleaños (DD/MM)</label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr class="my-3">
+
+                      <!-- Contacto Alternativo -->
+                      <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-0">
+                          <i class="mdi mdi-account-outline me-1"></i>
+                          Contacto Alternativo
+                        </h6>
+                        <div class="form-check form-switch mb-0">
+                          <input class="form-check-input" type="checkbox"
+                                 id="toggleContactoAlt">
+                          <label class="form-check-label small"
+                                 for="toggleContactoAlt">Agregar</label>
+                        </div>
+                      </div>
+
+                      <div id="seccionContactoAlt" class="d-none">
+                        <div class="row g-3 mb-4">
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control"
+                                     id="cp2Nombre" placeholder="Nombre completo">
+                              <label for="cp2Nombre">Nombre Completo</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control"
+                                     id="cp2Cargo" placeholder="Cargo o puesto">
+                              <label for="cp2Cargo">Cargo / Puesto</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="email" class="form-control"
+                                     id="cp2Email" placeholder="email@ejemplo.com">
+                              <label for="cp2Email">Email</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="tel" class="form-control"
+                                     id="cp2Tel" placeholder="55 1234 5678">
+                              <label for="cp2Tel">Teléfono</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="tel" class="form-control"
+                                     id="cp2Whatsapp" placeholder="55 1234 5678">
+                              <label for="cp2Whatsapp">WhatsApp</label>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                              <input type="text" class="form-control"
+                                     id="cp2Cumpleanos" placeholder="DD/MM">
+                              <label for="cp2Cumpleanos">Cumpleaños (DD/MM)</label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr class="my-3">
+
+                      <!-- Contactos adicionales dinámicos -->
+                      <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-0">
+                          <i class="mdi mdi-account-multiple-outline me-1"></i>
+                          Contactos Adicionales
+                        </h6>
+                        <button class="btn btn-sm btn-outline-primary"
+                                type="button" id="addContactoBtn">
+                          <i class="mdi mdi-plus me-1"></i>Agregar
+                        </button>
+                      </div>
+                      <div id="contactosAdicionalesContainer">
+                        <!-- Se agregan dinámicamente -->
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- PASO 4: Notas y Preferencias -->
+                  <div class="card mb-4 form-section" id="section4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">
+                        <span class="step-badge">4</span>
+                        Notas y Preferencias
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <div class="form-floating form-floating-outline">
+                            <textarea class="form-control" id="clienteNotas"
+                                      placeholder="Notas generales..."
+                                      style="height: 100px;"></textarea>
+                            <label for="clienteNotas">Notas Generales</label>
+                          </div>
+                          <small class="text-muted">
+                            Preferencias, condiciones especiales, observaciones importantes.
+                          </small>
+                        </div>
+                        <div class="col-12">
+                          <div class="form-floating form-floating-outline">
+                            <textarea class="form-control" id="clienteCondicionesPago"
+                                      placeholder="Condiciones de pago..."
+                                      style="height: 80px;"></textarea>
+                            <label for="clienteCondicionesPago">
+                              Condiciones de Pago
+                            </label>
+                          </div>
+                          <small class="text-muted">
+                            Ej: 50% anticipo, 50% al término. Factura en 3 días.
+                          </small>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <select class="form-select" id="clienteFormaPago">
+                              <option value="">Selecciona...</option>
+                              <option value="Transferencia">Transferencia bancaria</option>
+                              <option value="Efectivo">Efectivo</option>
+                              <option value="Cheque">Cheque</option>
+                              <option value="Tarjeta">Tarjeta de crédito/débito</option>
+                              <option value="Mixto">Mixto</option>
+                            </select>
+                            <label for="clienteFormaPago">Forma de Pago Preferida</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating form-floating-outline">
+                            <select class="form-select" id="clienteUsoCfdi">
+                              <option value="">Selecciona uso CFDI...</option>
+                              <option value="G01">G01 - Adquisición de mercancias</option>
+                              <option value="G03">G03 - Gastos en general</option>
+                              <option value="P01">P01 - Por definir</option>
+                              <option value="S01">S01 - Sin efectos fiscales</option>
+                            </select>
+                            <label for="clienteUsoCfdi">Uso de CFDI</label>
+                          </div>
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label fw-medium small">
+                            Canales de Comunicación Preferidos
+                          </label>
+                          <div class="d-flex gap-3 flex-wrap">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox"
+                                     id="canalEmail" value="Email">
+                              <label class="form-check-label" for="canalEmail">
+                                <i class="mdi mdi-email-outline me-1"></i>Email
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox"
+                                     id="canalWhatsapp" value="WhatsApp">
+                              <label class="form-check-label" for="canalWhatsapp">
+                                <i class="mdi mdi-whatsapp me-1"></i>WhatsApp
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox"
+                                     id="canalTelefono" value="Teléfono">
+                              <label class="form-check-label" for="canalTelefono">
+                                <i class="mdi mdi-phone-outline me-1"></i>Teléfono
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox"
+                                     id="canalPresencial" value="Presencial">
+                              <label class="form-check-label" for="canalPresencial">
+                                <i class="mdi mdi-account-outline me-1"></i>Presencial
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- ══ / COLUMNA PRINCIPAL ══ -->
+
+                <!-- ══ PANEL LATERAL ══ -->
+                <div class="col-lg-4">
+
+                  <!-- Resumen -->
+                  <div class="card mb-4 sticky-top" style="top: 80px;">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Resumen del Cliente</h5>
+                    </div>
+                    <div class="card-body">
+
+                      <!-- Avatar preview -->
+                      <div class="text-center mb-4">
+                        <div class="cliente-avatar mx-auto mb-2"
+                             id="previewAvatar"
+                             style="width:64px;height:64px;font-size:1.4rem;
+                                    background:rgba(105,108,255,0.15);color:#696cff;">
+                          ?
+                        </div>
+                        <div class="fw-semibold" id="previewNombre">—</div>
+                        <div class="text-muted small" id="previewTipo">—</div>
+                        <div class="mt-1" id="previewStatus"></div>
+                      </div>
+
+                      <hr class="my-3">
+
+                      <!-- Info resumen -->
+                      <div class="resume-row">
+                        <span class="resume-label">RFC</span>
+                        <span class="resume-value font-monospace" id="previewRfc">—</span>
+                      </div>
+                      <div class="resume-row">
+                        <span class="resume-label">Email</span>
+                        <span class="resume-value" id="previewEmail">—</span>
+                      </div>
+                      <div class="resume-row">
+                        <span class="resume-label">Teléfono</span>
+                        <span class="resume-value" id="previewTel">—</span>
+                      </div>
+                      <div class="resume-row">
+                        <span class="resume-label">Ciudad</span>
+                        <span class="resume-value" id="previewCiudad">—</span>
+                      </div>
+                      <div class="resume-row">
+                        <span class="resume-label">Forma Pago</span>
+                        <span class="resume-value" id="previewFormaPago">—</span>
+                      </div>
+
+                      <hr class="my-3">
+
+                      <!-- Validación campos -->
+                      <div class="mb-3">
+                        <small class="text-muted fw-semibold d-block mb-2">
+                          Campos requeridos
+                        </small>
+                        <div id="validationChecklist">
+                          <!-- Se renderiza dinámicamente -->
+                        </div>
+                      </div>
+
+                      <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-primary" id="saveSideBtn">
+                          <i class="mdi mdi-content-save me-1"></i>
+                          Guardar Cliente
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                                onclick="window.location.href='catalogo-clientes.html'">
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- ══ / PANEL LATERAL ══ -->
+
+              </div>
+
+            </div>
+            <!-- / Content -->
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                  <div class="mb-2 mb-md-0">
+                    ©<script>document.write(new Date().getFullYear());</script>,
+                    hecho con <span class="text-danger"><i class="tf-icons mdi mdi-heart"></i></span> por
+                    <a href="#" class="footer-link fw-medium">Happening</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- / Content wrapper -->
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+      <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
+    <!-- Core JS -->
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/modules/bp-modules/formulario-cliente.js"></script>
+  </body>
+</html>

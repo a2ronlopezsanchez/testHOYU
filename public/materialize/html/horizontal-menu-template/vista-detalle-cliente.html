@@ -1,0 +1,422 @@
+<!doctype html>
+<html
+  lang="es"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="../../assets/"
+  data-template="vertical-menu-template-no-customizer">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Detalle Cliente | Black Production</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="../../assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="../../assets/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/rtl/theme-default.css" />
+    <link rel="stylesheet" href="../../assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/black-production-css/clientes.css" />
+
+    <!-- Helpers -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- MENU LATERAL -->
+        <!-- [PEGA AQUÍ EL ASIDE ACTUALIZADO] -->
+
+        <div class="layout-page">
+
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="mdi mdi-menu mdi-24px"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="../../assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">Nach Díaz</span>
+                            <small class="text-muted">Super Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-account-outline me-2"></i>Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-cog-outline me-2"></i>Configuración</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><a class="dropdown-item" href="#"><i class="mdi mdi-logout me-2"></i>Log Out</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+              <!-- Header -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                      <button class="btn btn-icon btn-sm btn-outline-secondary"
+                              onclick="window.location.href='catalogo-clientes.html'">
+                        <i class="mdi mdi-arrow-left"></i>
+                      </button>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="cliente-avatar cliente-avatar-moral"
+                             id="headerAvatar"
+                             style="width:52px;height:52px;font-size:1.1rem;">
+                          ?
+                        </div>
+                        <div>
+                          <h4 class="mb-1" id="headerNombre">Cargando...</h4>
+                          <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small" id="headerRazonSocial"></span>
+                            <span id="headerTipoBadge"></span>
+                            <span id="headerStatusBadge"></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                        <i class="mdi mdi-printer me-1"></i>
+                        <span class="d-none d-sm-inline">Imprimir</span>
+                      </button>
+                      <a href="#" class="btn btn-sm btn-outline-primary" id="headerEditBtn">
+                        <i class="mdi mdi-pencil-outline me-1"></i>
+                        <span class="d-none d-sm-inline">Editar</span>
+                      </a>
+                      <a href="/cotizaciones/formulario-cotizacion.html?clienteId="
+                         class="btn btn-sm btn-primary" id="headerNuevaCotBtn">
+                        <i class="mdi mdi-file-plus-outline me-1"></i>
+                        <span class="d-none d-sm-inline">Nueva Cotización</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stats rápidas -->
+              <div class="row g-4 mb-4">
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 text-primary mb-0" id="statEventos">--</div>
+                      <small class="text-muted">Eventos Totales</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 text-success mb-0" id="statRevenue">--</div>
+                      <small class="text-muted">Revenue Total</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 text-warning mb-0" id="statPendiente">--</div>
+                      <small class="text-muted">Saldo Pendiente</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card h-100">
+                    <div class="card-body text-center py-3">
+                      <div class="fw-bold fs-3 text-info mb-0" id="statTicket">--</div>
+                      <small class="text-muted">Ticket Promedio</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-4">
+                <!-- ══ COLUMNA PRINCIPAL ══ -->
+                <div class="col-lg-8">
+
+                  <!-- Tabs -->
+                  <div class="card">
+                    <div class="card-header p-0">
+                      <ul class="nav nav-tabs card-header-tabs" id="clienteTabs">
+                        <li class="nav-item">
+                          <a class="nav-link active px-4 py-3" data-bs-toggle="tab"
+                             href="#tabCotizaciones">
+                            <i class="mdi mdi-file-document-outline me-1"></i>
+                            Cotizaciones
+                            <span class="badge bg-label-primary ms-1" id="badgeCotizaciones">0</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link px-4 py-3" data-bs-toggle="tab"
+                             href="#tabEventos">
+                            <i class="mdi mdi-calendar-star me-1"></i>
+                            Eventos
+                            <span class="badge bg-label-success ms-1" id="badgeEventos">0</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link px-4 py-3" data-bs-toggle="tab"
+                             href="#tabCobranza">
+                            <i class="mdi mdi-cash-clock me-1"></i>
+                            Cobranza
+                            <span class="badge bg-label-warning ms-1" id="badgeCobranza">0</span>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link px-4 py-3" data-bs-toggle="tab"
+                             href="#tabRevenue">
+                            <i class="mdi mdi-chart-line me-1"></i>
+                            Revenue
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link px-4 py-3" data-bs-toggle="tab"
+                             href="#tabFacturacion">
+                            <i class="mdi mdi-receipt-text-outline me-1"></i>
+                            Facturación
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div class="tab-content p-4">
+
+                      <!-- Tab: Cotizaciones -->
+                      <div class="tab-pane fade show active" id="tabCotizaciones">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                          <h6 class="mb-0">Historial de Cotizaciones</h6>
+                          <a href="#" class="btn btn-sm btn-primary" id="nuevaCotBtn">
+                            <i class="mdi mdi-plus me-1"></i>Nueva
+                          </a>
+                        </div>
+                        <div id="cotizacionesList">
+                          <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab: Eventos -->
+                      <div class="tab-pane fade" id="tabEventos">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                          <h6 class="mb-0">Historial de Eventos</h6>
+                          <a href="#" class="btn btn-sm btn-success" id="nuevoEvtBtn">
+                            <i class="mdi mdi-plus me-1"></i>Nuevo Evento
+                          </a>
+                        </div>
+                        <div id="eventosList">
+                          <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab: Cobranza -->
+                      <div class="tab-pane fade" id="tabCobranza">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                          <h6 class="mb-0">Estado de Cobranza</h6>
+                        </div>
+                        <div id="cobranzaList">
+                          <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab: Revenue -->
+                      <div class="tab-pane fade" id="tabRevenue">
+                        <h6 class="mb-3">Análisis de Revenue</h6>
+                        <div id="revenueContent">
+                          <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab: Facturación -->
+                      <div class="tab-pane fade" id="tabFacturacion">
+                        <h6 class="mb-3">Historial de Facturación</h6>
+                        <div id="facturacionList">
+                          <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+                <!-- ══ / COLUMNA PRINCIPAL ══ -->
+
+                <!-- ══ PANEL LATERAL ══ -->
+                <div class="col-lg-4">
+                    <!-- Info general -->
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Información General</h5>
+                    </div>
+                    <div class="card-body" id="sideInfoGeneral">
+                      <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Contactos -->
+                  <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                      <h5 class="card-title mb-0">Contactos</h5>
+                      <a href="#" class="btn btn-sm btn-outline-primary" id="editContactosBtn">
+                        <i class="mdi mdi-pencil-outline"></i>
+                      </a>
+                    </div>
+                    <div class="card-body p-0" id="sideContactos">
+                      <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Dirección -->
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Direcciones</h5>
+                    </div>
+                    <div class="card-body" id="sideDirecciones">
+                      <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Preferencias -->
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Preferencias</h5>
+                    </div>
+                    <div class="card-body" id="sidePreferencias">
+                      <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Acciones rápidas -->
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title mb-0">Acciones Rápidas</h5>
+                    </div>
+                    <div class="card-body d-grid gap-2">
+                      <a href="#" class="btn btn-primary" id="accionNuevaCot">
+                        <i class="mdi mdi-file-plus-outline me-2"></i>
+                        Nueva Cotización
+                      </a>
+                      <a href="#" class="btn btn-success" id="accionNuevoEvt">
+                        <i class="mdi mdi-calendar-plus me-2"></i>
+                        Nuevo Evento
+                      </a>
+                      <a href="#" class="btn btn-outline-secondary" id="accionEditarCliente">
+                        <i class="mdi mdi-pencil-outline me-2"></i>
+                        Editar Cliente
+                      </a>
+                      <button class="btn btn-outline-secondary" id="accionExportarCliente">
+                        <i class="mdi mdi-download me-2"></i>
+                        Exportar Perfil
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- ══ / PANEL LATERAL ══ -->
+
+              </div>
+
+            </div>
+            <!-- / Content -->
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                  <div class="mb-2 mb-md-0">
+                    ©<script>document.write(new Date().getFullYear());</script>,
+                    hecho con <span class="text-danger"><i class="tf-icons mdi mdi-heart"></i></span> por
+                    <a href="#" class="footer-link fw-medium">Happening</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- / Content wrapper -->
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+      <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="../../assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/vendor/libs/moment/moment.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/modules/bp-modules/vista-detalle-cliente.js"></script>
+  </body>
+</html>

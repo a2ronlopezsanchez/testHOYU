@@ -1,0 +1,880 @@
+/* =====================================================
+   CLIENTES — Black Production
+   clientes.css
+   ===================================================== */
+
+/* ── Tabla de clientes ── */
+#clientesTable thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #f8f8ff;
+}
+
+#clientesTable tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#clientesTable tbody tr:hover {
+  background-color: rgba(105, 108, 255, 0.04);
+}
+
+#clientesTable td {
+  vertical-align: middle;
+  font-size: 0.85rem;
+}
+
+/* ── Avatar cliente ── */
+.cliente-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.cliente-avatar-moral {
+  background: rgba(105, 108, 255, 0.15);
+  color: #696cff;
+}
+
+.cliente-avatar-fisica {
+  background: rgba(40, 199, 111, 0.15);
+  color: #28c76f;
+}
+
+/* ── Info cliente en tabla ── */
+.cliente-nombre {
+  font-weight: 600;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.cliente-coloquial {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.cliente-razon-social {
+  font-size: 0.72rem;
+  color: #bbb;
+  font-style: italic;
+}
+
+/* ── Badges de tipo ── */
+.badge-tipo-moral {
+  background: rgba(105, 108, 255, 0.12);
+  color: #696cff;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-tipo-fisica {
+  background: rgba(40, 199, 111, 0.12);
+  color: #28c76f;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ── Badges de estatus ── */
+.badge-cliente-activo {
+  background: rgba(40, 199, 111, 0.12);
+  color: #28c76f;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-cliente-prospecto {
+  background: rgba(255, 159, 67, 0.12);
+  color: #ff9f43;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-cliente-vip {
+  background: rgba(234, 84, 85, 0.12);
+  color: #ea5455;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.badge-cliente-inactivo {
+  background: rgba(133, 146, 163, 0.12);
+  color: #8592a3;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ── Botones acción tabla ── */
+.cliente-action-btn {
+  padding: 3px 7px;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+/* ── Vista tarjetas ── */
+.cliente-card {
+  border: 1px solid #e8e8ff;
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  cursor: pointer;
+  height: 100%;
+  background: #fff;
+}
+
+.cliente-card:hover {
+  box-shadow: 0 4px 20px rgba(105, 108, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.cliente-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cliente-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.cliente-card-nombre {
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.cliente-card-sub {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.cliente-card-meta {
+  font-size: 0.78rem;
+  color: #888;
+  margin-bottom: 0.25rem;
+}
+
+.cliente-card-meta i {
+  width: 16px;
+  margin-right: 4px;
+  color: #696cff;
+}
+
+.cliente-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0f0ff;
+}
+
+.cliente-card-eventos {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+.cliente-card-eventos strong {
+  color: #696cff;
+  font-size: 0.95rem;
+}
+
+/* ── Quick view modal ── */
+.qv-section-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+}
+
+.qv-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 0.84rem;
+}
+
+.qv-info-row:last-child {
+  border-bottom: none;
+}
+
+.qv-info-label {
+  color: #999;
+  flex-shrink: 0;
+  margin-right: 1rem;
+}
+
+.qv-info-value {
+  font-weight: 500;
+  text-align: right;
+}
+
+.qv-stat-box {
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #f8f8ff;
+}
+
+.qv-stat-box .qv-stat-num {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #696cff;
+  line-height: 1;
+}
+
+.qv-stat-box .qv-stat-label {
+  font-size: 0.7rem;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* ── Contacto chip ── */
+.contacto-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8f8ff;
+  border: 1px solid #e8e8ff;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  margin: 2px;
+}
+
+.contacto-chip i {
+  color: #696cff;
+  font-size: 0.85rem;
+}
+
+/* ── Empty state ── */
+.clientes-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #bbb;
+}
+
+.clientes-empty i {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Paginación ── */
+#clientesPagination .page-link {
+  font-size: 0.82rem;
+  padding: 4px 10px;
+}
+
+/* ── Stats cards ── */
+.card .fs-3 {
+  font-size: 1.6rem !important;
+}
+
+/* ── Filtros ── */
+#tipoClienteFilter,
+#statusClienteFilter,
+#ordenarClienteFilter {
+  font-size: 0.83rem;
+  min-width: 140px;
+}
+
+/* ── Toggle vista ── */
+#viewTableBtn.active,
+#viewCardsBtn.active {
+  background-color: #696cff;
+  border-color: #696cff;
+  color: #fff;
+}
+
+/* ── RFC monospace ── */
+.rfc-text {
+  font-family: monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+/* ── Highlight búsqueda ── */
+.cliente-highlight {
+  background-color: rgba(105, 108, 255, 0.18);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #tipoClienteFilter,
+  #statusClienteFilter,
+  #ordenarClienteFilter {
+    width: 100% !important;
+  }
+
+  .cliente-card {
+    padding: 1rem;
+  }
+}
+/* =====================================================
+   FORMULARIO CLIENTE
+   ===================================================== */
+
+/* ── Steps progress ── */
+.form-steps {
+  padding: 0 0.5rem;
+}
+
+.steps-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  border: 2px solid #e0e0e0;
+}
+
+.step-item.active .step-dot {
+  background: #696cff;
+  border-color: #696cff;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(105,108,255,0.2);
+}
+
+.step-item.completed .step-dot {
+  background: #28c76f;
+  border-color: #28c76f;
+  color: #fff;
+}
+
+.step-label {
+  font-size: 0.72rem;
+  color: #aaa;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.step-item.active .step-label {
+  color: #696cff;
+  font-weight: 600;
+}
+
+.step-item.completed .step-label {
+  color: #28c76f;
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: #e0e0e0;
+  min-width: 40px;
+  max-width: 80px;
+  margin-bottom: 22px;
+  transition: background 0.3s ease;
+}
+
+.step-line.completed {
+  background: #28c76f;
+}
+
+/* ── Step badge en card header ── */
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #696cff;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Panel resumen lateral ── */
+.resume-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 0.83rem;
+}
+
+.resume-row:last-child {
+  border-bottom: none;
+}
+
+.resume-label {
+  color: #999;
+  flex-shrink: 0;
+  margin-right: 0.75rem;
+}
+
+.resume-value {
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+  font-size: 0.8rem;
+}
+
+/* ── Checklist validación ── */
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+  color: #bbb;
+  transition: color 0.2s ease;
+}
+
+.check-item.valid {
+  color: #28c76f;
+}
+
+.check-item.invalid {
+  color: #ea5455;
+}
+
+.check-item i {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* ── Contacto adicional dinámico ── */
+.contacto-extra-card {
+  border: 1px solid #e8e8ff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  background: #fafafe;
+}
+
+.contacto-extra-card .remove-contacto-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+}
+
+/* ── Form section highlight al scroll ── */
+.form-section {
+  scroll-margin-top: 80px;
+  transition: box-shadow 0.2s ease;
+}
+
+.form-section.highlighted {
+  box-shadow: 0 0 0 2px rgba(105,108,255,0.3);
+}
+
+/* ── RFC input ── */
+#clienteRfc {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── Toggle switch personalizado ── */
+.form-check-input:checked {
+  background-color: #696cff;
+  border-color: #696cff;
+}
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+  .sticky-top {
+    position: relative !important;
+    top: 0 !important;
+  }
+
+  .steps-track {
+    gap: 0;
+  }
+
+  .step-line {
+    min-width: 20px;
+  }
+}
+
+/* =====================================================
+   VISTA DETALLE CLIENTE
+   ===================================================== */
+
+/* ── Tabs ── */
+#clienteTabs .nav-link {
+  font-size: 0.83rem;
+  color: #888;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+#clienteTabs .nav-link.active {
+  color: #696cff;
+  border-bottom-color: #696cff;
+  font-weight: 600;
+}
+
+#clienteTabs .nav-link:hover {
+  color: #696cff;
+}
+
+/* ── Timeline cotizaciones / eventos ── */
+.detalle-timeline {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.detalle-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #eee;
+}
+
+.detalle-timeline-item {
+  position: relative;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.detalle-timeline-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detalle-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #696cff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #696cff;
+}
+
+.detalle-timeline-item.status-aprobada::before { background: #28c76f; box-shadow: 0 0 0 2px #28c76f; }
+.detalle-timeline-item.status-proceso::before  { background: #ff9f43; box-shadow: 0 0 0 2px #ff9f43; }
+.detalle-timeline-item.status-cancelada::before { background: #ea5455; box-shadow: 0 0 0 2px #ea5455; }
+.detalle-timeline-item.status-realizado::before { background: #28c76f; box-shadow: 0 0 0 2px #28c76f; }
+
+.timeline-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.timeline-item-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.timeline-item-meta {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.timeline-item-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #28c76f;
+  white-space: nowrap;
+}
+
+/* ── Cobranza ── */
+.cobranza-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: box-shadow 0.15s ease;
+}
+
+.cobranza-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.cobranza-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.cobranza-evento-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.cobranza-progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.cobranza-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #f0f0f0;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.cobranza-progress-bar .fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.cobranza-pagos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.pago-chip {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.pago-pagado   { background: rgba(40,199,111,0.12); color: #28c76f; }
+.pago-pendiente { background: rgba(255,159,67,0.12); color: #ff9f43; }
+.pago-vencido  { background: rgba(234,84,85,0.12);  color: #ea5455; }
+
+/* ── Revenue ── */
+.revenue-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.82rem;
+}
+
+.revenue-bar-label {
+  width: 80px;
+  flex-shrink: 0;
+  color: #888;
+  text-align: right;
+}
+
+.revenue-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #f0f0ff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.revenue-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #696cff, #9b9dff);
+  transition: width 0.6s ease;
+}
+
+.revenue-bar-amount {
+  width: 80px;
+  text-align: right;
+  font-weight: 600;
+  color: #696cff;
+  flex-shrink: 0;
+}
+
+.revenue-summary-box {
+  background: linear-gradient(135deg,
+    rgba(105,108,255,0.08),
+    rgba(105,108,255,0.03));
+  border: 1px solid rgba(105,108,255,0.15);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.revenue-summary-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #696cff;
+  line-height: 1;
+}
+
+.revenue-summary-label {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 3px;
+}
+
+/* ── Facturación ── */
+.factura-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 0.83rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.factura-row:last-child {
+  border-bottom: none;
+}
+
+.factura-folio {
+  font-family: monospace;
+  font-weight: 600;
+  color: #696cff;
+}
+
+/* ── Panel lateral info ── */
+.side-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f8f8f8;
+  font-size: 0.82rem;
+}
+
+.side-info-row:last-child { border-bottom: none; }
+.side-info-label { color: #aaa; flex-shrink: 0; margin-right: 0.75rem; }
+.side-info-value { font-weight: 500; text-align: right; word-break: break-word; }
+
+/* ── Contacto panel ── */
+.side-contacto-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.side-contacto-item:last-child { border-bottom: none; }
+
+.side-contacto-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.side-contacto-cargo {
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.side-contacto-meta {
+  font-size: 0.78rem;
+  color: #696cff;
+  margin-top: 3px;
+}
+
+.side-contacto-meta a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.side-contacto-meta a:hover { text-decoration: underline; }
+
+/* ── Canal badge ── */
+.canal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8f8ff;
+  border: 1px solid #e8e8ff;
+  border-radius: 20px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  color: #696cff;
+  margin: 2px;
+}
+
+/* ── Empty states ── */
+.detalle-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #ccc;
+}
+
+.detalle-empty i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Badges cotización/evento status ── */
+.badge-cot-borrador   { background:rgba(133,146,163,.12); color:#8592a3; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+.badge-cot-proceso    { background:rgba(255,159,67,.12);  color:#ff9f43; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+.badge-cot-aprobada   { background:rgba(40,199,111,.12);  color:#28c76f; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+.badge-cot-cancelada  { background:rgba(234,84,85,.12);   color:#ea5455; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+.badge-evt-preparacion{ background:rgba(105,108,255,.12); color:#696cff; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+.badge-evt-realizado  { background:rgba(40,199,111,.12);  color:#28c76f; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+.badge-evt-cancelado  { background:rgba(234,84,85,.12);   color:#ea5455; font-size:.7rem; padding:3px 8px; border-radius:4px; }
+
