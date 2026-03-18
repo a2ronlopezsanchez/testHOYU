@@ -5,10 +5,16 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/clientes.css') }}" />
+<style>
+  .clientes-form-layout {
+    max-width: 1680px;
+    margin-inline: auto;
+  }
+</style>
 @endsection
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
+<div class="container-fluid flex-grow-1 container-p-y clientes-form-layout">
 
               <!-- Header -->
               <div class="card mb-4">
