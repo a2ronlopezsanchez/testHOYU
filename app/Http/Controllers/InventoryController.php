@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class InventoryController extends Controller
 {
@@ -1553,7 +1554,31 @@ class InventoryController extends Controller
             ->orderBy('start_date', 'asc')
             ->get();
 
-        return view('inventory.eventos', compact('events'));
+        $clients = collect();
+        $clientLabelColumn = null;
+
+        if (Schema::hasTable('clients')) {
+            $clientColumns = Schema::getColumnListing('clients');
+            $clientLabelColumn = collect(['name', 'client_name', 'nombre', 'business_name', 'company_name'])
+                ->first(fn ($column) => in_array($column, $clientColumns, true));
+
+            if ($clientLabelColumn) {
+                $clients = DB::table('clients')
+                    ->select(['id', $clientLabelColumn])
+                    ->orderBy($clientLabelColumn)
+                    ->get()
+                    ->map(function ($client) use ($clientLabelColumn) {
+                        return (object) [
+                            'id' => $client->id,
+                            'label' => $client->{$clientLabelColumn},
+                        ];
+                    });
+            }
+        }
+
+        $clientLabels = $clients->pluck('label', 'id');
+
+        return view('inventory.eventos', compact('events', 'clients', 'clientLabels'));
     }
 
     /**
@@ -1561,8 +1586,15 @@ class InventoryController extends Controller
      */
     public function eventosStore(Request $request)
     {
+        $clientExistsRule = ['nullable'];
+
+        if (Schema::hasTable('clients')) {
+            $clientExistsRule[] = 'exists:clients,id';
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'id_client' => $clientExistsRule,
             'client_name' => ['nullable', 'string', 'max:255'],
             'venue_name' => ['nullable', 'string', 'max:255'],
             'venue_address' => ['nullable', 'string', 'max:500'],
@@ -1571,6 +1603,20 @@ class InventoryController extends Controller
             'status' => ['nullable', 'string', 'max:40'],
             'description' => ['nullable', 'string'],
         ]);
+
+        $selectedClientName = $validated['client_name'] ?? null;
+
+        if (!empty($validated['id_client']) && Schema::hasTable('clients')) {
+            $clientColumns = Schema::getColumnListing('clients');
+            $clientLabelColumn = collect(['name', 'client_name', 'nombre', 'business_name', 'company_name'])
+                ->first(fn ($column) => in_array($column, $clientColumns, true));
+
+            if ($clientLabelColumn) {
+                $selectedClientName = DB::table('clients')
+                    ->where('id', $validated['id_client'])
+                    ->value($clientLabelColumn) ?? $selectedClientName;
+            }
+        }
 
         $baseCode = 'EVT-' . now()->format('Ymd');
         $eventCode = null;
@@ -1591,7 +1637,8 @@ class InventoryController extends Controller
         Event::create([
             'event_code' => $eventCode,
             'name' => $validated['name'],
-            'client_name' => $validated['client_name'] ?? null,
+            'id_client' => $validated['id_client'] ?? null,
+            'client_name' => $selectedClientName,
             'venue_name' => $validated['venue_name'] ?? null,
             'venue_address' => $validated['venue_address'] ?? null,
             'start_date' => $validated['start_date'],

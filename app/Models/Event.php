@@ -11,7 +11,7 @@ class Event extends Model
         'start_date','end_date','setup_start_date','teardown_end_date',
         'venue_name','venue_address','venue_lat','venue_lng',
         'event_type','priority','status',
-        'client_name','client_contact','client_phone','client_email',
+        'id_client','client_name','client_contact','client_phone','client_email',
         'crew_size','notes','special_requirements','created_by',
     ];
 
