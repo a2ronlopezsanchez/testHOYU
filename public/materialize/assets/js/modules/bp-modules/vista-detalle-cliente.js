@@ -10,420 +10,60 @@
    ===================================================== */
 
 const BP_DetalleCliente = {
-  USE_MOCK:  true,
-  API_BASE:  '/api/v1',
+  API_BASE:  '/clientes',
   clienteId: null,
   cliente:   null
 };
 
-const MOCK_CLIENTES = [
-  {
-    id: 'CLI-001',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'Nike México',
-    razonSocial: 'Nike de México S. de R.L. de C.V.',
-    rfc: 'NME920301AB1',
-    status: 'VIP',
-    direccionFiscal: {
-      calle: 'Av. Insurgentes Sur 1602',
-      colonia: 'Crédito Constructor',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '03940'
-    },
-    direccionFisica: {
-      calle: 'Av. Santa Fe 505',
-      colonia: 'Cruz Manca',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '05349'
-    },
-    contactoPrincipal: {
-      nombre: 'Carlos Mendoza',
-      cargo: 'Director de Marketing',
-      email: 'cmendoza@nike.com',
-      tel: '55 1234 5678'
-    },
-    contactoAlternativo: {
-      nombre: 'Sofía Ramírez',
-      cargo: 'Coordinadora de Eventos',
-      email: 'sramirez@nike.com',
-      tel: '55 8765 4321'
-    },
-    totalEventos: 12,
-    ultimoEvento: '2025-01-15',
-    revenueTotal: 485000,
-    notas: 'Cliente VIP. Requiere factura en primeros 3 días.',
-    creadoEn: '2023-03-10'
-  },
-  {
-    id: 'CLI-002',
-    tipo: 'Persona Física',
-    nombreColoquial: 'Fam. García',
-    razonSocial: null,
-    rfc: 'GALA850612HDF',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Calle Roble 45',
-      colonia: 'Jardines del Pedregal',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '01900'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Luis García',
-      cargo: 'Particular',
-      email: 'lgarcia@gmail.com',
-      tel: '55 9876 5432'
-    },
-    contactoAlternativo: null,
-    totalEventos: 3,
-    ultimoEvento: '2025-02-01',
-    revenueTotal: 95000,
-    notas: '',
-    creadoEn: '2024-01-20'
-  },
-  {
-    id: 'CLI-003',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'Audi MTY',
-    razonSocial: 'Audi México S.A. de C.V.',
-    rfc: 'AME010101XY2',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Blvd. Díaz Ordaz 100',
-      colonia: 'Santa María',
-      ciudad: 'Monterrey',
-      estado: 'Nuevo León',
-      cp: '64650'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Fernanda Torres',
-      cargo: 'Gerente de Marca',
-      email: 'ftorres@audi.com.mx',
-      tel: '81 2345 6789'
-    },
-    contactoAlternativo: {
-      nombre: 'Ricardo Vega',
-      cargo: 'Asistente',
-      email: 'rvega@audi.com.mx',
-      tel: '81 9876 1234'
-    },
-    totalEventos: 5,
-    ultimoEvento: '2025-01-28',
-    revenueTotal: 220000,
-    notas: 'Requiere cotización formal con membrete.',
-    creadoEn: '2023-08-15'
-  },
-  {
-    id: 'CLI-004',
-    tipo: 'Persona Física',
-    nombreColoquial: 'Fam. Martínez',
-    razonSocial: null,
-    rfc: 'MAPA901130MDF',
-    status: 'Prospecto',
-    direccionFiscal: {
-      calle: 'Av. Lomas Verdes 320',
-      colonia: 'Lomas Verdes',
-      ciudad: 'Naucalpan',
-      estado: 'Estado de México',
-      cp: '53120'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Patricia Martínez',
-      cargo: 'Particular',
-      email: 'pmartinez@hotmail.com',
-      tel: '55 4567 8901'
-    },
-    contactoAlternativo: null,
-    totalEventos: 1,
-    ultimoEvento: '2025-02-18',
-    revenueTotal: 45000,
-    notas: 'Primer evento quinceañera.',
-    creadoEn: '2025-01-05'
-  },
-  {
-    id: 'CLI-005',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'TechSummit',
-    razonSocial: 'Tech Summit México S.A. de C.V.',
-    rfc: 'TSM180405PQ3',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Av. Paseo de la Reforma 222',
-      colonia: 'Juárez',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '06600'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Miguel Ángel Ruiz',
-      cargo: 'CEO',
-      email: 'maruiz@techsummit.mx',
-      tel: '55 3456 7890'
-    },
-    contactoAlternativo: {
-      nombre: 'Diana López',
-      cargo: 'Coordinadora',
-      email: 'dlopez@techsummit.mx',
-      tel: '55 2345 6789'
-    },
-    totalEventos: 2,
-    ultimoEvento: '2025-02-24',
-    revenueTotal: 130000,
-    notas: '',
-    creadoEn: '2024-06-12'
-  },
-  {
-    id: 'CLI-006',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'Diseñadores MX',
-    razonSocial: 'Diseñadores Mexicanos Asociados S.C.',
-    rfc: 'DMA150720RS4',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Masaryk 123',
-      colonia: 'Polanco',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '11560'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Valentina Cruz',
-      cargo: 'Directora Creativa',
-      email: 'vcruz@disenadoresmx.com',
-      tel: '55 6789 0123'
-    },
-    contactoAlternativo: null,
-    totalEventos: 4,
-    ultimoEvento: '2025-03-05',
-    revenueTotal: 175000,
-    notas: 'Siempre requieren pantallas LED.',
-    creadoEn: '2023-11-20'
-  },
-  {
-    id: 'CLI-007',
-    tipo: 'Persona Física',
-    nombreColoquial: 'Fam. Hernández',
-    razonSocial: null,
-    rfc: 'HERJ780910NDF',
-    status: 'Inactivo',
-    direccionFiscal: {
-      calle: 'Calle Pino 89',
-      colonia: 'Del Valle',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '03100'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Jorge Hernández',
-      cargo: 'Particular',
-      email: 'jhernandez@yahoo.com',
-      tel: '55 7890 1234'
-    },
-    contactoAlternativo: null,
-    totalEventos: 1,
-    ultimoEvento: '2023-12-15',
-    revenueTotal: 38000,
-    notas: 'Último evento con saldo pendiente.',
-    creadoEn: '2023-10-01'
-  }
-];
-
 /* =====================================================
-   2. DATOS MOCK
-   ===================================================== */
-
-const MOCK_COTIZACIONES_CLIENTE = [
-  {
-    id: 'COT-001', folio: 'BP-2025-001',
-    nombre: 'Boda García & López',
-    fecha: '2025-01-10', vigencia: '2025-01-25',
-    total: 85000, status: 'Aprobada',
-    eventoId: 'EVT-001', notas: 'Incluye transporte'
-  },
-  {
-    id: 'COT-002', folio: 'BP-2025-002',
-    nombre: 'Sesión Corporativa Q1',
-    fecha: '2025-01-18', vigencia: '2025-02-01',
-    total: 42000, status: 'En Proceso',
-    eventoId: null, notas: ''
-  },
-  {
-    id: 'COT-003', folio: 'BP-2024-089',
-    nombre: 'Evento Navideño 2024',
-    fecha: '2024-11-05', vigencia: '2024-11-20',
-    total: 95000, status: 'Aprobada',
-    eventoId: 'EVT-002', notas: ''
-  },
-  {
-    id: 'COT-004', folio: 'BP-2024-072',
-    nombre: 'Lanzamiento Producto',
-    fecha: '2024-09-12', vigencia: '2024-09-27',
-    total: 38000, status: 'Cancelada',
-    eventoId: null, notas: 'Cliente canceló por presupuesto'
-  }
-];
-
-const MOCK_EVENTOS_CLIENTE = [
-  {
-    id: 'EVT-001',
-    nombre: 'Boda García & López',
-    fecha: '2025-02-10',
-    venue: 'Hacienda San Miguel',
-    status: 'En Preparación',
-    total: 85000,
-    cotizacionId: 'COT-001'
-  },
-  {
-    id: 'EVT-002',
-    nombre: 'Evento Navideño Nike 2024',
-    fecha: '2024-12-15',
-    venue: 'Torre Mayor P12',
-    status: 'Realizado',
-    total: 95000,
-    cotizacionId: 'COT-003'
-  },
-  {
-    id: 'EVT-003',
-    nombre: 'Sesión Corporativa Marzo',
-    fecha: '2024-03-20',
-    venue: 'Centro Banamex',
-    status: 'Realizado',
-    total: 55000,
-    cotizacionId: null
-  }
-];
-
-const MOCK_COBRANZA_CLIENTE = [
-  {
-    id: 'COB-001',
-    eventoId: 'EVT-001',
-    eventoNombre: 'Boda García & López',
-    total: 85000,
-    pagos: [
-      { id: 'PAG-001', concepto: 'Anticipo 50%', monto: 42500,
-        fechaVencimiento: '2025-01-20', fechaPago: '2025-01-18',
-        status: 'Pagado' },
-      { id: 'PAG-002', concepto: 'Pago Final 50%', monto: 42500,
-        fechaVencimiento: '2025-02-10', fechaPago: null,
-        status: 'Pendiente' }
-    ]
-  },
-  {
-    id: 'COB-002',
-    eventoId: 'EVT-002',
-    eventoNombre: 'Evento Navideño Nike 2024',
-    total: 95000,
-    pagos: [
-      { id: 'PAG-003', concepto: 'Anticipo 40%', monto: 38000,
-        fechaVencimiento: '2024-11-15', fechaPago: '2024-11-14',
-        status: 'Pagado' },
-      { id: 'PAG-004', concepto: 'Segundo Pago 30%', monto: 28500,
-        fechaVencimiento: '2024-12-01', fechaPago: '2024-11-30',
-        status: 'Pagado' },
-      { id: 'PAG-005', concepto: 'Pago Final 30%', monto: 28500,
-        fechaVencimiento: '2024-12-16', fechaPago: '2024-12-20',
-        status: 'Pagado' }
-    ]
-  }
-];
-
-const MOCK_FACTURAS_CLIENTE = [
-  {
-    id: 'FAC-001', folio: 'A-0042',
-    eventoNombre: 'Evento Navideño Nike 2024',
-    fecha: '2024-12-16', monto: 95000,
-    status: 'Timbrada', uuid: 'ABCD-1234-EFGH-5678'
-  },
-  {
-    id: 'FAC-002', folio: 'A-0038',
-    eventoNombre: 'Sesión Corporativa Marzo',
-    fecha: '2024-03-22', monto: 55000,
-    status: 'Timbrada', uuid: 'IJKL-9012-MNOP-3456'
-  }
-];
-
-/* =====================================================
-   3. CAPA DE API
+   2. CAPA DE API
    ===================================================== */
 
 const BP_DetalleClienteAPI = {
 
+  getHeaders() {
+    return {
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+    };
+  },
+
+  async handleResponse(res, defaultMessage) {
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const validationErrors = payload?.errors
+        ? Object.values(payload.errors).flat().join(' ')
+        : '';
+      throw new Error(validationErrors || payload?.message || defaultMessage);
+    }
+    return payload;
+  },
+
   async getCliente(id) {
-    if (BP_DetalleCliente.USE_MOCK) {
-      return new Promise(resolve => {
-        const c = (typeof MOCK_CLIENTES !== 'undefined')
-          ? MOCK_CLIENTES.find(x => x.id === id)
-          : null;
-        setTimeout(() => resolve(c || null), 350);
-      });
-    }
-    const res = await fetch(`${BP_DetalleCliente.API_BASE}/clientes/${id}`);
-    if (!res.ok) throw new Error('Cliente no encontrado');
-    return res.json();
+    const res = await fetch(`${BP_DetalleCliente.API_BASE}/${id}`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse(res, 'Cliente no encontrado');
   },
 
-  async getCotizaciones(clienteId) {
-    if (BP_DetalleCliente.USE_MOCK) {
-      return new Promise(resolve =>
-        setTimeout(() => resolve([...MOCK_COTIZACIONES_CLIENTE]), 400)
-      );
-    }
-    const res = await fetch(
-      `${BP_DetalleCliente.API_BASE}/clientes/${clienteId}/cotizaciones`
-    );
-    if (!res.ok) throw new Error('Error al cargar cotizaciones');
-    return res.json();
+  async getCotizaciones() {
+    return [];
   },
 
-  async getEventos(clienteId) {
-    if (BP_DetalleCliente.USE_MOCK) {
-      return new Promise(resolve =>
-        setTimeout(() => resolve([...MOCK_EVENTOS_CLIENTE]), 400)
-      );
-    }
-    const res = await fetch(
-      `${BP_DetalleCliente.API_BASE}/clientes/${clienteId}/eventos`
-    );
-    if (!res.ok) throw new Error('Error al cargar eventos');
-    return res.json();
+  async getEventos() {
+    return [];
   },
 
-  async getCobranza(clienteId) {
-    if (BP_DetalleCliente.USE_MOCK) {
-      return new Promise(resolve =>
-        setTimeout(() => resolve([...MOCK_COBRANZA_CLIENTE]), 400)
-      );
-    }
-    const res = await fetch(
-      `${BP_DetalleCliente.API_BASE}/clientes/${clienteId}/cobranza`
-    );
-    if (!res.ok) throw new Error('Error al cargar cobranza');
-    return res.json();
+  async getCobranza() {
+    return [];
   },
 
-  async getFacturas(clienteId) {
-    if (BP_DetalleCliente.USE_MOCK) {
-      return new Promise(resolve =>
-        setTimeout(() => resolve([...MOCK_FACTURAS_CLIENTE]), 400)
-      );
-    }
-    const res = await fetch(
-      `${BP_DetalleCliente.API_BASE}/clientes/${clienteId}/facturas`
-    );
-    if (!res.ok) throw new Error('Error al cargar facturas');
-    return res.json();
+  async getFacturas() {
+    return [];
   }
 };
 /* =====================================================
-   4. HELPERS
+   3. HELPERS
    ===================================================== */
 
 const BP_DetalleHelpers = {
@@ -524,7 +164,7 @@ const BP_DetalleHelpers = {
 };
 
 /* =====================================================
-   5. RENDER — CABECERA Y PANEL LATERAL
+   4. RENDER — CABECERA Y PANEL LATERAL
    ===================================================== */
 
 const BP_DetalleRenderHeader = {
@@ -548,9 +188,8 @@ const BP_DetalleRenderHeader = {
       BP_DetalleHelpers.statusBadge(c.status);
 
     // Botones header
-    document.getElementById('headerEditBtn').href = 'javascript:void(0);';
-    document.getElementById('headerEditBtn').onclick = () =>
-    BP_DetalleHelpers.toast('info', 'Edición de cliente próximamente');
+    document.getElementById('headerEditBtn').href = `/clientes/${c.id}/editar`;
+    document.getElementById('headerEditBtn').onclick = null;
 
     document.getElementById('headerNuevaCotBtn').href = 'javascript:void(0);';
     document.getElementById('headerNuevaCotBtn').onclick = () =>
@@ -565,9 +204,8 @@ const BP_DetalleRenderHeader = {
     document.getElementById('accionNuevoEvt').onclick = () =>
     BP_DetalleHelpers.toast('info', 'Nuevo evento próximamente');
 
-    document.getElementById('accionEditarCliente').href = 'javascript:void(0);';
-    document.getElementById('accionEditarCliente').onclick = () =>
-    BP_DetalleHelpers.toast('info', 'Edición de cliente próximamente');
+    document.getElementById('accionEditarCliente').href = `/clientes/${c.id}/editar`;
+    document.getElementById('accionEditarCliente').onclick = null;
 
     document.getElementById('nuevaCotBtn').href = 'javascript:void(0);';
     document.getElementById('nuevaCotBtn').onclick = () =>
@@ -759,7 +397,7 @@ const BP_DetalleRenderHeader = {
 };
 
 /* =====================================================
-   6. RENDER — STATS
+   5. RENDER — STATS
    ===================================================== */
 
 const BP_DetalleRenderStats = {
@@ -788,7 +426,7 @@ const BP_DetalleRenderStats = {
   }
 };
 /* =====================================================
-   7. RENDER — TABS
+   6. RENDER — TABS
    ===================================================== */
 
 const BP_DetalleRenderTabs = {
@@ -1068,7 +706,7 @@ const BP_DetalleRenderTabs = {
 };
 
 /* =====================================================
-   8. INICIALIZACIÓN
+   7. INICIALIZACIÓN
    ===================================================== */
 
 const BP_DetalleClienteInit = {
@@ -1078,7 +716,7 @@ const BP_DetalleClienteInit = {
       new URLSearchParams(window.location.search).get('id');
 
     if (!BP_DetalleCliente.clienteId) {
-      window.location.href = 'catalogo-clientes.html';
+      window.location.href = '/clientes/catalogo';
       return;
     }
 
@@ -1140,7 +778,7 @@ const BP_DetalleClienteInit = {
 };
 
 /* =====================================================
-   9. ARRANQUE
+   8. ARRANQUE
    ===================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
