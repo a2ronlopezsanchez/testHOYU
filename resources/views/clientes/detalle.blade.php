@@ -302,7 +302,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <form id="nuevoEventoClienteForm">
-        <div class="modal-body">
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">Cliente</label>
@@ -356,7 +356,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <form id="editarContactosClienteForm">
-        <div class="modal-body">
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
           <div class="alert alert-info py-2 px-3 small mb-4">
             <i class="mdi mdi-account-multiple-outline me-1"></i>
             Aquí puedes editar los contactos existentes y agregar nuevos contactos del cliente.

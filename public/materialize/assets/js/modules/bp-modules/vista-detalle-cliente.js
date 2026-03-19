@@ -377,8 +377,14 @@ const BP_DetalleContactosModal = {
 
     document.getElementById('modalToggleContactoAlt')
       ?.addEventListener('change', event => {
-        document.getElementById('modalSeccionContactoAlt')
-          ?.classList.toggle('d-none', !event.target.checked);
+        const section = document.getElementById('modalSeccionContactoAlt');
+        section?.classList.toggle('d-none', !event.target.checked);
+
+        if (event.target.checked) {
+          setTimeout(() => {
+            section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 150);
+        }
       });
 
     document.getElementById('modalAddContactoBtn')
@@ -481,6 +487,10 @@ const BP_DetalleContactosModal = {
     container.appendChild(card);
     card.querySelector('[data-remove-contact]')
       ?.addEventListener('click', () => this.removeExtraContact(id));
+
+    setTimeout(() => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
   },
 
   removeExtraContact(id) {
