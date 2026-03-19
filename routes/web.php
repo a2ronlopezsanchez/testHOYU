@@ -135,6 +135,7 @@ Route::middleware('auth')->group(function () {
             Route::view('/detalle', 'clientes.detalle')->name('detalle');
             Route::get('/list', [App\Http\Controllers\ClientController::class, 'index'])->name('index');
             Route::post('/', [App\Http\Controllers\ClientController::class, 'store'])->name('store');
+            Route::get('/{client}/editar', [App\Http\Controllers\ClientController::class, 'edit'])->whereNumber('client')->name('edit');
             Route::get('/{client}', [App\Http\Controllers\ClientController::class, 'show'])->whereNumber('client')->name('show');
             Route::put('/{client}', [App\Http\Controllers\ClientController::class, 'update'])->whereNumber('client')->name('update');
             Route::delete('/{client}', [App\Http\Controllers\ClientController::class, 'destroy'])->whereNumber('client')->name('destroy');

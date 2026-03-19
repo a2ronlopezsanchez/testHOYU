@@ -21,6 +21,15 @@ class ClientController extends Controller
         return response()->json($clients);
     }
 
+
+    public function edit(Client $client)
+    {
+        return redirect()->route('clientes.formulario', [
+            'mode' => 'edit',
+            'id' => $client->id,
+        ]);
+    }
+
     public function show(Client $client): JsonResponse
     {
         $client->load(['addresses', 'contacts']);

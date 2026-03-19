@@ -675,7 +675,7 @@ const BP_ClientesActions = {
 
     edit(id) {
       window.location.href =
-        `/clientes/formulario?mode=edit&id=${id}`;
+        `/clientes/${id}/editar`;
     },
 
   confirmDelete(id) {
