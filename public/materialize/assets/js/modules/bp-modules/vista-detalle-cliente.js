@@ -146,6 +146,21 @@ const BP_DetalleClienteAPI = {
     return this.handleResponse(res, 'No se pudo crear el evento');
   },
 
+  async updateCliente(payload) {
+    const res = await fetch(
+      `${BP_DetalleCliente.API_BASE}/${BP_DetalleCliente.clienteId}`,
+      {
+        method: 'PUT',
+        headers: {
+          ...this.getHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+    return this.handleResponse(res, 'No se pudo actualizar el cliente');
+  },
+
   async getCobranza() {
     return Promise.resolve([...MOCK_COBRANZA_CLIENTE]);
   },
@@ -344,6 +359,247 @@ const BP_DetalleEventoModal = {
   }
 };
 
+const BP_DetalleContactosModal = {
+
+  modalInstance: null,
+  extraIds: [],
+
+  init() {
+    const modalEl = document.getElementById('editarContactosClienteModal');
+    if (!modalEl || typeof bootstrap === 'undefined') return;
+
+    this.modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+    document.getElementById('editContactosBtn')
+      ?.addEventListener('click', event => {
+        event.preventDefault();
+        this.open();
+      });
+
+    document.getElementById('modalToggleContactoAlt')
+      ?.addEventListener('change', event => {
+        document.getElementById('modalSeccionContactoAlt')
+          ?.classList.toggle('d-none', !event.target.checked);
+      });
+
+    document.getElementById('modalAddContactoBtn')
+      ?.addEventListener('click', () => this.addExtraContact());
+
+    document.getElementById('editarContactosClienteForm')
+      ?.addEventListener('submit', async event => {
+        event.preventDefault();
+        await this.submit();
+      });
+  },
+
+  open() {
+    if (!this.modalInstance || !BP_DetalleCliente.cliente) return;
+
+    this.loadFromCliente(BP_DetalleCliente.cliente);
+    this.clearErrors();
+    this.modalInstance.show();
+  },
+
+  loadFromCliente(cliente) {
+    const principal = cliente.contactoPrincipal || {};
+    const alternativo = cliente.contactoAlternativo || null;
+
+    this.extraIds = [];
+    document.getElementById('modalContactosAdicionalesContainer').innerHTML = '';
+
+    this.setVal('modalCp1Nombre', principal.nombre);
+    this.setVal('modalCp1Cargo', principal.cargo);
+    this.setVal('modalCp1Email', principal.email);
+    this.setVal('modalCp1Tel', principal.tel);
+    this.setVal('modalCp1Whatsapp', principal.whatsapp);
+    this.setVal('modalCp1Cumpleanos', principal.cumpleanos);
+
+    document.getElementById('modalToggleContactoAlt').checked = Boolean(alternativo);
+    document.getElementById('modalSeccionContactoAlt')
+      .classList.toggle('d-none', !alternativo);
+
+    this.setVal('modalCp2Nombre', alternativo?.nombre);
+    this.setVal('modalCp2Cargo', alternativo?.cargo);
+    this.setVal('modalCp2Email', alternativo?.email);
+    this.setVal('modalCp2Tel', alternativo?.tel);
+    this.setVal('modalCp2Whatsapp', alternativo?.whatsapp);
+    this.setVal('modalCp2Cumpleanos', alternativo?.cumpleanos);
+
+    (cliente.contactosAdicionales || []).forEach(contacto => {
+      this.addExtraContact(contacto);
+    });
+  },
+
+  setVal(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value || '';
+  },
+
+  addExtraContact(contact = {}) {
+    const id = `modal-contacto-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    this.extraIds.push(id);
+
+    const container = document.getElementById('modalContactosAdicionalesContainer');
+    const card = document.createElement('div');
+    card.className = 'card shadow-none border mb-3';
+    card.id = id;
+    card.innerHTML = `
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Contacto adicional</h6>
+        <button type="button" class="btn btn-sm btn-outline-danger" data-remove-contact="${id}">
+          <i class="mdi mdi-delete-outline"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" data-field="nombre" value="${contact.nombre || ''}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Cargo</label>
+            <input type="text" class="form-control" data-field="cargo" value="${contact.cargo || ''}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" data-field="email" value="${contact.email || ''}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input type="text" class="form-control" data-field="tel" value="${contact.tel || ''}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">WhatsApp</label>
+            <input type="text" class="form-control" data-field="whatsapp" value="${contact.whatsapp || ''}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Cumpleaños</label>
+            <input type="text" class="form-control" data-field="cumpleanos" placeholder="DD/MM" value="${contact.cumpleanos || ''}">
+          </div>
+        </div>
+      </div>`;
+
+    container.appendChild(card);
+    card.querySelector('[data-remove-contact]')
+      ?.addEventListener('click', () => this.removeExtraContact(id));
+  },
+
+  removeExtraContact(id) {
+    this.extraIds = this.extraIds.filter(item => item !== id);
+    document.getElementById(id)?.remove();
+  },
+
+  collectExtraContacts() {
+    return this.extraIds.map(id => {
+      const card = document.getElementById(id);
+      if (!card) return null;
+
+      const get = field => card.querySelector(`[data-field="${field}"]`)?.value?.trim() || '';
+      return this.normalizeOptionalContact({
+        nombre: get('nombre'),
+        cargo: get('cargo'),
+        email: get('email'),
+        tel: get('tel'),
+        whatsapp: get('whatsapp'),
+        cumpleanos: get('cumpleanos')
+      });
+    }).filter(contact =>
+      contact && (contact.nombre || contact.email || contact.tel || contact.whatsapp)
+    );
+  },
+
+  normalizeOptionalContact(contact) {
+    const normalized = { ...contact };
+    Object.keys(normalized).forEach(key => {
+      normalized[key] = normalized[key] || null;
+    });
+    return normalized;
+  },
+
+  buildPayload() {
+    const cliente = BP_DetalleCliente.cliente;
+    const hasAlternativo = document.getElementById('modalToggleContactoAlt').checked;
+
+    return {
+      tipo: cliente.tipo,
+      status: cliente.status,
+      nombreColoquial: cliente.nombreColoquial,
+      razonSocial: cliente.razonSocial,
+      nombre: cliente.nombre,
+      apellidoPaterno: cliente.apellidoPaterno,
+      apellidoMaterno: cliente.apellidoMaterno,
+      rfc: cliente.rfc,
+      giro: cliente.giro,
+      direccionFiscal: cliente.direccionFiscal || {},
+      direccionFisica: cliente.direccionFisica || null,
+      contactoPrincipal: {
+        nombre: document.getElementById('modalCp1Nombre').value.trim(),
+        cargo: document.getElementById('modalCp1Cargo').value.trim(),
+        email: document.getElementById('modalCp1Email').value.trim(),
+        tel: document.getElementById('modalCp1Tel').value.trim(),
+        whatsapp: document.getElementById('modalCp1Whatsapp').value.trim(),
+        cumpleanos: document.getElementById('modalCp1Cumpleanos').value.trim()
+      },
+      contactoAlternativo: hasAlternativo ? this.normalizeOptionalContact({
+        nombre: document.getElementById('modalCp2Nombre').value.trim(),
+        cargo: document.getElementById('modalCp2Cargo').value.trim(),
+        email: document.getElementById('modalCp2Email').value.trim(),
+        tel: document.getElementById('modalCp2Tel').value.trim(),
+        whatsapp: document.getElementById('modalCp2Whatsapp').value.trim(),
+        cumpleanos: document.getElementById('modalCp2Cumpleanos').value.trim()
+      }) : null,
+      contactosAdicionales: this.collectExtraContacts(),
+      notas: cliente.notas,
+      condicionesPago: cliente.condicionesPago,
+      formaPago: cliente.formaPago,
+      usoCfdi: cliente.usoCfdi,
+      canalesComunicacion: cliente.canalesComunicacion || []
+    };
+  },
+
+  setLoading(isLoading) {
+    const button = document.getElementById('guardarContactosClienteBtn');
+    if (!button) return;
+    button.disabled = isLoading;
+    button.innerHTML = isLoading
+      ? '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...'
+      : 'Guardar contactos';
+  },
+
+  showErrors(message) {
+    const container = document.getElementById('editarContactosClienteErrors');
+    if (!container) return;
+    container.classList.remove('d-none');
+    container.innerHTML = `<div class="alert alert-danger mb-0">${message}</div>`;
+  },
+
+  clearErrors() {
+    const container = document.getElementById('editarContactosClienteErrors');
+    if (!container) return;
+    container.classList.add('d-none');
+    container.innerHTML = '';
+  },
+
+  async submit() {
+    this.clearErrors();
+    this.setLoading(true);
+
+    try {
+      const response = await BP_DetalleClienteAPI.updateCliente(this.buildPayload());
+      BP_DetalleCliente.cliente = response.client;
+
+      BP_DetalleRenderHeader.renderSideContactos(response.client);
+      BP_DetalleRenderHeader.render(response.client);
+
+      this.modalInstance?.hide();
+      BP_DetalleHelpers.toast('success', 'Contactos actualizados correctamente');
+    } catch (error) {
+      this.showErrors(error.message || 'No se pudieron guardar los contactos');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+};
+
 /* =====================================================
    4. RENDER — CABECERA Y PANEL LATERAL
    ===================================================== */
@@ -398,7 +654,7 @@ const BP_DetalleRenderHeader = {
 
     document.getElementById('editContactosBtn').href = 'javascript:void(0);';
     document.getElementById('editContactosBtn').onclick = () =>
-    BP_DetalleHelpers.toast('info', 'Edición de contactos próximamente');
+      BP_DetalleContactosModal.open();
 
     // Title
     document.title = `${nombre} | Black Production`;
@@ -928,6 +1184,7 @@ const BP_DetalleClienteInit = {
   async loadAll() {
     try {
       BP_DetalleEventoModal.init();
+      BP_DetalleContactosModal.init();
 
       // Cargar cliente
       const cliente = await BP_DetalleClienteAPI.getCliente(

@@ -347,6 +347,112 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="editarContactosClienteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar contactos del cliente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="editarContactosClienteForm">
+        <div class="modal-body">
+          <div class="alert alert-info py-2 px-3 small mb-4">
+            <i class="mdi mdi-account-multiple-outline me-1"></i>
+            Aquí puedes editar los contactos existentes y agregar nuevos contactos del cliente.
+          </div>
+
+          <div class="card shadow-none border mb-4">
+            <div class="card-header">
+              <h6 class="mb-0">Contacto Principal</h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre *</label>
+                  <input type="text" class="form-control" id="modalCp1Nombre" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cargo</label>
+                  <input type="text" class="form-control" id="modalCp1Cargo">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email *</label>
+                  <input type="email" class="form-control" id="modalCp1Email" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Teléfono *</label>
+                  <input type="text" class="form-control" id="modalCp1Tel" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">WhatsApp</label>
+                  <input type="text" class="form-control" id="modalCp1Whatsapp">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cumpleaños</label>
+                  <input type="text" class="form-control" id="modalCp1Cumpleanos" placeholder="DD/MM">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="modalToggleContactoAlt">
+            <label class="form-check-label" for="modalToggleContactoAlt">Agregar / editar contacto alternativo</label>
+          </div>
+
+          <div class="card shadow-none border mb-4 d-none" id="modalSeccionContactoAlt">
+            <div class="card-header">
+              <h6 class="mb-0">Contacto Alternativo</h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre</label>
+                  <input type="text" class="form-control" id="modalCp2Nombre">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cargo</label>
+                  <input type="text" class="form-control" id="modalCp2Cargo">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" id="modalCp2Email">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Teléfono</label>
+                  <input type="text" class="form-control" id="modalCp2Tel">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">WhatsApp</label>
+                  <input type="text" class="form-control" id="modalCp2Whatsapp">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cumpleaños</label>
+                  <input type="text" class="form-control" id="modalCp2Cumpleanos" placeholder="DD/MM">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Contactos Adicionales</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="modalAddContactoBtn">
+              <i class="mdi mdi-plus me-1"></i>Agregar contacto
+            </button>
+          </div>
+          <div id="modalContactosAdicionalesContainer"></div>
+
+          <div class="mt-3 d-none" id="editarContactosClienteErrors"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="guardarContactosClienteBtn">Guardar contactos</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('script')
