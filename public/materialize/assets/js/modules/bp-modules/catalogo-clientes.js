@@ -10,8 +10,7 @@
    ===================================================== */
 
 const BP_Clientes = {
-  USE_MOCK: true,
-  API_BASE: '/api/v1',
+  API_BASE: '/clientes',
   allClientes:      [],
   filteredClientes: [],
   currentView:      'table', // 'table' | 'cards'
@@ -30,276 +29,54 @@ const BP_Clientes = {
 };
 
 /* =====================================================
-   2. DATOS MOCK
-   ===================================================== */
-
-const MOCK_CLIENTES = [
-  {
-    id: 'CLI-001',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'Nike México',
-    razonSocial: 'Nike de México S. de R.L. de C.V.',
-    rfc: 'NME920301AB1',
-    status: 'VIP',
-    direccionFiscal: {
-      calle: 'Av. Insurgentes Sur 1602',
-      colonia: 'Crédito Constructor',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '03940'
-    },
-    direccionFisica: {
-      calle: 'Av. Santa Fe 505',
-      colonia: 'Cruz Manca',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '05349'
-    },
-    contactoPrincipal: {
-      nombre: 'Carlos Mendoza',
-      cargo: 'Director de Marketing',
-      email: 'cmendoza@nike.com',
-      tel: '55 1234 5678'
-    },
-    contactoAlternativo: {
-      nombre: 'Sofía Ramírez',
-      cargo: 'Coordinadora de Eventos',
-      email: 'sramirez@nike.com',
-      tel: '55 8765 4321'
-    },
-    totalEventos: 12,
-    ultimoEvento: '2025-01-15',
-    revenueTotal: 485000,
-    notas: 'Cliente VIP. Requiere factura en primeros 3 días.',
-    creadoEn: '2023-03-10'
-  },
-  {
-    id: 'CLI-002',
-    tipo: 'Persona Física',
-    nombreColoquial: 'Fam. García',
-    razonSocial: null,
-    rfc: 'GALA850612HDF',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Calle Roble 45',
-      colonia: 'Jardines del Pedregal',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '01900'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Luis García',
-      cargo: 'Particular',
-      email: 'lgarcia@gmail.com',
-      tel: '55 9876 5432'
-    },
-    contactoAlternativo: null,
-    totalEventos: 3,
-    ultimoEvento: '2025-02-01',
-    revenueTotal: 95000,
-    notas: '',
-    creadoEn: '2024-01-20'
-  },
-  {
-    id: 'CLI-003',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'Audi MTY',
-    razonSocial: 'Audi México S.A. de C.V.',
-    rfc: 'AME010101XY2',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Blvd. Díaz Ordaz 100',
-      colonia: 'Santa María',
-      ciudad: 'Monterrey',
-      estado: 'Nuevo León',
-      cp: '64650'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Fernanda Torres',
-      cargo: 'Gerente de Marca',
-      email: 'ftorres@audi.com.mx',
-      tel: '81 2345 6789'
-    },
-    contactoAlternativo: {
-      nombre: 'Ricardo Vega',
-      cargo: 'Asistente',
-      email: 'rvega@audi.com.mx',
-      tel: '81 9876 1234'
-    },
-    totalEventos: 5,
-    ultimoEvento: '2025-01-28',
-    revenueTotal: 220000,
-    notas: 'Requiere cotización formal con membrete.',
-    creadoEn: '2023-08-15'
-  },
-  {
-    id: 'CLI-004',
-    tipo: 'Persona Física',
-    nombreColoquial: 'Fam. Martínez',
-    razonSocial: null,
-    rfc: 'MAPA901130MDF',
-    status: 'Prospecto',
-    direccionFiscal: {
-      calle: 'Av. Lomas Verdes 320',
-      colonia: 'Lomas Verdes',
-      ciudad: 'Naucalpan',
-      estado: 'Estado de México',
-      cp: '53120'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Patricia Martínez',
-      cargo: 'Particular',
-      email: 'pmartinez@hotmail.com',
-      tel: '55 4567 8901'
-    },
-    contactoAlternativo: null,
-    totalEventos: 1,
-    ultimoEvento: '2025-02-18',
-    revenueTotal: 45000,
-    notas: 'Primer evento quinceañera.',
-    creadoEn: '2025-01-05'
-  },
-  {
-    id: 'CLI-005',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'TechSummit',
-    razonSocial: 'Tech Summit México S.A. de C.V.',
-    rfc: 'TSM180405PQ3',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Av. Paseo de la Reforma 222',
-      colonia: 'Juárez',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '06600'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Miguel Ángel Ruiz',
-      cargo: 'CEO',
-      email: 'maruiz@techsummit.mx',
-      tel: '55 3456 7890'
-    },
-    contactoAlternativo: {
-      nombre: 'Diana López',
-      cargo: 'Coordinadora',
-      email: 'dlopez@techsummit.mx',
-      tel: '55 2345 6789'
-    },
-    totalEventos: 2,
-    ultimoEvento: '2025-02-24',
-    revenueTotal: 130000,
-    notas: '',
-    creadoEn: '2024-06-12'
-  },
-  {
-    id: 'CLI-006',
-    tipo: 'Persona Moral',
-    nombreColoquial: 'Diseñadores MX',
-    razonSocial: 'Diseñadores Mexicanos Asociados S.C.',
-    rfc: 'DMA150720RS4',
-    status: 'Activo',
-    direccionFiscal: {
-      calle: 'Masaryk 123',
-      colonia: 'Polanco',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '11560'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Valentina Cruz',
-      cargo: 'Directora Creativa',
-      email: 'vcruz@disenadoresmx.com',
-      tel: '55 6789 0123'
-    },
-    contactoAlternativo: null,
-    totalEventos: 4,
-    ultimoEvento: '2025-03-05',
-    revenueTotal: 175000,
-    notas: 'Siempre requieren pantallas LED.',
-    creadoEn: '2023-11-20'
-  },
-  {
-    id: 'CLI-007',
-    tipo: 'Persona Física',
-    nombreColoquial: 'Fam. Hernández',
-    razonSocial: null,
-    rfc: 'HERJ780910NDF',
-    status: 'Inactivo',
-    direccionFiscal: {
-      calle: 'Calle Pino 89',
-      colonia: 'Del Valle',
-      ciudad: 'Ciudad de México',
-      estado: 'CDMX',
-      cp: '03100'
-    },
-    direccionFisica: null,
-    contactoPrincipal: {
-      nombre: 'Jorge Hernández',
-      cargo: 'Particular',
-      email: 'jhernandez@yahoo.com',
-      tel: '55 7890 1234'
-    },
-    contactoAlternativo: null,
-    totalEventos: 1,
-    ultimoEvento: '2023-12-15',
-    revenueTotal: 38000,
-    notas: 'Último evento con saldo pendiente.',
-    creadoEn: '2023-10-01'
-  }
-];
-
-/* =====================================================
-   3. CAPA DE API
+   2. CAPA DE API
    ===================================================== */
 
 const BP_ClientesAPI = {
 
-  async getAll() {
-    if (BP_Clientes.USE_MOCK) {
-      return new Promise(resolve =>
-        setTimeout(() => resolve([...MOCK_CLIENTES]), 400)
-      );
+  getHeaders(includeJson = false) {
+    return {
+      'Accept': 'application/json',
+      ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+    };
+  },
+
+  async handleResponse(res, defaultMessage) {
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const validationErrors = payload?.errors
+        ? Object.values(payload.errors).flat().join(' ')
+        : '';
+      throw new Error(validationErrors || payload?.message || defaultMessage);
     }
-    const res = await fetch(`${BP_Clientes.API_BASE}/clientes`);
-    if (!res.ok) throw new Error('Error al cargar clientes');
-    return res.json();
+    return payload;
+  },
+
+  async getAll() {
+    const res = await fetch(`${BP_Clientes.API_BASE}/list`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse(res, 'Error al cargar clientes');
   },
 
   async getById(id) {
-    if (BP_Clientes.USE_MOCK) {
-      return new Promise(resolve =>
-        setTimeout(() => resolve(
-          MOCK_CLIENTES.find(c => c.id === id) || null
-        ), 250)
-      );
-    }
-    const res = await fetch(`${BP_Clientes.API_BASE}/clientes/${id}`);
-    if (!res.ok) throw new Error('Cliente no encontrado');
-    return res.json();
+    const res = await fetch(`${BP_Clientes.API_BASE}/${id}`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse(res, 'Cliente no encontrado');
   },
 
   async delete(id) {
-    if (BP_Clientes.USE_MOCK) {
-      return new Promise(resolve => {
-        const idx = MOCK_CLIENTES.findIndex(c => c.id === id);
-        if (idx !== -1) MOCK_CLIENTES.splice(idx, 1);
-        setTimeout(() => resolve({ success: true }), 300);
-      });
-    }
-    const res = await fetch(`${BP_Clientes.API_BASE}/clientes/${id}`, {
-      method: 'DELETE'
+    const res = await fetch(`${BP_Clientes.API_BASE}/${id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders()
     });
-    if (!res.ok) throw new Error('Error al eliminar cliente');
-    return res.json();
+    return this.handleResponse(res, 'Error al eliminar cliente');
   }
 };
 /* =====================================================
-   4. HELPERS
+   3. HELPERS
    ===================================================== */
 
 const BP_ClientesHelpers = {
@@ -379,7 +156,7 @@ const BP_ClientesHelpers = {
 };
 
 /* =====================================================
-   5. RENDER — TABLA Y TARJETAS
+   4. RENDER — TABLA Y TARJETAS
    ===================================================== */
 
 const BP_ClientesRender = {
@@ -681,7 +458,7 @@ const BP_ClientesRender = {
   }
 };
 /* =====================================================
-   6. ACCIONES
+   5. ACCIONES
    ===================================================== */
 
 const BP_ClientesActions = {
@@ -884,7 +661,7 @@ const BP_ClientesActions = {
 
     document.getElementById('quickViewDetalleBtn').onclick = () => {
       window.location.href =
-        `/public/materialize/html/nach-tests/black-productions/vista-detalle-cliente.html?id=${id}`;
+        `/clientes/detalle?id=${id}`;
     };
 
     } catch (err) {
@@ -898,7 +675,7 @@ const BP_ClientesActions = {
 
     edit(id) {
       window.location.href =
-        `/public/materialize/html/nach-tests/black-productions/formulario-cliente.html?mode=edit&id=${id}`;
+        `/clientes/formulario?mode=edit&id=${id}`;
     },
 
   confirmDelete(id) {
@@ -977,7 +754,7 @@ const BP_ClientesActions = {
 };
 
 /* =====================================================
-   7. INICIALIZACIÓN Y EVENTOS
+   6. INICIALIZACIÓN Y EVENTOS
    ===================================================== */
 
 const BP_ClientesInit = {

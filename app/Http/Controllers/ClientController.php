@@ -10,6 +10,17 @@ use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
+    public function index(): JsonResponse
+    {
+        $clients = Client::with(['addresses', 'contacts'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Client $client) => $this->transformClientForForm($client))
+            ->values();
+
+        return response()->json($clients);
+    }
+
     public function show(Client $client): JsonResponse
     {
         $client->load(['addresses', 'contacts']);
@@ -52,6 +63,15 @@ class ClientController extends Controller
             'message' => 'Cliente actualizado correctamente.',
             'id' => $client->id,
             'client' => $this->transformClientForForm($client),
+        ]);
+    }
+
+    public function destroy(Client $client): JsonResponse
+    {
+        $client->delete();
+
+        return response()->json([
+            'message' => 'Cliente eliminado correctamente.',
         ]);
     }
 
@@ -325,6 +345,10 @@ class ClientController extends Controller
             'formaPago' => $client->preferred_payment_method,
             'usoCfdi' => $client->cfdi_use,
             'canalesComunicacion' => $client->preferred_communication_channels ?? [],
+            'totalEventos' => 0,
+            'revenueTotal' => 0,
+            'ultimoEvento' => null,
+            'creadoEn' => optional($client->created_at)->toDateString(),
         ];
     }
 
