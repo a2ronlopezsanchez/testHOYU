@@ -293,6 +293,60 @@
               </div>
 
             </div>
+
+<div class="modal fade" id="nuevoEventoClienteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nuevo evento del cliente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="nuevoEventoClienteForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Cliente</label>
+              <input type="text" id="nuevoEventoClienteNombre" class="form-control" readonly>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Estado</label>
+              <input type="text" name="status" class="form-control" value="PLANIFICADO">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Nombre del evento</label>
+              <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Lugar</label>
+              <input type="text" name="venue_name" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Inicio</label>
+              <input type="date" name="start_date" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fin</label>
+              <input type="date" name="end_date" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Dirección</label>
+              <input type="text" name="venue_address" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Descripción</label>
+              <textarea name="description" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="col-12 d-none" id="nuevoEventoClienteErrors"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success" id="guardarNuevoEventoClienteBtn">Guardar evento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('script')

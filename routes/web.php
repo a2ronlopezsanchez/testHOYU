@@ -137,6 +137,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/', [App\Http\Controllers\ClientController::class, 'store'])->name('store');
             Route::get('/{client}/editar', [App\Http\Controllers\ClientController::class, 'edit'])->whereNumber('client')->name('edit');
             Route::get('/{client}', [App\Http\Controllers\ClientController::class, 'show'])->whereNumber('client')->name('show');
+            Route::get('/{client}/eventos', [App\Http\Controllers\ClientController::class, 'events'])->whereNumber('client')->name('events');
+            Route::post('/{client}/eventos', [App\Http\Controllers\ClientController::class, 'storeEvent'])->whereNumber('client')->name('events.store');
             Route::put('/{client}', [App\Http\Controllers\ClientController::class, 'update'])->whereNumber('client')->name('update');
             Route::delete('/{client}', [App\Http\Controllers\ClientController::class, 'destroy'])->whereNumber('client')->name('destroy');
         });

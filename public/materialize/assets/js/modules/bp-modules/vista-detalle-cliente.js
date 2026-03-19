@@ -51,7 +51,26 @@ const BP_DetalleClienteAPI = {
   },
 
   async getEventos() {
-    return [];
+    const res = await fetch(
+      `${BP_DetalleCliente.API_BASE}/${BP_DetalleCliente.clienteId}/eventos`,
+      { headers: this.getHeaders() }
+    );
+    return this.handleResponse(res, 'No se pudieron cargar los eventos');
+  },
+
+  async createEvento(payload) {
+    const res = await fetch(
+      `${BP_DetalleCliente.API_BASE}/${BP_DetalleCliente.clienteId}/eventos`,
+      {
+        method: 'POST',
+        headers: {
+          ...this.getHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+    return this.handleResponse(res, 'No se pudo crear el evento');
   },
 
   async getCobranza() {
@@ -126,7 +145,13 @@ const BP_DetalleHelpers = {
     const map = {
       'En Preparación': '<span class="badge-evt-preparacion">En Preparación</span>',
       'Realizado':      '<span class="badge-evt-realizado">Realizado</span>',
-      'Cancelado':      '<span class="badge-evt-cancelado">Cancelado</span>'
+      'Cancelado':      '<span class="badge-evt-cancelado">Cancelado</span>',
+      'PLANIFICADO':    '<span class="badge-evt-preparacion">Planificado</span>',
+      'CONFIRMADO':     '<span class="badge-evt-preparacion">Confirmado</span>',
+      'EN_CURSO':       '<span class="badge bg-info">En curso</span>',
+      'COMPLETADO':     '<span class="badge-evt-realizado">Completado</span>',
+      'FINALIZADO':     '<span class="badge-evt-realizado">Finalizado</span>',
+      'CANCELADO':      '<span class="badge-evt-cancelado">Cancelado</span>'
     };
     return map[status] || `<span class="badge bg-secondary">${status}</span>`;
   },
@@ -160,6 +185,81 @@ const BP_DetalleHelpers = {
       showConfirmButton: false,
       timer: 3000, timerProgressBar: true
     });
+  }
+};
+
+const BP_DetalleEventoModal = {
+
+  modalInstance: null,
+
+  init() {
+    const modalEl = document.getElementById('nuevoEventoClienteModal');
+    if (!modalEl || typeof bootstrap === 'undefined') return;
+
+    this.modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    document.getElementById('nuevoEventoClienteForm')
+      ?.addEventListener('submit', async event => {
+        event.preventDefault();
+        await this.submit();
+      });
+  },
+
+  open() {
+    if (!this.modalInstance || !BP_DetalleCliente.cliente) return;
+
+    const form = document.getElementById('nuevoEventoClienteForm');
+    form?.reset();
+    document.getElementById('nuevoEventoClienteNombre').value =
+      BP_DetalleHelpers.displayName(BP_DetalleCliente.cliente);
+    this.clearErrors();
+    this.modalInstance.show();
+  },
+
+  setLoading(isLoading) {
+    const button = document.getElementById('guardarNuevoEventoClienteBtn');
+    if (!button) return;
+
+    button.disabled = isLoading;
+    button.innerHTML = isLoading
+      ? '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...'
+      : 'Guardar evento';
+  },
+
+  showErrors(message) {
+    const container = document.getElementById('nuevoEventoClienteErrors');
+    if (!container) return;
+
+    container.classList.remove('d-none');
+    container.innerHTML = `<div class="alert alert-danger mb-0">${message}</div>`;
+  },
+
+  clearErrors() {
+    const container = document.getElementById('nuevoEventoClienteErrors');
+    if (!container) return;
+
+    container.classList.add('d-none');
+    container.innerHTML = '';
+  },
+
+  async submit() {
+    const form = document.getElementById('nuevoEventoClienteForm');
+    if (!form) return;
+
+    const payload = Object.fromEntries(new FormData(form).entries());
+    this.clearErrors();
+    this.setLoading(true);
+
+    try {
+      await BP_DetalleClienteAPI.createEvento(payload);
+      this.modalInstance?.hide();
+      BP_DetalleHelpers.toast('success', 'Evento creado correctamente');
+      await BP_DetalleClienteInit.reloadEventos();
+    } catch (error) {
+      this.showErrors(error.message || 'No se pudo guardar el evento');
+    } finally {
+      this.setLoading(false);
+    }
   }
 };
 
@@ -202,7 +302,7 @@ const BP_DetalleRenderHeader = {
 
     document.getElementById('accionNuevoEvt').href = 'javascript:void(0);';
     document.getElementById('accionNuevoEvt').onclick = () =>
-    BP_DetalleHelpers.toast('info', 'Nuevo evento próximamente');
+      BP_DetalleEventoModal.open();
 
     document.getElementById('accionEditarCliente').href = `/clientes/${c.id}/editar`;
     document.getElementById('accionEditarCliente').onclick = null;
@@ -213,7 +313,7 @@ const BP_DetalleRenderHeader = {
 
     document.getElementById('nuevoEvtBtn').href = 'javascript:void(0);';
     document.getElementById('nuevoEvtBtn').onclick = () =>
-    BP_DetalleHelpers.toast('info', 'Nuevo evento próximamente');
+      BP_DetalleEventoModal.open();
 
     document.getElementById('editContactosBtn').href = 'javascript:void(0);';
     document.getElementById('editContactosBtn').onclick = () =>
@@ -711,6 +811,17 @@ const BP_DetalleRenderTabs = {
 
 const BP_DetalleClienteInit = {
 
+  async reloadEventos() {
+    const eventos = await BP_DetalleClienteAPI.getEventos();
+    BP_DetalleRenderTabs.renderEventos(eventos);
+
+    if (BP_DetalleCliente.cliente) {
+      BP_DetalleCliente.cliente.totalEventos = eventos.length;
+      BP_DetalleCliente.cliente.ultimoEvento = eventos[0]?.fecha || null;
+      document.getElementById('statEventos').textContent = eventos.length;
+    }
+  },
+
   async run() {
     BP_DetalleCliente.clienteId =
       new URLSearchParams(window.location.search).get('id');
@@ -733,6 +844,8 @@ const BP_DetalleClienteInit = {
 
   async loadAll() {
     try {
+      BP_DetalleEventoModal.init();
+
       // Cargar cliente
       const cliente = await BP_DetalleClienteAPI.getCliente(
         BP_DetalleCliente.clienteId

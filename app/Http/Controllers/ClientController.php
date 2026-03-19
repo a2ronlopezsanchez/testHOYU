@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\Event;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
     public function index(): JsonResponse
     {
-        $clients = Client::with(['addresses', 'contacts'])
+        $clients = Client::with(['addresses', 'contacts', 'events'])
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (Client $client) => $this->transformClientForForm($client))
@@ -32,9 +34,80 @@ class ClientController extends Controller
 
     public function show(Client $client): JsonResponse
     {
-        $client->load(['addresses', 'contacts']);
+        $client->load(['addresses', 'contacts', 'events']);
 
         return response()->json($this->transformClientForForm($client));
+    }
+
+    public function events(Client $client): JsonResponse
+    {
+        $events = Event::query()
+            ->where('client_id', $client->id)
+            ->orderByDesc('start_date')
+            ->get()
+            ->map(fn (Event $event) => $this->transformEventForClientDetail($event))
+            ->values();
+
+        return response()->json($events);
+    }
+
+    public function storeEvent(Request $request, Client $client): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'venue_name' => ['nullable', 'string', 'max:255'],
+            'venue_address' => ['nullable', 'string', 'max:500'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'status' => ['nullable', 'string', 'max:40'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $client->loadMissing(['contacts']);
+
+        $primaryContact = $client->contacts->firstWhere('contact_role', 'primary')
+            ?? $client->contacts->firstWhere('is_primary', true);
+
+        $clientDisplayName = $client->trade_name
+            ?: $client->business_name
+            ?: $this->fullName($client);
+
+        $baseCode = 'EVT-' . now()->format('Ymd');
+        $eventCode = null;
+
+        for ($i = 1; $i <= 9999; $i++) {
+            $candidate = $baseCode . '-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT);
+            if (! Event::where('event_code', $candidate)->exists()) {
+                $eventCode = $candidate;
+                break;
+            }
+        }
+
+        if (! $eventCode) {
+            $eventCode = 'EVT-' . strtoupper(Str::random(10));
+        }
+
+        $event = Event::create([
+            'event_code' => $eventCode,
+            'name' => $validated['name'],
+            'client_id' => $client->id,
+            'client_name' => $clientDisplayName ?: null,
+            'client_contact' => $primaryContact?->full_name,
+            'client_phone' => $primaryContact?->phone,
+            'client_email' => $primaryContact?->email,
+            'venue_name' => $validated['venue_name'] ?? null,
+            'venue_address' => $validated['venue_address'] ?? null,
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'status' => $validated['status'] ?? 'PLANIFICADO',
+            'description' => $validated['description'] ?? null,
+            'created_by' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'message' => 'Evento creado correctamente.',
+            'event' => $this->transformEventForClientDetail($event),
+        ], 201);
     }
 
     public function store(Request $request): JsonResponse
@@ -288,6 +361,33 @@ class ClientController extends Controller
         return false;
     }
 
+    private function transformEventForClientDetail(Event $event): array
+    {
+        return [
+            'id' => $event->id,
+            'folio' => $event->event_code,
+            'nombre' => $event->name,
+            'fecha' => optional($event->start_date)->toDateString(),
+            'fechaFin' => optional($event->end_date)->toDateString(),
+            'venue' => $event->venue_name ?: $event->venue_address,
+            'status' => $this->normalizeEventStatus($event->status),
+            'statusOriginal' => $event->status,
+            'description' => $event->description,
+            'total' => 0,
+            'cotizacionId' => null,
+        ];
+    }
+
+    private function normalizeEventStatus(?string $status): string
+    {
+        return match (strtoupper((string) $status)) {
+            'PLANIFICADO', 'CONFIRMADO', 'EN_CURSO' => 'En Preparación',
+            'COMPLETADO', 'FINALIZADO' => 'Realizado',
+            'CANCELADO' => 'Cancelado',
+            default => $status ?: 'En Preparación',
+        };
+    }
+
     private function transformClientForForm(Client $client): array
     {
         $fiscal = $client->addresses->firstWhere('address_type', 'fiscal');
@@ -296,6 +396,9 @@ class ClientController extends Controller
             ?? $client->contacts->firstWhere('is_primary', true);
         $alternate = $client->contacts->firstWhere('contact_role', 'alternate');
         $additional = $client->contacts->where('contact_role', 'additional')->values();
+        $events = $client->relationLoaded('events')
+            ? $client->events->sortByDesc('start_date')->values()
+            : collect();
 
         return [
             'id' => $client->id,
@@ -354,9 +457,9 @@ class ClientController extends Controller
             'formaPago' => $client->preferred_payment_method,
             'usoCfdi' => $client->cfdi_use,
             'canalesComunicacion' => $client->preferred_communication_channels ?? [],
-            'totalEventos' => 0,
+            'totalEventos' => $events->count(),
             'revenueTotal' => 0,
-            'ultimoEvento' => null,
+            'ultimoEvento' => optional($events->first()?->start_date)->toDateString(),
             'creadoEn' => optional($client->created_at)->toDateString(),
         ];
     }
