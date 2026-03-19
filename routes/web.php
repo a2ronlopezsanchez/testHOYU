@@ -133,6 +133,9 @@ Route::middleware('auth')->group(function () {
             Route::view('/catalogo', 'clientes.catalogo')->name('catalogo');
             Route::view('/formulario', 'clientes.formulario')->name('formulario');
             Route::view('/detalle', 'clientes.detalle')->name('detalle');
+            Route::post('/', [App\Http\Controllers\ClientController::class, 'store'])->name('store');
+            Route::get('/{client}', [App\Http\Controllers\ClientController::class, 'show'])->whereNumber('client')->name('show');
+            Route::put('/{client}', [App\Http\Controllers\ClientController::class, 'update'])->whereNumber('client')->name('update');
         });
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

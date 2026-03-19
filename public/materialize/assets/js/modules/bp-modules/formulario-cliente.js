@@ -10,8 +10,8 @@
    ===================================================== */
 
 const BP_FormCliente = {
-  USE_MOCK:     true,
-  API_BASE:     '/api/v1',
+  USE_MOCK:     false,
+  API_BASE:     '/clientes',
   mode:         'new',   // 'new' | 'edit'
   clienteId:    null,
   contactosExtra: [],    // contactos adicionales dinámicos
@@ -24,60 +24,48 @@ const BP_FormCliente = {
 
 const BP_FormClienteAPI = {
 
-  async getById(id) {
-    if (BP_FormCliente.USE_MOCK) {
-      return new Promise(resolve => {
-        const c = (typeof MOCK_CLIENTES !== 'undefined')
-          ? MOCK_CLIENTES.find(x => x.id === id)
-          : null;
-        setTimeout(() => resolve(c || null), 300);
-      });
+  getHeaders() {
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+    };
+  },
+
+  async handleResponse(res, defaultMessage) {
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const validationErrors = payload?.errors
+        ? Object.values(payload.errors).flat().join(' ')
+        : '';
+      throw new Error(validationErrors || payload?.message || defaultMessage);
     }
-    const res = await fetch(`${BP_FormCliente.API_BASE}/clientes/${id}`);
-    if (!res.ok) throw new Error('Cliente no encontrado');
-    return res.json();
+    return payload;
+  },
+
+  async getById(id) {
+    const res = await fetch(`${BP_FormCliente.API_BASE}/${id}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    return this.handleResponse(res, 'Cliente no encontrado');
   },
 
   async create(data) {
-    if (BP_FormCliente.USE_MOCK) {
-      return new Promise(resolve => {
-        const newId = 'CLI-' + String(
-          (typeof MOCK_CLIENTES !== 'undefined'
-            ? MOCK_CLIENTES.length + 1 : 99)
-        ).padStart(3, '0');
-        const newCliente = { id: newId, ...data, creadoEn: new Date().toISOString().split('T')[0] };
-        if (typeof MOCK_CLIENTES !== 'undefined') {
-          MOCK_CLIENTES.push(newCliente);
-        }
-        setTimeout(() => resolve(newCliente), 400);
-      });
-    }
-    const res = await fetch(`${BP_FormCliente.API_BASE}/clientes`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(data)
+    const res = await fetch(BP_FormCliente.API_BASE, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Error al crear cliente');
-    return res.json();
+    return this.handleResponse(res, 'Error al crear cliente');
   },
 
   async update(id, data) {
-    if (BP_FormCliente.USE_MOCK) {
-      return new Promise(resolve => {
-        if (typeof MOCK_CLIENTES !== 'undefined') {
-          const idx = MOCK_CLIENTES.findIndex(x => x.id === id);
-          if (idx !== -1) MOCK_CLIENTES[idx] = { ...MOCK_CLIENTES[idx], ...data };
-        }
-        setTimeout(() => resolve({ id, ...data }), 400);
-      });
-    }
-    const res = await fetch(`${BP_FormCliente.API_BASE}/clientes/${id}`, {
-      method:  'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(data)
+    const res = await fetch(`${BP_FormCliente.API_BASE}/${id}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Error al actualizar cliente');
-    return res.json();
+    return this.handleResponse(res, 'Error al actualizar cliente');
   }
 };
 
@@ -487,6 +475,10 @@ const BP_FormData = {
       nombreColoquial = [n, ap, am].filter(Boolean).join(' ');
     }
 
+    const nombre = BP_FormHelpers.val('clienteNombre');
+    const apellidoPaterno = BP_FormHelpers.val('clienteApellidoP');
+    const apellidoMaterno = BP_FormHelpers.val('clienteApellidoM');
+
     // Dirección física
     const hasFisica = document.getElementById('toggleDireccionFisica')?.checked;
     const direccionFisica = hasFisica ? {
@@ -517,6 +509,9 @@ const BP_FormData = {
       tipo,
       nombreColoquial,
       razonSocial,
+      nombre,
+      apellidoPaterno,
+      apellidoMaterno,
       rfc:    BP_FormHelpers.val('clienteRfc').toUpperCase(),
       giro:   BP_FormHelpers.val('clienteGiro'),
       status: BP_FormHelpers.val('clienteStatus'),
@@ -800,7 +795,7 @@ const BP_FormSave = {
       // Redirigir al detalle del cliente
       setTimeout(() => {
         window.location.href =
-          `/clientes/vista-detalle-cliente.html?id=${result.id}`;
+          `/clientes/detalle?id=${result.id}`;
       }, 1200);
 
     } catch (err) {
