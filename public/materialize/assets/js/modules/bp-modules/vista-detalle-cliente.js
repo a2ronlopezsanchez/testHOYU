@@ -15,6 +15,79 @@ const BP_DetalleCliente = {
   cliente:   null
 };
 
+const MOCK_COTIZACIONES_CLIENTE = [
+  {
+    id: 'COT-001', folio: 'BP-2025-001',
+    nombre: 'Boda García & López',
+    fecha: '2025-01-10', vigencia: '2025-01-25',
+    total: 85000, status: 'Aprobada',
+    eventoId: 'EVT-001', notas: 'DATOS DE PRUEBA · Incluye transporte'
+  },
+  {
+    id: 'COT-002', folio: 'BP-2025-002',
+    nombre: 'Sesión Corporativa Q1',
+    fecha: '2025-01-18', vigencia: '2025-02-01',
+    total: 42000, status: 'En Proceso',
+    eventoId: null, notas: 'DATOS DE PRUEBA'
+  },
+  {
+    id: 'COT-003', folio: 'BP-2024-089',
+    nombre: 'Evento Navideño 2024',
+    fecha: '2024-11-05', vigencia: '2024-11-20',
+    total: 95000, status: 'Aprobada',
+    eventoId: 'EVT-002', notas: 'DATOS DE PRUEBA'
+  }
+];
+
+const MOCK_COBRANZA_CLIENTE = [
+  {
+    id: 'COB-001',
+    eventoId: 'EVT-001',
+    eventoNombre: 'Boda García & López · DATOS DE PRUEBA',
+    total: 85000,
+    pagos: [
+      { id: 'PAG-001', concepto: 'Anticipo 50%', monto: 42500,
+        fechaVencimiento: '2025-01-20', fechaPago: '2025-01-18',
+        status: 'Pagado' },
+      { id: 'PAG-002', concepto: 'Pago Final 50%', monto: 42500,
+        fechaVencimiento: '2025-02-10', fechaPago: null,
+        status: 'Pendiente' }
+    ]
+  },
+  {
+    id: 'COB-002',
+    eventoId: 'EVT-002',
+    eventoNombre: 'Evento Navideño Nike 2024 · DATOS DE PRUEBA',
+    total: 95000,
+    pagos: [
+      { id: 'PAG-003', concepto: 'Anticipo 40%', monto: 38000,
+        fechaVencimiento: '2024-11-15', fechaPago: '2024-11-14',
+        status: 'Pagado' },
+      { id: 'PAG-004', concepto: 'Segundo Pago 30%', monto: 28500,
+        fechaVencimiento: '2024-12-01', fechaPago: '2024-11-30',
+        status: 'Pagado' },
+      { id: 'PAG-005', concepto: 'Pago Final 30%', monto: 28500,
+        fechaVencimiento: '2024-12-16', fechaPago: '2024-12-20',
+        status: 'Pagado' }
+    ]
+  }
+];
+
+const MOCK_FACTURAS_CLIENTE = [
+  {
+    id: 'FAC-001', folio: 'A-0042',
+    eventoNombre: 'Evento Navideño Nike 2024 · DATOS DE PRUEBA',
+    fecha: '2024-12-16', monto: 95000,
+    status: 'Timbrada', uuid: 'ABCD-1234-EFGH-5678'
+  },
+  {
+    id: 'FAC-002', folio: 'A-0038',
+    eventoNombre: 'Sesión Corporativa Marzo · DATOS DE PRUEBA',
+    fecha: '2024-03-22', monto: 55000,
+    status: 'Timbrada', uuid: 'IJKL-9012-MNOP-3456'
+  }
+];
+
 /* =====================================================
    2. CAPA DE API
    ===================================================== */
@@ -47,7 +120,7 @@ const BP_DetalleClienteAPI = {
   },
 
   async getCotizaciones() {
-    return [];
+    return Promise.resolve([...MOCK_COTIZACIONES_CLIENTE]);
   },
 
   async getEventos() {
@@ -74,11 +147,11 @@ const BP_DetalleClienteAPI = {
   },
 
   async getCobranza() {
-    return [];
+    return Promise.resolve([...MOCK_COBRANZA_CLIENTE]);
   },
 
   async getFacturas() {
-    return [];
+    return Promise.resolve([...MOCK_FACTURAS_CLIENTE]);
   }
 };
 /* =====================================================
@@ -185,6 +258,14 @@ const BP_DetalleHelpers = {
       showConfirmButton: false,
       timer: 3000, timerProgressBar: true
     });
+  },
+
+  mockBadge() {
+    return `
+      <div class="alert alert-warning py-2 px-3 mb-3 small">
+        <i class="mdi mdi-flask-outline me-1"></i>
+        <strong>DATOS DE PRUEBA</strong>
+      </div>`;
   }
 };
 
@@ -545,6 +626,7 @@ const BP_DetalleRenderTabs = {
     }
 
     document.getElementById('cotizacionesList').innerHTML = `
+      ${BP_DetalleHelpers.mockBadge()}
       <div class="detalle-timeline">
         ${cotizaciones.map(c => `
           <div class="detalle-timeline-item status-${c.status.toLowerCase().replace(' ','-')}">
@@ -665,7 +747,7 @@ const BP_DetalleRenderTabs = {
     }
 
     document.getElementById('cobranzaList').innerHTML =
-      cobranza.map(cob => {
+      `${BP_DetalleHelpers.mockBadge()}${cobranza.map(cob => {
         const pagado = cob.pagos
           .filter(p => p.status === 'Pagado')
           .reduce((a, p) => a + p.monto, 0);
@@ -701,7 +783,7 @@ const BP_DetalleRenderTabs = {
               ).join('')}
             </div>
           </div>`;
-      }).join('');
+      }).join('')}`;
   },
 
   renderRevenue(cliente, eventos) {
@@ -716,6 +798,7 @@ const BP_DetalleRenderTabs = {
     const anios  = Object.keys(porAnio).sort().reverse();
 
     document.getElementById('revenueContent').innerHTML = `
+      ${BP_DetalleHelpers.mockBadge()}
       <!-- Resumen -->
       <div class="row g-3 mb-4">
         <div class="col-md-4">
@@ -781,7 +864,7 @@ const BP_DetalleRenderTabs = {
     }
 
     document.getElementById('facturacionList').innerHTML =
-      facturas.map(f => `
+      `${BP_DetalleHelpers.mockBadge()}${facturas.map(f => `
         <div class="factura-row">
           <div>
             <div class="factura-folio">${f.folio}</div>
@@ -801,7 +884,7 @@ const BP_DetalleRenderTabs = {
             <span class="badge-cot-aprobada">${f.status}</span>
           </div>
         </div>`
-      ).join('');
+      ).join('')}`;
   }
 };
 
@@ -868,6 +951,11 @@ const BP_DetalleClienteInit = {
           BP_DetalleClienteAPI.getCobranza(cliente.id),
           BP_DetalleClienteAPI.getFacturas(cliente.id)
         ]);
+
+      const revenueMock = eventos.reduce((acc, ev) => {
+        return ev.status === 'Realizado' ? acc + (ev.total || 0) : acc;
+      }, 0);
+      cliente.revenueTotal = revenueMock;
 
       // Render stats
       BP_DetalleRenderStats.render(cliente, cobranza);
