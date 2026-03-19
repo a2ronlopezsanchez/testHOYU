@@ -96,7 +96,7 @@
 
                   <!-- Tabs -->
                   <div class="card">
-                    <div class="card-header p-0">
+                    <div class="card-header">
                       <ul class="nav nav-tabs card-header-tabs" id="clienteTabs">
                         <li class="nav-item">
                           <a class="nav-link active px-4 py-3" data-bs-toggle="tab"
