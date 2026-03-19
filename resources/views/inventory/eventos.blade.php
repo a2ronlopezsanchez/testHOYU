@@ -21,7 +21,16 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Cliente</label>
-          <input type="text" name="client_name" class="form-control">
+          <select name="id_client" class="form-select">
+            <option value="">Selecciona un cliente</option>
+            @foreach($clients as $client)
+              <option value="{{ $client->id }}" @selected(old('id_client') == $client->id)>{{ $client->label }}</option>
+            @endforeach
+          </select>
+          @if($clients->isEmpty())
+            <small class="text-muted">No se encontraron clientes disponibles en la tabla <code>clients</code>.</small>
+          @endif
+          <input type="hidden" name="client_name" value="{{ old('client_name') }}">
         </div>
         <div class="col-md-4">
           <label class="form-label">Estado</label>
@@ -72,7 +81,7 @@
           @forelse($events as $event)
             <tr>
               <td>{{ $event->name }}</td>
-              <td>{{ $event->client_name ?? '—' }}</td>
+              <td>{{ $clientLabels[$event->id_client] ?? $event->client_name ?? '—' }}</td>
               <td>{{ $event->start_date ? $event->start_date->format('d/m/Y') : '—' }}</td>
               <td>{{ $event->end_date ? $event->end_date->format('d/m/Y') : '—' }}</td>
               <td>{{ $event->venue_name ?? $event->venue_address ?? '—' }}</td>
