@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\InventoryItem;
 use App\Models\ItemParent;
 use App\Models\Category;
+use App\Models\Client;
 use App\Models\Brand;
 use App\Models\Location;
 use App\Models\EventAssignment;
@@ -1548,12 +1549,18 @@ class InventoryController extends Controller
     public function eventosIndex()
     {
         $events = Event::query()
+            ->with(['client.contacts'])
             ->whereDate('end_date', '>=', now()->toDateString())
             ->whereRaw("UPPER(COALESCE(status, '')) <> ?", ['FINALIZADO'])
             ->orderBy('start_date', 'asc')
             ->get();
 
-        return view('inventory.eventos', compact('events'));
+        $clients = Client::query()
+            ->with(['contacts'])
+            ->orderByRaw("COALESCE(NULLIF(trade_name, ''), NULLIF(business_name, ''), CONCAT_WS(' ', first_name, last_name, middle_name)) asc")
+            ->get();
+
+        return view('inventory.eventos', compact('events', 'clients'));
     }
 
     /**
@@ -1563,7 +1570,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'client_name' => ['nullable', 'string', 'max:255'],
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
             'venue_name' => ['nullable', 'string', 'max:255'],
             'venue_address' => ['nullable', 'string', 'max:500'],
             'start_date' => ['required', 'date'],
@@ -1571,6 +1578,19 @@ class InventoryController extends Controller
             'status' => ['nullable', 'string', 'max:40'],
             'description' => ['nullable', 'string'],
         ]);
+
+        $client = !empty($validated['client_id'])
+            ? Client::with(['contacts'])->find($validated['client_id'])
+            : null;
+
+        $primaryContact = $client?->contacts->firstWhere('contact_role', 'primary')
+            ?? $client?->contacts->firstWhere('is_primary', true);
+
+        $clientDisplayName = $client
+            ? ($client->trade_name
+                ?: $client->business_name
+                ?: trim(implode(' ', array_filter([$client->first_name, $client->last_name, $client->middle_name]))))
+            : null;
 
         $baseCode = 'EVT-' . now()->format('Ymd');
         $eventCode = null;
@@ -1591,7 +1611,11 @@ class InventoryController extends Controller
         Event::create([
             'event_code' => $eventCode,
             'name' => $validated['name'],
-            'client_name' => $validated['client_name'] ?? null,
+            'client_id' => $client?->id,
+            'client_name' => $clientDisplayName,
+            'client_contact' => $primaryContact?->full_name,
+            'client_phone' => $primaryContact?->phone,
+            'client_email' => $primaryContact?->email,
             'venue_name' => $validated['venue_name'] ?? null,
             'venue_address' => $validated['venue_address'] ?? null,
             'start_date' => $validated['start_date'],

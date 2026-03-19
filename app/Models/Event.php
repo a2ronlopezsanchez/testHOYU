@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
@@ -11,7 +12,7 @@ class Event extends Model
         'start_date','end_date','setup_start_date','teardown_end_date',
         'venue_name','venue_address','venue_lat','venue_lng',
         'event_type','priority','status',
-        'client_name','client_contact','client_phone','client_email',
+        'client_id','client_name','client_contact','client_phone','client_email',
         'crew_size','notes','special_requirements','created_by',
     ];
 
@@ -23,6 +24,12 @@ class Event extends Model
         'venue_lat'         => 'float',
         'venue_lng'         => 'float',
     ];
+
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
+    }
 
     public function assignments()
     {

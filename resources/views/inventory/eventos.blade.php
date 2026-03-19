@@ -21,7 +21,24 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Cliente</label>
-          <input type="text" name="client_name" class="form-control">
+          <select name="client_id" class="form-select">
+            <option value="">Selecciona un cliente</option>
+            @foreach($clients as $client)
+              @php
+                $clientLabel = $client->trade_name
+                  ?: $client->business_name
+                  ?: trim(implode(' ', array_filter([$client->first_name, $client->last_name, $client->middle_name])));
+                $primaryContact = $client->contacts->firstWhere('contact_role', 'primary')
+                  ?? $client->contacts->firstWhere('is_primary', true);
+              @endphp
+              <option value="{{ $client->id }}">
+                {{ $clientLabel ?: 'Cliente #' . $client->id }}
+                @if($primaryContact?->full_name)
+                  — {{ $primaryContact->full_name }}
+                @endif
+              </option>
+            @endforeach
+          </select>
         </div>
         <div class="col-md-4">
           <label class="form-label">Estado</label>
@@ -72,7 +89,20 @@
           @forelse($events as $event)
             <tr>
               <td>{{ $event->name }}</td>
-              <td>{{ $event->client_name ?? '—' }}</td>
+              @php
+                $eventClientName = $event->client?->trade_name
+                  ?: $event->client?->business_name
+                  ?: trim(implode(' ', array_filter([$event->client?->first_name, $event->client?->last_name, $event->client?->middle_name])))
+                  ?: $event->client_name;
+                $eventPrimaryContact = $event->client?->contacts->firstWhere('contact_role', 'primary')
+                  ?? $event->client?->contacts->firstWhere('is_primary', true);
+              @endphp
+              <td>
+                <div>{{ $eventClientName ?? '—' }}</div>
+                @if($eventPrimaryContact?->full_name || $event->client_contact)
+                  <small class="text-muted">{{ $eventPrimaryContact?->full_name ?? $event->client_contact }}</small>
+                @endif
+              </td>
               <td>{{ $event->start_date ? $event->start_date->format('d/m/Y') : '—' }}</td>
               <td>{{ $event->end_date ? $event->end_date->format('d/m/Y') : '—' }}</td>
               <td>{{ $event->venue_name ?? $event->venue_address ?? '—' }}</td>

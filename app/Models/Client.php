@@ -33,6 +33,12 @@ class Client extends Model
         'preferred_communication_channels' => 'array',
     ];
 
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     public function addresses(): HasMany
     {
         return $this->hasMany(ClientAddress::class);
