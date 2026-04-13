@@ -6,6 +6,7 @@ use App\Models\InventoryItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ItemController extends Controller
 {
@@ -22,44 +23,44 @@ class ItemController extends Controller
         $search = trim((string) data_get($request->input('search'), 'value', ''));
 
         $columnsMap = [
-            1 => 'sku',
-            2 => 'name',
-            4 => 'item_id',
+            1 => 'units.sku',
+            2 => 'units.name',
+            4 => 'units.item_id',
         ];
 
         $orderColumnIndex = (int) data_get($request->input('order'), '0.column', 1);
         $orderDirection = strtolower((string) data_get($request->input('order'), '0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
-        $orderColumn = $columnsMap[$orderColumnIndex] ?? 'sku';
+        $orderColumn = $columnsMap[$orderColumnIndex] ?? 'units.sku';
 
         $baseQuery = InventoryItem::query()
+            ->from('units')
+            ->leftJoin('items', 'items.id', '=', 'units.item_parent_id')
+            ->leftJoin('categories', 'categories.id', '=', 'items.category_id')
             ->select([
-                'id',
-                'sku',
-                'name',
-                'item_id',
-                'is_active',
-                'item_parent_id',
-            ])
-            ->with([
-                'parent:id,category_id',
-                'parent.category:id,name',
+                'units.id',
+                'units.sku',
+                'units.name',
+                'units.item_id',
+                'units.is_active',
+                'units.item_parent_id',
+                'categories.name as category_name',
             ]);
 
         $filteredQuery = (clone $baseQuery)
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $searchQuery) use ($search): void {
                     $searchQuery
-                        ->where('sku', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%")
-                        ->orWhere('item_id', 'like', "%{$search}%")
-                        ->orWhereHas('parent.category', function (Builder $categoryQuery) use ($search): void {
-                            $categoryQuery->where('name', 'like', "%{$search}%");
-                        });
+                        ->where('units.sku', 'like', "%{$search}%")
+                        ->orWhere('units.name', 'like', "%{$search}%")
+                        ->orWhere('units.item_id', 'like', "%{$search}%")
+                        ->orWhere('categories.name', 'like', "%{$search}%");
                 });
             });
 
-        $recordsTotal = InventoryItem::query()->count();
-        $recordsFiltered = (clone $filteredQuery)->count();
+        $recordsTotal = Cache::remember('catalogo_records_total', now()->addMinutes(10), static function (): int {
+            return (int) InventoryItem::query()->count();
+        });
+        $recordsFiltered = (clone $filteredQuery)->count('units.id');
 
         $items = $filteredQuery
             ->orderBy($orderColumn, $orderDirection)
@@ -72,7 +73,7 @@ class ItemController extends Controller
                 'id' => $item->id,
                 'sku' => $item->sku,
                 'name' => $item->name,
-                'category' => $item->parent?->category?->name,
+                'category' => $item->category_name,
                 'item_id' => $item->item_id,
                 'is_active' => (bool) $item->is_active,
                 'view_url' => route('inventory.detalle.unidad', ['id' => $item->id]),
@@ -118,6 +119,7 @@ class ItemController extends Controller
         ]);
 
         $item->delete();
+        Cache::forget('catalogo_records_total');
 
         return response()->json([
             'success' => true,
