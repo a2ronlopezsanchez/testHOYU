@@ -67,6 +67,7 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/vista-unidades-item.css') }}" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
 <style>
   .event-select-row { cursor: pointer; }
 </style>
@@ -404,12 +405,9 @@
           <div class="d-flex justify-content-between mb-2"><small class="text-muted">En mantenimiento:</small><span class="fw-medium text-warning" id="sideMaintenanceCurrent">{{ $maintenanceUnits }}</span></div>
           <div class="d-flex justify-content-between mb-3"><small class="text-muted">Último registro:</small><span class="fw-medium" id="sideMaintenanceLast">{{ $lastMaintenanceDate ?: '—' }}</span></div>
           <hr class="my-2">
-          <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#maintenanceRecordsModal">
-            <i class="mdi mdi-table-large me-1"></i>Ver mantenimientos del ítem
-          </button>
-          <a href="{{ $lastMaintenanceUnitId ? route('inventory.detalle.unidad', ['id' => $lastMaintenanceUnitId]) : route('inventory.detalle', ['id' => $itemParent->id]) }}" class="btn btn-sm btn-outline-secondary w-100">
+          <button type="button" class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#maintenanceRecordsModal">
             <i class="mdi mdi-history me-1"></i>Ver historial
-          </a>
+          </button>
         </div>
       </div>
 
@@ -599,7 +597,7 @@
       </div>
       <div class="modal-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover mb-0">
+          <table class="table table-hover mb-0" id="maintenanceRecordsTable">
             <thead class="table-light">
               <tr>
                 <th>Unidad</th>
@@ -645,6 +643,8 @@
 @endsection
 
 @section('script')
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const isUnassignedItem = @json($isUnassignedItem ?? false);
@@ -1437,6 +1437,24 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       openEventModal();
     });
+  }
+
+  if (window.jQuery && typeof window.jQuery.fn.DataTable === 'function') {
+    const table = window.jQuery('#maintenanceRecordsTable').DataTable({
+      pageLength: 10,
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todos']],
+      order: [[3, 'desc']],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+      }
+    });
+
+    const maintenanceModalEl = document.getElementById('maintenanceRecordsModal');
+    if (maintenanceModalEl) {
+      maintenanceModalEl.addEventListener('shown.bs.modal', function () {
+        table.columns.adjust().draw(false);
+      });
+    }
   }
 
   document.querySelectorAll('.toggle-active').forEach((toggle) => {
