@@ -29,6 +29,7 @@ class ItemDetailManager {
     init() {
         this.loadItemData();
         this.setupEventListeners();
+        this.activateInitialTab();
         this.initializeCharts();
         this.checkMaintenanceStatus();
         this.calculateDepreciation();
@@ -442,6 +443,35 @@ class ItemDetailManager {
             `;
             tbody.appendChild(row);
         });
+    }
+
+    activateInitialTab() {
+        const params = new URLSearchParams(window.location.search);
+        const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
+        const referrerIsAssignView = (document.referrer || '').includes('/asignar-eventos');
+
+        let requestedTab = params.get('tab') || hashTab || '';
+        if (!requestedTab && referrerIsAssignView) {
+            requestedTab = 'maintenance-tab';
+        }
+
+        if (!requestedTab) return;
+
+        if (requestedTab === 'maintenance') requestedTab = 'maintenance-tab';
+        if (requestedTab === 'usage') requestedTab = 'usage-tab';
+        if (requestedTab === 'documents') requestedTab = 'documents-tab';
+        if (requestedTab === 'overview') requestedTab = 'overview-tab';
+
+        const tabTrigger = document.getElementById(requestedTab);
+        if (!tabTrigger || typeof bootstrap === 'undefined') return;
+
+        bootstrap.Tab.getOrCreateInstance(tabTrigger).show();
+
+        const tabName = (tabTrigger.getAttribute('href') || '').replace('#', '');
+        if (tabName) {
+            currentTab = tabName;
+            this.handleTabChange(tabName);
+        }
     }
 
     // ===== ACTUALIZAR TABLA DE HISTORIAL DE USO =====
