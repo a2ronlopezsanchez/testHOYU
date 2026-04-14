@@ -108,6 +108,18 @@ async function loadUnitsByParent(parentId) {
   return units;
 }
 
+function buildEditUnitUrl(parentId, unitId) {
+  if (!unitId) return '#';
+  if (parentId) return `/inventory/formulario/${parentId}?mode=edit-unit&unit_id=${unitId}`;
+  return `/inventory/unidad/${unitId}`;
+}
+
+function buildAssignUnitUrl(parentId, unitId) {
+  if (!parentId) return '#';
+  const unitQuery = unitId ? `?unit_id=${unitId}` : '';
+  return `/inventory/item/${parentId}/asignar-eventos${unitQuery}`;
+}
+
 // ===== VARIABLES GLOBALES =====
 let currentDate = new Date();
 let inventoryData = [];
@@ -306,7 +318,7 @@ class InventoryCatalog {
                 <td>-</td>
                 <td><span class="badge badge-${(u.condicion || 'BUENO').toLowerCase()}">${u.condicion || 'BUENO'}</span></td>
                 <td class="text-center">
-                    <a href="/inventory/unidad/${u.dbId}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
+                    <a href="${buildEditUnitUrl(parentId, u.dbId)}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
                         <i class="mdi mdi-pencil me-1"></i>
                     </a>
                 </td>
@@ -2274,9 +2286,13 @@ class InventoryCatalog {
                 <td>-</td>
                 <td><span class="badge badge-${(unit.condition || 'BUENO').toLowerCase()}">${unit.condition || 'BUENO'}</span></td>
                 <td class="text-center">
-                    <a href="/inventory/unidad/${unit.db_id}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
+                    <a href="${buildEditUnitUrl(unit.item_parent_id || unit.parent_id, unit.db_id)}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
                         <i class="mdi mdi-pencil me-1"></i>
                         Editar
+                    </a>
+                    <a href="${buildAssignUnitUrl(unit.item_parent_id || unit.parent_id, unit.db_id)}" class="btn btn-sm btn-outline-secondary ms-1" title="Asignar unidad">
+                        <i class="mdi mdi-calendar me-1"></i>
+                        Asignar
                     </a>
                 </td>
             `;
@@ -2320,9 +2336,13 @@ class InventoryCatalog {
             <td>-</td>
             <td><span class="badge badge-${(u.condicion || 'BUENO').toLowerCase()}">${u.condicion || 'BUENO'}</span></td>
             <td class="text-center">
-                <a href="/inventory/unidad/${u.dbId}" class="btn btn-sm btn-primary" title="Editar unidad completa">
+                <a href="${buildEditUnitUrl(parentId, u.dbId)}" class="btn btn-sm btn-primary" title="Editar unidad completa">
                     <i class="mdi mdi-pencil me-1"></i>
                     Editar
+                </a>
+                <a href="${buildAssignUnitUrl(parentId, u.dbId)}" class="btn btn-sm btn-outline-secondary ms-1" title="Asignar unidad">
+                    <i class="mdi mdi-calendar me-1"></i>
+                    Asignar
                 </a>
             </td>
         `;
