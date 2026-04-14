@@ -1524,6 +1524,7 @@ class InventoryController extends Controller
 
         $totalMaintenanceRecords = 0;
         $latestMaintenanceRecord = null;
+        $allMaintenanceRecords = collect();
         if ($inventoryItemIds->isNotEmpty()) {
             $maintenanceQuery = MaintenanceRecord::query()->whereIn('inventory_item_id', $inventoryItemIds);
             $totalMaintenanceRecords = (clone $maintenanceQuery)->count();
@@ -1531,6 +1532,12 @@ class InventoryController extends Controller
                 ->orderByDesc('actual_date')
                 ->orderByDesc('created_at')
                 ->first(['id', 'inventory_item_id', 'actual_date', 'created_at']);
+            $allMaintenanceRecords = (clone $maintenanceQuery)
+                ->with(['item'])
+                ->orderByDesc('actual_date')
+                ->orderByDesc('scheduled_date')
+                ->orderByDesc('created_at')
+                ->get();
         }
 
         $upcomingEvents = Event::query()
@@ -1562,7 +1569,8 @@ class InventoryController extends Controller
             'isUnassignedItem',
             'unassignedParentId',
             'totalMaintenanceRecords',
-            'latestMaintenanceRecord'
+            'latestMaintenanceRecord',
+            'allMaintenanceRecords'
         ));
     }
 

@@ -404,6 +404,9 @@
           <div class="d-flex justify-content-between mb-2"><small class="text-muted">En mantenimiento:</small><span class="fw-medium text-warning" id="sideMaintenanceCurrent">{{ $maintenanceUnits }}</span></div>
           <div class="d-flex justify-content-between mb-3"><small class="text-muted">Último registro:</small><span class="fw-medium" id="sideMaintenanceLast">{{ $lastMaintenanceDate ?: '—' }}</span></div>
           <hr class="my-2">
+          <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#maintenanceRecordsModal">
+            <i class="mdi mdi-table-large me-1"></i>Ver mantenimientos del ítem
+          </button>
           <a href="{{ $lastMaintenanceUnitId ? route('inventory.detalle.unidad', ['id' => $lastMaintenanceUnitId]) : route('inventory.detalle', ['id' => $itemParent->id]) }}" class="btn btn-sm btn-outline-secondary w-100">
             <i class="mdi mdi-history me-1"></i>Ver historial
           </a>
@@ -581,6 +584,58 @@
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="button" class="btn btn-success" id="confirmAssignBtn"><i class="mdi mdi-calendar-check me-1"></i>Confirmar Asignación</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: MANTENIMIENTOS DE TODAS LAS UNIDADES ══ -->
+<div class="modal fade" id="maintenanceRecordsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Mantenimientos de todas las unidades</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Unidad</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Programado</th>
+                <th>Realizado</th>
+                <th>Técnico</th>
+                <th>Costo total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse(($allMaintenanceRecords ?? collect()) as $record)
+                <tr>
+                  <td>
+                    <div class="fw-medium">{{ $record->item->item_id ?? ('UNIDAD-' . $record->inventory_item_id) }}</div>
+                    <small class="text-muted">{{ $record->item->serial_number ?? 'Sin serie' }}</small>
+                  </td>
+                  <td>{{ $record->maintenance_type ?? '—' }}</td>
+                  <td><span class="badge bg-label-secondary">{{ $record->maintenance_status ?? '—' }}</span></td>
+                  <td>{{ optional($record->scheduled_date)->format('d/m/Y') ?? '—' }}</td>
+                  <td>{{ optional($record->actual_date ?? $record->completion_date)->format('d/m/Y') ?? '—' }}</td>
+                  <td>{{ $record->technician_name ?? $record->vendor_name ?? '—' }}</td>
+                  <td>${{ number_format((float) ($record->total_cost ?? 0), 2) }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted">No hay mantenimientos registrados para este ítem.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
