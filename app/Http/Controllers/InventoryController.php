@@ -1445,6 +1445,22 @@ class InventoryController extends Controller
 
         $toInsert = $unitIds->reject(fn ($id) => in_array((int) $id, $existing, true))->values();
 
+        $conflicting = EventAssignment::query()
+            ->whereIn('inventory_item_id', $toInsert)
+            ->where(function ($query) {
+                $query->whereNull('assignment_status')
+                    ->orWhereRaw("UPPER(COALESCE(assignment_status, '')) NOT IN (?, ?, ?)", ['DEVUELTO', 'CANCELADO', 'FINALIZADO']);
+            })
+            ->whereDate('assigned_from', '<=', $event->end_date ?? $event->start_date)
+            ->whereDate('assigned_until', '>=', $event->start_date)
+            ->pluck('inventory_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $toInsert = $toInsert->reject(fn ($id) => in_array((int) $id, $conflicting, true))->values();
+
         $created = 0;
         DB::beginTransaction();
         try {
@@ -1473,9 +1489,13 @@ class InventoryController extends Controller
             'message' => 'Asignación procesada.',
             'data' => [
                 'created_count' => $created,
-                'skipped_count' => count($existing),
+                'skipped_count' => count($existing) + count($conflicting),
+                'skipped_existing_count' => count($existing),
+                'skipped_conflict_count' => count($conflicting),
                 'total_requested' => $unitIds->count(),
-                'skipped_unit_ids' => $existing,
+                'skipped_unit_ids' => array_values(array_unique(array_merge($existing, $conflicting))),
+                'skipped_existing_unit_ids' => $existing,
+                'skipped_conflict_unit_ids' => $conflicting,
             ],
         ]);
     }
@@ -1483,7 +1503,7 @@ class InventoryController extends Controller
     /**
      * Vista para asignar unidades a eventos
      */
-    public function asignarEventos($id)
+    public function asignarEventos(Request $request, $id)
     {
         $itemParent = ItemParent::with([
             'category',
@@ -1495,7 +1515,11 @@ class InventoryController extends Controller
             }
         ])->findOrFail($id);
 
+        $requestedUnitId = (int) $request->query('unit_id', 0);
         $inventoryItems = $itemParent->items;
+        if ($requestedUnitId > 0) {
+            $inventoryItems = $inventoryItems->where('id', $requestedUnitId)->values();
+        }
         $inventoryItemIds = $inventoryItems->pluck('id')->filter()->values();
 
         $totalMaintenanceRecords = 0;

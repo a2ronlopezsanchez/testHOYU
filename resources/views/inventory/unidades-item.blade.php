@@ -1083,15 +1083,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const created = data?.data?.created_count || 0;
       const skipped = data?.data?.skipped_count || 0;
+      const skippedExisting = data?.data?.skipped_existing_count || 0;
+      const skippedConflict = data?.data?.skipped_conflict_count || 0;
       const allOk = skipped === 0;
 
       if (typeof Swal !== 'undefined') {
+        const details = [];
+        if (skippedExisting > 0) details.push(`${skippedExisting} ya estaban asignadas a este evento`);
+        if (skippedConflict > 0) details.push(`${skippedConflict} tienen conflicto de fecha con otro evento`);
+
         Swal.fire({
           icon: allOk ? 'success' : 'info',
           title: allOk ? 'Asignación completada' : 'Asignación parcial',
           html: allOk
             ? `Se agregaron ${created} unidad(es) correctamente.`
-            : `Se agregaron ${created} unidad(es).<br>${skipped} ya estaban asignadas a este evento.`,
+            : `Se agregaron ${created} unidad(es).<br>${details.join('.<br>')}.`,
           confirmButtonText: 'Aceptar',
         });
       }
