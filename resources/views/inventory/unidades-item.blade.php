@@ -340,14 +340,10 @@
                       <button type="button" class="btn btn-icon btn-sm btn-outline-secondary view-history-btn" title="Ver historial" data-unit-id="{{ $unit->id }}" data-unit-label="{{ $unit->item_id ?: ('UNIDAD-' . $unit->id) }}">
                         <i class="mdi mdi-history"></i>
                       </button>
-                      <form method="POST" action="{{ route('inventory.unidad.dar-de-baja', ['id' => $unit->id]) }}" onsubmit="return confirm('¿Dar de baja esta unidad?');">
-                        @csrf
-                        <input type="hidden" name="decommission_reason" value="BAJA_MANUAL">
-                        <input type="hidden" name="decommission_comments" value="Baja solicitada desde listado de unidades">
-                        <button type="submit" class="btn btn-icon btn-sm btn-outline-danger" title="Eliminar unidad">
-                          <i class="mdi mdi-trash-can-outline"></i>
-                        </button>
-                      </form>
+                      <label class="switch mb-0" title="Activar / desactivar unidad">
+                        <input type="checkbox" class="switch-input toggle-active" data-id="{{ $unit->id }}" data-sku="{{ $unit->sku }}" {{ $unit->is_active ? 'checked' : '' }}>
+                        <span class="switch-toggle-slider"><span class="switch-on"></span><span class="switch-off"></span></span>
+                      </label>
                     </div>
                   </td>
                 </tr>
@@ -1387,6 +1383,48 @@ document.addEventListener('DOMContentLoaded', function () {
       openEventModal();
     });
   }
+
+  document.querySelectorAll('.toggle-active').forEach((toggle) => {
+    toggle.addEventListener('change', async function () {
+      const id = this.dataset.id;
+      const sku = this.dataset.sku || `ID ${id}`;
+      const isActive = this.checked;
+
+      try {
+        const response = await fetch(`/catalogo/${id}/toggle-active`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ is_active: isActive })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo actualizar el estado de la unidad.');
+        }
+
+        if (typeof Swal !== 'undefined') {
+          await Swal.fire({
+            icon: 'success',
+            title: isActive ? 'Unidad activada' : 'Unidad dada de baja',
+            text: `${sku}: estado actualizado correctamente.`,
+            timer: 1200,
+            showConfirmButton: false,
+          });
+        }
+
+        window.location.reload();
+      } catch (error) {
+        this.checked = !isActive;
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Error', error.message || 'No se pudo actualizar el estado.', 'error');
+        }
+      }
+    });
+  });
 
   applyFilters();
 });
