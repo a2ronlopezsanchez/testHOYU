@@ -1087,12 +1087,17 @@ document.addEventListener('DOMContentLoaded', function () {
       const skippedConflict = data?.data?.skipped_conflict_count || 0;
       const allOk = skipped === 0;
 
+      const assignModalEl = document.getElementById('assignUnitsModal');
+      if (assignModalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(assignModalEl).hide();
+      }
+
       if (typeof Swal !== 'undefined') {
         const details = [];
         if (skippedExisting > 0) details.push(`${skippedExisting} ya estaban asignadas a este evento`);
         if (skippedConflict > 0) details.push(`${skippedConflict} tienen conflicto de fecha con otro evento`);
 
-        Swal.fire({
+        await Swal.fire({
           icon: allOk ? 'success' : 'info',
           title: allOk ? 'Asignación completada' : 'Asignación parcial',
           html: allOk
@@ -1102,10 +1107,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       }
 
-      const assignModalEl = document.getElementById('assignUnitsModal');
-      if (assignModalEl && typeof bootstrap !== 'undefined') {
-        bootstrap.Modal.getOrCreateInstance(assignModalEl).hide();
-      }
+      // Refrescar para actualizar tabla de unidades y recuadro de "Próximos Eventos"
+      window.location.reload();
 
     } catch (e) {
       if (typeof Swal !== 'undefined') {
