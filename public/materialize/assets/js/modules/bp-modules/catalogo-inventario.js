@@ -2000,7 +2000,7 @@ class InventoryCatalog {
             `;
             
             // Tabla de unidades con datos reales
-            this.populateModalUnitsTableWithRealData(details.units);
+            this.populateModalUnitsTableWithRealData(details.units, this.parseParentIdFromItem_({ id: itemId }));
             
             // *** NUEVO: Generar calendario en el modal ***
             await this.generateModalCalendar(item);
@@ -2226,7 +2226,7 @@ class InventoryCatalog {
             `;
             
             // Actualizar tabla de unidades
-            this.populateModalUnitsTableWithRealData(details.units);
+            this.populateModalUnitsTableWithRealData(details.units, this.parseParentIdFromItem_(item));
             
         } catch (error) {
             console.error('Error refrescando modal:', error);
@@ -2235,7 +2235,7 @@ class InventoryCatalog {
         }
     }
     // Función para llenar tabla modal con datos reales
-    populateModalUnitsTableWithRealData(units) {
+    populateModalUnitsTableWithRealData(units, fallbackParentId = null) {
         const tbody = document.getElementById('modalUnitsTableBody');
         if (!tbody || !units) return;
 
@@ -2286,10 +2286,10 @@ class InventoryCatalog {
                 <td>-</td>
                 <td><span class="badge badge-${(unit.condition || 'BUENO').toLowerCase()}">${unit.condition || 'BUENO'}</span></td>
                 <td class="text-center">
-                    <a href="${buildEditUnitUrl(unit.item_parent_id || unit.parent_id, unit.db_id)}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
+                    <a href="${buildEditUnitUrl(unit.item_parent_id || unit.parent_id || fallbackParentId, unit.db_id || unit.id)}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
                         <i class="mdi mdi-pencil"></i>
                     </a>
-                    <a href="${buildAssignUnitUrl(unit.item_parent_id || unit.parent_id, unit.db_id)}" class="btn btn-sm btn-outline-secondary ms-1" title="Asignar unidad">
+                    <a href="${buildAssignUnitUrl(unit.item_parent_id || unit.parent_id || fallbackParentId, unit.db_id || unit.id)}" class="btn btn-sm btn-outline-secondary ms-1" title="Asignar unidad">
                         <i class="mdi mdi-calendar"></i>
                     </a>
                 </td>
