@@ -1670,7 +1670,37 @@ class InventoryController extends Controller
         // Calcular disponibilidad actual
         $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
 
-        return view('inventory.detalle', compact('itemParent', 'availability'));
+        // Valores por defecto para mantener compatibilidad con la vista de detalle
+        // cuando no se está consultando una unidad específica.
+        $inventoryItem = $itemParent->items->first();
+        $maintenanceRecords = collect();
+        $lastInspectionDate = 'Sin registros';
+        $nextInspectionDate = 'Sin programar';
+        $nextInspectionOverdue = false;
+        $hasOverdueMaintenance = false;
+        $overdueDays = null;
+        $usageRecords = collect();
+        $totalEvents = 0;
+        $totalHours = 0;
+        $totalMaintenances = 0;
+        $upcomingEvents = collect();
+
+        return view('inventory.detalle', compact(
+            'itemParent',
+            'availability',
+            'inventoryItem',
+            'maintenanceRecords',
+            'lastInspectionDate',
+            'nextInspectionDate',
+            'nextInspectionOverdue',
+            'hasOverdueMaintenance',
+            'overdueDays',
+            'usageRecords',
+            'totalEvents',
+            'totalHours',
+            'totalMaintenances',
+            'upcomingEvents'
+        ));
     }
 
     /**
