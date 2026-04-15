@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/cards-statistics.css') }}" />
 
-    <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/catalogo-inventario.css') }}" />
+    <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/catalogo-inventario.css') }}?v={{ @filemtime(public_path('materialize/assets/vendor/css/pages/black-production-css/catalogo-inventario.css')) ?: time() }}" />
     <style>
       .btn-primary{
         position: relative !important;
@@ -597,5 +597,5 @@
     </div>
 @endsection
 @section('script')
-    <script src="{{ asset('/materialize/assets/js/modules/bp-modules/catalogo-inventario.js') }}"></script>
+    <script src="{{ asset('/materialize/assets/js/modules/bp-modules/catalogo-inventario.js') }}?v={{ @filemtime(public_path('materialize/assets/js/modules/bp-modules/catalogo-inventario.js')) ?: time() }}"></script>
 @endsection
