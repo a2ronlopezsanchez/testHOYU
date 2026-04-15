@@ -625,9 +625,7 @@
                   <td>${{ number_format((float) ($record->total_cost ?? 0), 2) }}</td>
                 </tr>
               @empty
-                <tr>
-                  <td colspan="7" class="text-center py-4 text-muted">No hay mantenimientos registrados para este ítem.</td>
-                </tr>
+                {{-- Sin filas: DataTables mostrará el mensaje de tabla vacía --}}
               @endforelse
             </tbody>
           </table>
@@ -1327,11 +1325,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tbodyUpcoming.innerHTML = upcoming.length
       ? renderRows(upcoming, true)
-      : '<tr><td colspan="5" class="text-center py-4 text-muted">No hay asignaciones desde hoy en adelante.</td></tr>';
+      : '';
 
     tbodyPast.innerHTML = past.length
       ? renderRows(past, false)
-      : '<tr><td colspan="5" class="text-center py-4 text-muted">No hay asignaciones de eventos pasados.</td></tr>';
+      : '';
 
     initAssignedTablesDataTables();
   }
@@ -1344,7 +1342,8 @@ document.addEventListener('DOMContentLoaded', function () {
       pageLength: 10,
       lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todos']],
       language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+        emptyTable: 'Sin registros para este periodo.'
       }
     };
 
@@ -1711,12 +1710,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (window.jQuery && typeof window.jQuery.fn.DataTable === 'function') {
+    const maintenanceTbody = document.querySelector('#maintenanceRecordsTable tbody');
+    if (maintenanceTbody) {
+      const colspanRow = maintenanceTbody.querySelector('tr td[colspan]');
+      if (colspanRow) colspanRow.closest('tr')?.remove();
+    }
+
     const table = window.jQuery('#maintenanceRecordsTable').DataTable({
       pageLength: 10,
       lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todos']],
       order: [[3, 'desc']],
       language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+        emptyTable: 'No hay mantenimientos registrados para este ítem.'
       }
     });
 
