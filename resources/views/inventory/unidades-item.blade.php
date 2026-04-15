@@ -652,7 +652,7 @@
       <div class="modal-body p-3">
         <ul class="nav nav-tabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#assignedUpcomingTab" type="button" role="tab">Hoy en adelante</button>
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#assignedUpcomingTab" type="button" role="tab">Activos</button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assignedPastTab" type="button" role="tab">Eventos pasados</button>
@@ -665,9 +665,9 @@
               <table class="table table-hover mb-0" id="assignedUpcomingTable">
                 <thead class="table-light">
                   <tr>
+                    <th>Unidad</th>
                     <th>Evento</th>
                     <th>Fechas</th>
-                    <th>Unidad</th>
                     <th>Estado</th>
                     <th class="text-center">Acción</th>
                   </tr>
@@ -686,9 +686,9 @@
               <table class="table table-hover mb-0" id="assignedPastTable">
                 <thead class="table-light">
                   <tr>
+                    <th>Unidad</th>
                     <th>Evento</th>
                     <th>Fechas</th>
-                    <th>Unidad</th>
                     <th>Estado</th>
                     <th class="text-center">Acción</th>
                   </tr>
@@ -1289,16 +1289,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const renderRows = (rows, allowRemove) => rows.map((a) => `
       <tr>
         <td>
+          <div class="fw-medium">${a.unit_item_id || `UNIDAD-${a.unit_id}`}</div>
+          <small class="text-muted d-block">${a.unit_serial || 'Sin serie'}</small>
+        </td>
+        <td>
           <div class="fw-medium">${a.event_name || 'Sin nombre'}</div>
           <small class="text-muted d-block">${a.event_code || `EVT-${a.event_id}`}</small>
         </td>
         <td>
           <div>${formatShortDate(a.event_start_date)}</div>
           <small class="text-muted d-block">al ${formatShortDate(a.event_end_date)}</small>
-        </td>
-        <td>
-          <div class="fw-medium">${a.unit_item_id || `UNIDAD-${a.unit_id}`}</div>
-          <small class="text-muted d-block">${a.unit_serial || 'Sin serie'}</small>
         </td>
         <td><span class="badge bg-label-primary">${a.assignment_status || 'ASIGNADO'}</span></td>
         <td class="text-center">
