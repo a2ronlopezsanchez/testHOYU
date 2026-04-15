@@ -1576,15 +1576,15 @@ class InventoryController extends Controller
             ], 422);
         }
 
-        $assignment->assignment_status = 'CANCELADO';
-        $assignment->save();
+        $deletedAssignmentId = (int) $assignment->id;
+        $assignment->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Asignación removida correctamente.',
+            'message' => 'Asignación eliminada correctamente.',
             'data' => [
-                'assignment_id' => (int) $assignment->id,
-                'assignment_status' => $assignment->assignment_status,
+                'assignment_id' => $deletedAssignmentId,
+                'deleted' => true,
             ],
         ]);
     }
