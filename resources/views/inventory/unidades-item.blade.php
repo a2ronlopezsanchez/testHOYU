@@ -768,15 +768,27 @@ document.addEventListener('DOMContentLoaded', function () {
   const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const parseDateSafe = (raw) => {
     if (!raw) return null;
+    const strRaw = String(raw);
+    const ymdMatch = strRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (ymdMatch) {
+      return new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
+    }
     let d = new Date(raw);
     if (!Number.isNaN(d.getTime())) return d;
-    d = new Date(String(raw).split(' ')[0] + 'T00:00:00');
+    d = new Date(strRaw.split(' ')[0] + 'T00:00:00');
     return Number.isNaN(d.getTime()) ? null : d;
   };
   const formatShortDate = (d) => {
     const date = parseDateSafe(d);
     if (!date) return '';
     return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+  };
+  const formatYmdLocal = (d = new Date()) => {
+    const date = parseDateSafe(d) || new Date(d);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   };
 
   let eventRowsCache = [];
@@ -1282,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tbodyPast = document.getElementById('assignedEventsTableBodyPast');
     if (!tbodyUpcoming || !tbodyPast) return;
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = formatYmdLocal(new Date());
     const upcoming = assignments.filter((a) => (a.event_start_date || '') >= todayStr);
     const past = assignments.filter((a) => (a.event_start_date || '') < todayStr);
 

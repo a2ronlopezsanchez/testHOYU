@@ -929,7 +929,7 @@ class InventoryCatalog {
                 return this.getDefaultAvailability(item);
             }
             
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = this.formatApiDate(currentDate);
             const response = await fetch(`/inventory/availability/${parentId}?date=${dateStr}`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -1030,7 +1030,7 @@ class InventoryCatalog {
 
     // Función para obtener disponibilidades múltiples (optimización)
     async getBulkAvailability(items) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const dateStr = this.formatApiDate(currentDate);
         const parentIds = [];
         const itemsToFetch = [];
         
@@ -1096,7 +1096,7 @@ class InventoryCatalog {
                 throw new Error('No se pudo obtener parentId');
             }
             
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = this.formatApiDate(currentDate);
             const response = await fetch(`/inventory/units/${parentId}/details?date=${dateStr}`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -1401,9 +1401,9 @@ class InventoryCatalog {
             
             calendarHTML += `
                 <div class="${dayClasses}"
-                    data-date="${currentDay.toISOString()}"
+                    data-date="${this.formatApiDate(currentDay)}"
                     data-item-id="${item.id}"
-                    onclick="inventoryCatalog.selectCalendarDate('${currentDay.toISOString()}')"
+                    onclick="inventoryCatalog.selectCalendarDate('${this.formatApiDate(currentDay)}')"
                     title="${isInRange ? 'Cargando...' : 'Fuera de rango'}">
                     <div class="calendar-day-number">${currentDay.getDate()}</div>
                     <div class="calendar-day-percent">${isInRange ? '...' : ''}</div>
@@ -1425,7 +1425,7 @@ class InventoryCatalog {
         const calendarDays = calendarGrid.querySelectorAll('.calendar-day:not(.calendar-day-outside-range)');
         
         for (const calendarDay of calendarDays) {
-            const dayDate = new Date(calendarDay.dataset.date);
+            const dayDate = this.parseLocalDate(calendarDay.dataset.date);
             
             // Solo procesar días en el rango válido
             if (dayDate < startDate || dayDate > endDate) continue;
@@ -1487,7 +1487,7 @@ class InventoryCatalog {
         }
         
         try {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = this.formatApiDate(date);
             const response = await fetch(`/inventory/availability/${parentId}?date=${dateStr}`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -1602,7 +1602,7 @@ class InventoryCatalog {
     }
 
     selectCalendarDate(dateString) {
-        currentDate = new Date(dateString);
+        currentDate = this.parseLocalDate(dateString);
         this.clearAvailabilityCache();
         this.updateDateDisplay();
         this.updateFlatpickr();
@@ -1790,6 +1790,26 @@ class InventoryCatalog {
             month: 'long',
             year: 'numeric'
         });
+    }
+
+    formatApiDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    parseLocalDate(value) {
+        if (!value) return new Date(NaN);
+        if (value instanceof Date) return new Date(value);
+        const str = String(value);
+        const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
+        const match = str.match(ymd);
+        if (match) {
+            return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        }
+        return new Date(str);
     }
 
     formatShortDate(date) {
@@ -2083,8 +2103,8 @@ class InventoryCatalog {
             
             calendarHTML += `
                 <div class="${dayClasses}"
-                    data-date="${currentDay.toISOString()}"
-                    onclick="inventoryCatalog.selectModalCalendarDate('${currentDay.toISOString()}')"
+                    data-date="${this.formatApiDate(currentDay)}"
+                    onclick="inventoryCatalog.selectModalCalendarDate('${this.formatApiDate(currentDay)}')"
                     title="${isInRange ? 'Cargando...' : 'Fuera de rango'}">
                     <div class="calendar-day-number">${currentDay.getDate()}</div>
                     <div class="calendar-day-percent">${isInRange ? '...' : ''}</div>
@@ -2108,7 +2128,7 @@ class InventoryCatalog {
         const calendarDays = calendarGrid.querySelectorAll('.calendar-day:not(.calendar-day-outside-range)');
         
         for (const calendarDay of calendarDays) {
-            const dayDate = new Date(calendarDay.dataset.date);
+            const dayDate = this.parseLocalDate(calendarDay.dataset.date);
             
             // Solo procesar días en el rango válido
             if (dayDate < startDate || dayDate > endDate) continue;
@@ -2160,7 +2180,7 @@ class InventoryCatalog {
     // Nueva función para manejar clicks en el calendario del modal
     selectModalCalendarDate(dateString) {
         // Actualizar la fecha global
-        currentDate = new Date(dateString);
+        currentDate = this.parseLocalDate(dateString);
         this.clearAvailabilityCache();
         this.updateDateDisplay();
         this.updateFlatpickr();
@@ -2168,7 +2188,7 @@ class InventoryCatalog {
         // Actualizar las clases de selección en el calendario del modal
         const modalCalendarDays = document.querySelectorAll('#modal-calendar-grid .calendar-day');
         modalCalendarDays.forEach(day => {
-            const dayDate = new Date(day.dataset.date);
+            const dayDate = this.parseLocalDate(day.dataset.date);
             if (dayDate.toDateString() === currentDate.toDateString()) {
                 day.classList.add('selected');
             } else {
