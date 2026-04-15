@@ -107,6 +107,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/unidad-sin-item', [App\Http\Controllers\InventoryController::class, 'altaUnidadSinItem'])->name('unidad.sin-item');
             Route::get('/events/assignable', [App\Http\Controllers\InventoryController::class, 'assignableEvents'])->name('events.assignable');
             Route::post('/events/assign', [App\Http\Controllers\InventoryController::class, 'assignUnitsToEvent'])->name('events.assign');
+            Route::get('/item/{id}/event-assignments', [App\Http\Controllers\InventoryController::class, 'eventAssignmentsByParent'])->name('item.event-assignments');
+            Route::patch('/events/assignments/{assignmentId}/cancel', [App\Http\Controllers\InventoryController::class, 'cancelEventAssignment'])->name('events.assignments.cancel');
             Route::post('/item/{id}/associate-to-parent', [App\Http\Controllers\InventoryController::class, 'associateUnitsToParent'])->name('item.associate-parent');
             Route::get('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosIndex'])->name('eventos.index');
             Route::post('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosStore'])->name('eventos.store');

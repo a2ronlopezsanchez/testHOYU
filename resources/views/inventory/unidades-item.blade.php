@@ -414,7 +414,7 @@
       <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Próximos Eventos</h5>
-          <a href="{{ route('inventory.eventos.index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="viewAssignedEventsBtn">Ver todos</button>
         </div>
         <div class="card-body p-0">
           <ul class="list-group list-group-flush" id="sideUpcomingEvents">
@@ -641,6 +641,43 @@
   </div>
 </div>
 
+<!-- ══ MODAL: ÍTEMS ASIGNADOS A EVENTOS ══ -->
+<div class="modal fade" id="assignedEventsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ítems asignados a eventos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="p-3">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Evento</th>
+                  <th>Fechas</th>
+                  <th>Unidad</th>
+                  <th>Estado</th>
+                  <th class="text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="assignedEventsTableBody">
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 @endsection
 
@@ -676,12 +713,16 @@ document.addEventListener('DOMContentLoaded', function () {
   const selectCatalogModalSubtitle = document.getElementById('selectCatalogModalSubtitle');
 
   const assignToEventBtn = document.getElementById('assignToEventBtn');
+  const viewAssignedEventsBtn = document.getElementById('viewAssignedEventsBtn');
   const eventModalEl = document.getElementById('eventCatalogModal');
   const eventSearchInput = document.getElementById('eventSearchInput');
   const clearEventSearch = document.getElementById('clearEventSearch');
   const eventMonthFilter = document.getElementById('eventMonthFilter');
   const eventResultCount = document.getElementById('eventResultCount');
   const eventTableBody = document.getElementById('eventCatalogTableBody');
+
+  const eventAssignmentsUrl = `{{ route('inventory.item.event-assignments', ['id' => $itemParent->id]) }}`;
+  const cancelAssignmentBaseUrl = `{{ url('/inventory/events/assignments') }}`;
 
 
   const uniqueSorted = (arr) => Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
@@ -1035,6 +1076,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   let selectedEvent = null;
+  let currentEventAssignmentsMap = new Map();
 
   function collectUnitsForAssignment() {
     return Array.from(document.querySelectorAll('#unitsTableBody tr[data-unit-id]')).map((row) => ({
@@ -1062,7 +1104,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function openAssignUnitsModal(eventData) {
+  async function fetchEventAssignments(eventId = null) {
+    const url = new URL(eventAssignmentsUrl, window.location.origin);
+    if (eventId) url.searchParams.set('event_id', eventId);
+    const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'No se pudieron cargar asignaciones.');
+    return data.data || [];
+  }
+
+  async function openAssignUnitsModal(eventData) {
     selectedEvent = eventData;
     const assignModalEl = document.getElementById('assignUnitsModal');
     if (!assignModalEl || typeof bootstrap === 'undefined') return;
@@ -1078,15 +1129,28 @@ document.addEventListener('DOMContentLoaded', function () {
       infoBar.innerHTML = `<div class="d-flex align-items-center justify-content-between flex-wrap gap-2"><div><div class="fw-medium">${eventData.name || ''}</div><small class="text-muted">${formatShortDate(eventData.start_date)} • ${eventData.client_name || '—'}</small></div><small class="text-muted">${eventData.venue_address || eventData.venue_name || '—'}</small></div>`;
     }
 
+    const eventAssignments = await fetchEventAssignments(eventData.id);
+    currentEventAssignmentsMap = new Map(eventAssignments.map((a) => [String(a.unit_id), a]));
+
     const units = collectUnitsForAssignment();
     if (tbody) {
       tbody.innerHTML = units.map((u) => `
-        <tr>
-          <td><input class="form-check-input assign-unit-check" type="checkbox" value="${u.id}"></td>
+        <tr class="${currentEventAssignmentsMap.has(String(u.id)) ? 'table-secondary' : ''}">
+          <td>
+            <input
+              class="form-check-input assign-unit-check"
+              type="checkbox"
+              value="${u.id}"
+              data-existing="${currentEventAssignmentsMap.has(String(u.id)) ? '1' : '0'}"
+              data-assignment-id="${currentEventAssignmentsMap.get(String(u.id))?.assignment_id || ''}"
+              ${currentEventAssignmentsMap.has(String(u.id)) ? 'checked' : ''}
+              ${currentEventAssignmentsMap.has(String(u.id)) && !currentEventAssignmentsMap.get(String(u.id))?.can_unassign ? 'disabled' : ''}
+            >
+          </td>
           <td><div class="fw-medium">${u.itemId || '—'}</div><small class="text-muted d-block">${u.serial || '—'}</small><small class="text-muted d-block">${u.rfid || ''}</small></td>
           <td><span class="badge bg-label-secondary">${u.condition || '—'}</span></td>
           <td>${u.location || '—'}</td>
-          <td>${u.lastUse || '—'}</td>
+          <td>${u.lastUse || '—'}${currentEventAssignmentsMap.has(String(u.id)) ? `<small class="text-muted d-block">Ya asignada a este evento${currentEventAssignmentsMap.get(String(u.id))?.can_unassign ? ' (puedes quitarla)' : ''}</small>` : ''}</td>
         </tr>
       `).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No hay unidades para asignar.</td></tr>';
     }
@@ -1097,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function () {
       selectAll.checked = false;
       selectAll.indeterminate = false;
       selectAll.onchange = function () {
-        document.querySelectorAll('.assign-unit-check').forEach((c) => { c.checked = this.checked; });
+        document.querySelectorAll('.assign-unit-check:not(:disabled)').forEach((c) => { c.checked = this.checked; });
         updateAssignSelectedCount();
       };
     }
@@ -1111,33 +1175,75 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   async function submitEventAssignment() {
-    const checks = Array.from(document.querySelectorAll('.assign-unit-check:checked'));
-    const unitIds = checks.map((c) => Number(c.value)).filter(Boolean);
-    if (!selectedEvent || !unitIds.length) return;
+    const allChecks = Array.from(document.querySelectorAll('.assign-unit-check'));
+    const checks = allChecks.filter((c) => c.checked);
+    const newUnitIds = checks
+      .filter((c) => c.dataset.existing !== '1')
+      .map((c) => Number(c.value))
+      .filter(Boolean);
+
+    const removedAssignmentIds = allChecks
+      .filter((c) => c.dataset.existing === '1' && !c.checked && c.dataset.assignmentId)
+      .map((c) => Number(c.dataset.assignmentId))
+      .filter(Boolean);
+
+    if (!selectedEvent || (!newUnitIds.length && !removedAssignmentIds.length)) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Sin cambios', 'No hay cambios para guardar en este evento.', 'info');
+      }
+      return;
+    }
 
     try {
-      const res = await fetch('{{ route('inventory.events.assign') }}', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        },
-        body: JSON.stringify({
-          event_id: selectedEvent.id,
-          unit_ids: unitIds,
-        }),
-      });
+      let created = 0;
+      let skipped = 0;
+      let skippedExisting = 0;
+      let skippedConflict = 0;
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'No se pudo guardar la asignación.');
+      if (newUnitIds.length) {
+        const res = await fetch('{{ route('inventory.events.assign') }}', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          },
+          body: JSON.stringify({
+            event_id: selectedEvent.id,
+            unit_ids: newUnitIds,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo guardar la asignación.');
+        }
+
+        created = data?.data?.created_count || 0;
+        skipped = data?.data?.skipped_count || 0;
+        skippedExisting = data?.data?.skipped_existing_count || 0;
+        skippedConflict = data?.data?.skipped_conflict_count || 0;
       }
 
-      const created = data?.data?.created_count || 0;
-      const skipped = data?.data?.skipped_count || 0;
-      const skippedExisting = data?.data?.skipped_existing_count || 0;
-      const skippedConflict = data?.data?.skipped_conflict_count || 0;
+      let removedCount = 0;
+      if (removedAssignmentIds.length) {
+        for (const assignmentId of removedAssignmentIds) {
+          const cancelRes = await fetch(`${cancelAssignmentBaseUrl}/${assignmentId}/cancel`, {
+            method: 'PATCH',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+          });
+          const cancelData = await cancelRes.json();
+          if (!cancelRes.ok || !cancelData.success) {
+            throw new Error(cancelData.message || 'No se pudo quitar una asignación existente.');
+          }
+          removedCount++;
+        }
+      }
+
       const allOk = skipped === 0;
 
       const assignModalEl = document.getElementById('assignUnitsModal');
@@ -1154,8 +1260,8 @@ document.addEventListener('DOMContentLoaded', function () {
           icon: allOk ? 'success' : 'info',
           title: allOk ? 'Asignación completada' : 'Asignación parcial',
           html: allOk
-            ? `Se agregaron ${created} unidad(es) correctamente.`
-            : `Se agregaron ${created} unidad(es).<br>${details.join('.<br>')}.`,
+            ? `Se agregaron ${created} unidad(es) y se quitaron ${removedCount} asignación(es).`
+            : `Se agregaron ${created} unidad(es), se quitaron ${removedCount} asignación(es).<br>${details.join('.<br>')}.`,
           confirmButtonText: 'Aceptar',
         });
       }
@@ -1168,6 +1274,74 @@ document.addEventListener('DOMContentLoaded', function () {
         Swal.fire('Error', e.message || 'No se pudo guardar la asignación.', 'error');
       }
     }
+  }
+
+  function renderAssignedEventsRows(assignments) {
+    const tbody = document.getElementById('assignedEventsTableBody');
+    if (!tbody) return;
+
+    if (!assignments.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay ítems asignados a eventos.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = assignments.map((a) => `
+      <tr>
+        <td>
+          <div class="fw-medium">${a.event_name || 'Sin nombre'}</div>
+          <small class="text-muted d-block">${a.event_code || `EVT-${a.event_id}`}</small>
+        </td>
+        <td>
+          <div>${formatShortDate(a.event_start_date)}</div>
+          <small class="text-muted d-block">al ${formatShortDate(a.event_end_date)}</small>
+        </td>
+        <td>
+          <div class="fw-medium">${a.unit_item_id || `UNIDAD-${a.unit_id}`}</div>
+          <small class="text-muted d-block">${a.unit_serial || 'Sin serie'}</small>
+        </td>
+        <td><span class="badge bg-label-primary">${a.assignment_status || 'ASIGNADO'}</span></td>
+        <td class="text-center">
+          <button
+            class="btn btn-sm btn-outline-danger remove-assignment-btn"
+            data-assignment-id="${a.assignment_id}"
+            ${a.can_unassign ? '' : 'disabled'}
+            title="${a.can_unassign ? 'Quitar del evento' : 'No editable, evento iniciado'}">
+            <i class="mdi mdi-link-off"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function openAssignedEventsModal() {
+    const modalEl = document.getElementById('assignedEventsModal');
+    const tbody = document.getElementById('assignedEventsTableBody');
+    if (!modalEl || !tbody || typeof bootstrap === 'undefined') return;
+
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td></tr>';
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    try {
+      const assignments = await fetchEventAssignments();
+      renderAssignedEventsRows(assignments);
+    } catch (error) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${error.message || 'No se pudieron cargar asignaciones.'}</td></tr>`;
+    }
+  }
+
+  async function removeAssignment(assignmentId) {
+    const res = await fetch(`${cancelAssignmentBaseUrl}/${assignmentId}/cancel`, {
+      method: 'PATCH',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo quitar la asignación.');
+    return data;
   }
 
   function renderUnitsPagination(totalPages) {
@@ -1385,6 +1559,9 @@ document.addEventListener('DOMContentLoaded', function () {
   if (assignToEventBtn) {
     assignToEventBtn.addEventListener('click', openEventModal);
   }
+  if (viewAssignedEventsBtn) {
+    viewAssignedEventsBtn.addEventListener('click', openAssignedEventsModal);
+  }
 
   if (eventSearchInput) {
     eventSearchInput.addEventListener('input', renderEventRows);
@@ -1408,7 +1585,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const eventId = row.getAttribute('data-event-id');
     const ev = eventRowsCache.find((x) => String(x.id) === String(eventId));
     if (!ev) return;
-    openAssignUnitsModal(ev);
+    openAssignUnitsModal(ev).catch((error) => {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Error', error.message || 'No se pudo abrir la selección de unidades.', 'error');
+      }
+    });
   };
 
   if (eventTableBody) {
@@ -1422,6 +1603,44 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!row) return;
       e.preventDefault();
       openEventFromTarget(row);
+    });
+  }
+
+  const assignedEventsTableBody = document.getElementById('assignedEventsTableBody');
+  if (assignedEventsTableBody) {
+    assignedEventsTableBody.addEventListener('click', async function (e) {
+      const btn = e.target.closest('.remove-assignment-btn');
+      if (!btn || btn.disabled) return;
+      const assignmentId = btn.getAttribute('data-assignment-id');
+      if (!assignmentId) return;
+
+      try {
+        let confirm = true;
+        if (typeof Swal !== 'undefined') {
+          const result = await Swal.fire({
+            icon: 'warning',
+            title: '¿Quitar asignación?',
+            text: 'La unidad dejará de estar vinculada a este evento.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, quitar',
+            cancelButtonText: 'Cancelar',
+          });
+          confirm = !!result.isConfirmed;
+        }
+        if (!confirm) return;
+
+        await removeAssignment(assignmentId);
+        const assignments = await fetchEventAssignments();
+        renderAssignedEventsRows(assignments);
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Listo', 'Asignación removida correctamente.', 'success');
+        }
+      } catch (error) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Error', error.message || 'No se pudo quitar la asignación.', 'error');
+        }
+      }
     });
   }
 

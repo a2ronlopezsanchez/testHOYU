@@ -1501,6 +1501,95 @@ class InventoryController extends Controller
     }
 
     /**
+     * Listar asignaciones activas de unidades para un ItemParent (opcionalmente por evento)
+     */
+    public function eventAssignmentsByParent(Request $request, $id): JsonResponse
+    {
+        $itemParent = ItemParent::with(['items' => function ($query) {
+            $query->where('is_active', true);
+        }])->findOrFail($id);
+
+        $eventId = (int) $request->query('event_id', 0);
+        $itemIds = $itemParent->items->pluck('id')->filter()->values();
+
+        if ($itemIds->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
+
+        $assignments = EventAssignment::query()
+            ->with(['event', 'item'])
+            ->whereIn('inventory_item_id', $itemIds)
+            ->where(function ($query) {
+                $query->whereNull('assignment_status')
+                    ->orWhereRaw("UPPER(COALESCE(assignment_status, '')) NOT IN (?, ?, ?)", ['DEVUELTO', 'CANCELADO', 'FINALIZADO']);
+            })
+            ->when($eventId > 0, function ($query) use ($eventId) {
+                $query->where('event_id', $eventId);
+            })
+            ->orderBy('assigned_from', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $today = now()->toDateString();
+        $data = $assignments->map(function ($assignment) use ($today) {
+            $eventStart = optional($assignment->event?->start_date)->toDateString();
+            $canUnassign = $eventStart ? ($eventStart > $today) : false;
+
+            return [
+                'assignment_id' => (int) $assignment->id,
+                'event_id' => (int) $assignment->event_id,
+                'event_code' => $assignment->event?->event_code,
+                'event_name' => $assignment->event?->name,
+                'event_start_date' => optional($assignment->event?->start_date)->format('Y-m-d'),
+                'event_end_date' => optional($assignment->event?->end_date)->format('Y-m-d'),
+                'unit_id' => (int) $assignment->inventory_item_id,
+                'unit_item_id' => $assignment->item?->item_id,
+                'unit_serial' => $assignment->item?->serial_number,
+                'assignment_status' => $assignment->assignment_status,
+                'assigned_from' => optional($assignment->assigned_from)->format('Y-m-d'),
+                'assigned_until' => optional($assignment->assigned_until)->format('Y-m-d'),
+                'can_unassign' => $canUnassign,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Cancelar (desasignar) una asignación de evento si aún no inicia el evento
+     */
+    public function cancelEventAssignment($assignmentId): JsonResponse
+    {
+        $assignment = EventAssignment::with('event')->findOrFail($assignmentId);
+        $eventStart = optional($assignment->event?->start_date)->toDateString();
+
+        if ($eventStart && $eventStart <= now()->toDateString()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede desasignar porque el evento ya inició o ya pasó.',
+            ], 422);
+        }
+
+        $assignment->assignment_status = 'CANCELADO';
+        $assignment->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asignación removida correctamente.',
+            'data' => [
+                'assignment_id' => (int) $assignment->id,
+                'assignment_status' => $assignment->assignment_status,
+            ],
+        ]);
+    }
+
+    /**
      * Vista para asignar unidades a eventos
      */
     public function asignarEventos(Request $request, $id)
