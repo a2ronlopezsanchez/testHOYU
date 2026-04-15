@@ -649,25 +649,57 @@
         <h5 class="modal-title">Ítems asignados a eventos</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-0">
-        <div class="p-3">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Evento</th>
-                  <th>Fechas</th>
-                  <th>Unidad</th>
-                  <th>Estado</th>
-                  <th class="text-center">Acción</th>
-                </tr>
-              </thead>
-              <tbody id="assignedEventsTableBody">
-                <tr>
-                  <td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td>
-                </tr>
-              </tbody>
-            </table>
+      <div class="modal-body p-3">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#assignedUpcomingTab" type="button" role="tab">Hoy en adelante</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assignedPastTab" type="button" role="tab">Eventos pasados</button>
+          </li>
+        </ul>
+
+        <div class="tab-content pt-3">
+          <div class="tab-pane fade show active" id="assignedUpcomingTab" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="assignedUpcomingTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Evento</th>
+                    <th>Fechas</th>
+                    <th>Unidad</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="assignedEventsTableBodyUpcoming">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="assignedPastTab" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="assignedPastTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Evento</th>
+                    <th>Fechas</th>
+                    <th>Unidad</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="assignedEventsTableBodyPast">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -1137,20 +1169,15 @@ document.addEventListener('DOMContentLoaded', function () {
       tbody.innerHTML = units.map((u) => `
         <tr class="${currentEventAssignmentsMap.has(String(u.id)) ? 'table-secondary' : ''}">
           <td>
-            <input
-              class="form-check-input assign-unit-check"
-              type="checkbox"
-              value="${u.id}"
-              data-existing="${currentEventAssignmentsMap.has(String(u.id)) ? '1' : '0'}"
-              data-assignment-id="${currentEventAssignmentsMap.get(String(u.id))?.assignment_id || ''}"
-              ${currentEventAssignmentsMap.has(String(u.id)) ? 'checked' : ''}
-              ${currentEventAssignmentsMap.has(String(u.id)) && !currentEventAssignmentsMap.get(String(u.id))?.can_unassign ? 'disabled' : ''}
-            >
+            ${currentEventAssignmentsMap.has(String(u.id))
+              ? '<i class="mdi mdi-check-circle text-secondary" title="Ya asignada a este evento"></i>'
+              : `<input class="form-check-input assign-unit-check" type="checkbox" value="${u.id}">`
+            }
           </td>
           <td><div class="fw-medium">${u.itemId || '—'}</div><small class="text-muted d-block">${u.serial || '—'}</small><small class="text-muted d-block">${u.rfid || ''}</small></td>
           <td><span class="badge bg-label-secondary">${u.condition || '—'}</span></td>
           <td>${u.location || '—'}</td>
-          <td>${u.lastUse || '—'}${currentEventAssignmentsMap.has(String(u.id)) ? `<small class="text-muted d-block">Ya asignada a este evento${currentEventAssignmentsMap.get(String(u.id))?.can_unassign ? ' (puedes quitarla)' : ''}</small>` : ''}</td>
+          <td>${u.lastUse || '—'}${currentEventAssignmentsMap.has(String(u.id)) ? '<small class="text-muted d-block">Ya asignada a este evento</small>' : ''}</td>
         </tr>
       `).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No hay unidades para asignar.</td></tr>';
     }
@@ -1161,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
       selectAll.checked = false;
       selectAll.indeterminate = false;
       selectAll.onchange = function () {
-        document.querySelectorAll('.assign-unit-check:not(:disabled)').forEach((c) => { c.checked = this.checked; });
+        document.querySelectorAll('.assign-unit-check').forEach((c) => { c.checked = this.checked; });
         updateAssignSelectedCount();
       };
     }
@@ -1175,21 +1202,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   async function submitEventAssignment() {
-    const allChecks = Array.from(document.querySelectorAll('.assign-unit-check'));
-    const checks = allChecks.filter((c) => c.checked);
+    const checks = Array.from(document.querySelectorAll('.assign-unit-check:checked'));
     const newUnitIds = checks
-      .filter((c) => c.dataset.existing !== '1')
       .map((c) => Number(c.value))
       .filter(Boolean);
 
-    const removedAssignmentIds = allChecks
-      .filter((c) => c.dataset.existing === '1' && !c.checked && c.dataset.assignmentId)
-      .map((c) => Number(c.dataset.assignmentId))
-      .filter(Boolean);
-
-    if (!selectedEvent || (!newUnitIds.length && !removedAssignmentIds.length)) {
+    if (!selectedEvent || !newUnitIds.length) {
       if (typeof Swal !== 'undefined') {
-        Swal.fire('Sin cambios', 'No hay cambios para guardar en este evento.', 'info');
+        Swal.fire('Sin unidades', 'Selecciona al menos una unidad disponible para asignar.', 'info');
       }
       return;
     }
@@ -1225,25 +1245,6 @@ document.addEventListener('DOMContentLoaded', function () {
         skippedConflict = data?.data?.skipped_conflict_count || 0;
       }
 
-      let removedCount = 0;
-      if (removedAssignmentIds.length) {
-        for (const assignmentId of removedAssignmentIds) {
-          const cancelRes = await fetch(`${cancelAssignmentBaseUrl}/${assignmentId}/cancel`, {
-            method: 'PATCH',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            },
-          });
-          const cancelData = await cancelRes.json();
-          if (!cancelRes.ok || !cancelData.success) {
-            throw new Error(cancelData.message || 'No se pudo quitar una asignación existente.');
-          }
-          removedCount++;
-        }
-      }
-
       const allOk = skipped === 0;
 
       const assignModalEl = document.getElementById('assignUnitsModal');
@@ -1260,8 +1261,8 @@ document.addEventListener('DOMContentLoaded', function () {
           icon: allOk ? 'success' : 'info',
           title: allOk ? 'Asignación completada' : 'Asignación parcial',
           html: allOk
-            ? `Se agregaron ${created} unidad(es) y se quitaron ${removedCount} asignación(es).`
-            : `Se agregaron ${created} unidad(es), se quitaron ${removedCount} asignación(es).<br>${details.join('.<br>')}.`,
+            ? `Se agregaron ${created} unidad(es).`
+            : `Se agregaron ${created} unidad(es).<br>${details.join('.<br>')}.`,
           confirmButtonText: 'Aceptar',
         });
       }
@@ -1277,15 +1278,15 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function renderAssignedEventsRows(assignments) {
-    const tbody = document.getElementById('assignedEventsTableBody');
-    if (!tbody) return;
+    const tbodyUpcoming = document.getElementById('assignedEventsTableBodyUpcoming');
+    const tbodyPast = document.getElementById('assignedEventsTableBodyPast');
+    if (!tbodyUpcoming || !tbodyPast) return;
 
-    if (!assignments.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay ítems asignados a eventos.</td></tr>';
-      return;
-    }
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const upcoming = assignments.filter((a) => (a.event_start_date || '') >= todayStr);
+    const past = assignments.filter((a) => (a.event_start_date || '') < todayStr);
 
-    tbody.innerHTML = assignments.map((a) => `
+    const renderRows = (rows, allowRemove) => rows.map((a) => `
       <tr>
         <td>
           <div class="fw-medium">${a.event_name || 'Sin nombre'}</div>
@@ -1304,28 +1305,65 @@ document.addEventListener('DOMContentLoaded', function () {
           <button
             class="btn btn-sm btn-outline-danger remove-assignment-btn"
             data-assignment-id="${a.assignment_id}"
-            ${a.can_unassign ? '' : 'disabled'}
-            title="${a.can_unassign ? 'Quitar del evento' : 'No editable, evento iniciado'}">
+            ${(allowRemove && a.can_unassign) ? '' : 'disabled'}
+            title="${(allowRemove && a.can_unassign) ? 'Quitar del evento' : 'Solo informativo'}">
             <i class="mdi mdi-link-off"></i>
           </button>
         </td>
       </tr>
     `).join('');
+
+    tbodyUpcoming.innerHTML = upcoming.length
+      ? renderRows(upcoming, true)
+      : '<tr><td colspan="5" class="text-center py-4 text-muted">No hay asignaciones desde hoy en adelante.</td></tr>';
+
+    tbodyPast.innerHTML = past.length
+      ? renderRows(past, false)
+      : '<tr><td colspan="5" class="text-center py-4 text-muted">No hay asignaciones de eventos pasados.</td></tr>';
+
+    initAssignedTablesDataTables();
+  }
+
+  function initAssignedTablesDataTables() {
+    if (!(window.jQuery && typeof window.jQuery.fn.DataTable === 'function')) return;
+
+    const commonOptions = {
+      destroy: true,
+      pageLength: 10,
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todos']],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+      }
+    };
+
+    window.jQuery('#assignedUpcomingTable').DataTable({
+      ...commonOptions,
+      order: [[1, 'asc']]
+    });
+
+    window.jQuery('#assignedPastTable').DataTable({
+      ...commonOptions,
+      order: [[1, 'desc']]
+    });
   }
 
   async function openAssignedEventsModal() {
     const modalEl = document.getElementById('assignedEventsModal');
-    const tbody = document.getElementById('assignedEventsTableBody');
-    if (!modalEl || !tbody || typeof bootstrap === 'undefined') return;
+    const tbodyUpcoming = document.getElementById('assignedEventsTableBodyUpcoming');
+    const tbodyPast = document.getElementById('assignedEventsTableBodyPast');
+    if (!modalEl || !tbodyUpcoming || !tbodyPast || typeof bootstrap === 'undefined') return;
 
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td></tr>';
+    tbodyUpcoming.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td></tr>';
+    tbodyPast.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td></tr>';
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 
     try {
       const assignments = await fetchEventAssignments();
       renderAssignedEventsRows(assignments);
     } catch (error) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${error.message || 'No se pudieron cargar asignaciones.'}</td></tr>`;
+      const errRow = `<tr><td colspan="5" class="text-center py-4 text-danger">${error.message || 'No se pudieron cargar asignaciones.'}</td></tr>`;
+      tbodyUpcoming.innerHTML = errRow;
+      tbodyPast.innerHTML = errRow;
     }
   }
 
@@ -1606,9 +1644,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  const assignedEventsTableBody = document.getElementById('assignedEventsTableBody');
-  if (assignedEventsTableBody) {
-    assignedEventsTableBody.addEventListener('click', async function (e) {
+  const assignedEventsTableBodyUpcoming = document.getElementById('assignedEventsTableBodyUpcoming');
+  if (assignedEventsTableBodyUpcoming) {
+    assignedEventsTableBodyUpcoming.addEventListener('click', async function (e) {
       const btn = e.target.closest('.remove-assignment-btn');
       if (!btn || btn.disabled) return;
       const assignmentId = btn.getAttribute('data-assignment-id');
@@ -1674,6 +1712,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (maintenanceModalEl) {
       maintenanceModalEl.addEventListener('shown.bs.modal', function () {
         table.columns.adjust().draw(false);
+      });
+    }
+
+    const assignedModalEl = document.getElementById('assignedEventsModal');
+    if (assignedModalEl) {
+      assignedModalEl.addEventListener('shown.bs.modal', function () {
+        if (window.jQuery.fn.DataTable.isDataTable('#assignedUpcomingTable')) {
+          window.jQuery('#assignedUpcomingTable').DataTable().columns.adjust().draw(false);
+        }
+        if (window.jQuery.fn.DataTable.isDataTable('#assignedPastTable')) {
+          window.jQuery('#assignedPastTable').DataTable().columns.adjust().draw(false);
+        }
       });
     }
   }
