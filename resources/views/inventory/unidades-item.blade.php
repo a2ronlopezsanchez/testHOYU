@@ -596,6 +596,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-0">
+        <div class="p-3">
         <div class="table-responsive">
           <table class="table table-hover mb-0" id="maintenanceRecordsTable">
             <thead class="table-light">
@@ -630,6 +631,7 @@
               @endforelse
             </tbody>
           </table>
+        </div>
         </div>
       </div>
       <div class="modal-footer">
