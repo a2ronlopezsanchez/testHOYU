@@ -108,6 +108,18 @@ async function loadUnitsByParent(parentId) {
   return units;
 }
 
+function buildEditUnitUrl(parentId, unitId) {
+  if (!unitId) return '#';
+  if (parentId) return `/inventory/formulario/${parentId}?mode=edit-unit&unit_id=${unitId}`;
+  return `/inventory/unidad/${unitId}`;
+}
+
+function buildAssignUnitUrl(parentId, unitId) {
+  if (!parentId) return '#';
+  const unitQuery = unitId ? `?unit_id=${unitId}` : '';
+  return `/inventory/item/${parentId}/asignar-eventos${unitQuery}`;
+}
+
 // ===== VARIABLES GLOBALES =====
 let currentDate = new Date();
 let inventoryData = [];
@@ -306,7 +318,7 @@ class InventoryCatalog {
                 <td>-</td>
                 <td><span class="badge badge-${(u.condicion || 'BUENO').toLowerCase()}">${u.condicion || 'BUENO'}</span></td>
                 <td class="text-center">
-                    <a href="/inventory/unidad/${u.dbId}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
+                    <a href="${buildEditUnitUrl(parentId, u.dbId)}" class="btn btn-sm btn-outline-primary edit-unit-btn" title="Editar unidad completa">
                         <i class="mdi mdi-pencil me-1"></i>
                     </a>
                 </td>
@@ -917,7 +929,7 @@ class InventoryCatalog {
                 return this.getDefaultAvailability(item);
             }
             
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = this.formatApiDate(currentDate);
             const response = await fetch(`/inventory/availability/${parentId}?date=${dateStr}`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -1018,7 +1030,7 @@ class InventoryCatalog {
 
     // Función para obtener disponibilidades múltiples (optimización)
     async getBulkAvailability(items) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const dateStr = this.formatApiDate(currentDate);
         const parentIds = [];
         const itemsToFetch = [];
         
@@ -1084,7 +1096,7 @@ class InventoryCatalog {
                 throw new Error('No se pudo obtener parentId');
             }
             
-            const dateStr = currentDate.toISOString().split('T')[0];
+            const dateStr = this.formatApiDate(currentDate);
             const response = await fetch(`/inventory/units/${parentId}/details?date=${dateStr}`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -1389,9 +1401,9 @@ class InventoryCatalog {
             
             calendarHTML += `
                 <div class="${dayClasses}"
-                    data-date="${currentDay.toISOString()}"
+                    data-date="${this.formatApiDate(currentDay)}"
                     data-item-id="${item.id}"
-                    onclick="inventoryCatalog.selectCalendarDate('${currentDay.toISOString()}')"
+                    onclick="inventoryCatalog.selectCalendarDate('${this.formatApiDate(currentDay)}')"
                     title="${isInRange ? 'Cargando...' : 'Fuera de rango'}">
                     <div class="calendar-day-number">${currentDay.getDate()}</div>
                     <div class="calendar-day-percent">${isInRange ? '...' : ''}</div>
@@ -1413,7 +1425,7 @@ class InventoryCatalog {
         const calendarDays = calendarGrid.querySelectorAll('.calendar-day:not(.calendar-day-outside-range)');
         
         for (const calendarDay of calendarDays) {
-            const dayDate = new Date(calendarDay.dataset.date);
+            const dayDate = this.parseLocalDate(calendarDay.dataset.date);
             
             // Solo procesar días en el rango válido
             if (dayDate < startDate || dayDate > endDate) continue;
@@ -1475,7 +1487,7 @@ class InventoryCatalog {
         }
         
         try {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = this.formatApiDate(date);
             const response = await fetch(`/inventory/availability/${parentId}?date=${dateStr}`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -1590,7 +1602,7 @@ class InventoryCatalog {
     }
 
     selectCalendarDate(dateString) {
-        currentDate = new Date(dateString);
+        currentDate = this.parseLocalDate(dateString);
         this.clearAvailabilityCache();
         this.updateDateDisplay();
         this.updateFlatpickr();
@@ -1778,6 +1790,26 @@ class InventoryCatalog {
             month: 'long',
             year: 'numeric'
         });
+    }
+
+    formatApiDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    parseLocalDate(value) {
+        if (!value) return new Date(NaN);
+        if (value instanceof Date) return new Date(value);
+        const str = String(value);
+        const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
+        const match = str.match(ymd);
+        if (match) {
+            return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        }
+        return new Date(str);
     }
 
     formatShortDate(date) {
@@ -1988,7 +2020,7 @@ class InventoryCatalog {
             `;
             
             // Tabla de unidades con datos reales
-            this.populateModalUnitsTableWithRealData(details.units);
+            this.populateModalUnitsTableWithRealData(details.units, this.parseParentIdFromItem_({ id: itemId }));
             
             // *** NUEVO: Generar calendario en el modal ***
             await this.generateModalCalendar(item);
@@ -2071,8 +2103,8 @@ class InventoryCatalog {
             
             calendarHTML += `
                 <div class="${dayClasses}"
-                    data-date="${currentDay.toISOString()}"
-                    onclick="inventoryCatalog.selectModalCalendarDate('${currentDay.toISOString()}')"
+                    data-date="${this.formatApiDate(currentDay)}"
+                    onclick="inventoryCatalog.selectModalCalendarDate('${this.formatApiDate(currentDay)}')"
                     title="${isInRange ? 'Cargando...' : 'Fuera de rango'}">
                     <div class="calendar-day-number">${currentDay.getDate()}</div>
                     <div class="calendar-day-percent">${isInRange ? '...' : ''}</div>
@@ -2096,7 +2128,7 @@ class InventoryCatalog {
         const calendarDays = calendarGrid.querySelectorAll('.calendar-day:not(.calendar-day-outside-range)');
         
         for (const calendarDay of calendarDays) {
-            const dayDate = new Date(calendarDay.dataset.date);
+            const dayDate = this.parseLocalDate(calendarDay.dataset.date);
             
             // Solo procesar días en el rango válido
             if (dayDate < startDate || dayDate > endDate) continue;
@@ -2148,7 +2180,7 @@ class InventoryCatalog {
     // Nueva función para manejar clicks en el calendario del modal
     selectModalCalendarDate(dateString) {
         // Actualizar la fecha global
-        currentDate = new Date(dateString);
+        currentDate = this.parseLocalDate(dateString);
         this.clearAvailabilityCache();
         this.updateDateDisplay();
         this.updateFlatpickr();
@@ -2156,7 +2188,7 @@ class InventoryCatalog {
         // Actualizar las clases de selección en el calendario del modal
         const modalCalendarDays = document.querySelectorAll('#modal-calendar-grid .calendar-day');
         modalCalendarDays.forEach(day => {
-            const dayDate = new Date(day.dataset.date);
+            const dayDate = this.parseLocalDate(day.dataset.date);
             if (dayDate.toDateString() === currentDate.toDateString()) {
                 day.classList.add('selected');
             } else {
@@ -2214,7 +2246,7 @@ class InventoryCatalog {
             `;
             
             // Actualizar tabla de unidades
-            this.populateModalUnitsTableWithRealData(details.units);
+            this.populateModalUnitsTableWithRealData(details.units, this.parseParentIdFromItem_(item));
             
         } catch (error) {
             console.error('Error refrescando modal:', error);
@@ -2223,7 +2255,7 @@ class InventoryCatalog {
         }
     }
     // Función para llenar tabla modal con datos reales
-    populateModalUnitsTableWithRealData(units) {
+    populateModalUnitsTableWithRealData(units, fallbackParentId = null) {
         const tbody = document.getElementById('modalUnitsTableBody');
         if (!tbody || !units) return;
 
@@ -2274,9 +2306,11 @@ class InventoryCatalog {
                 <td>-</td>
                 <td><span class="badge badge-${(unit.condition || 'BUENO').toLowerCase()}">${unit.condition || 'BUENO'}</span></td>
                 <td class="text-center">
-                    <a href="/inventory/unidad/${unit.db_id}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
-                        <i class="mdi mdi-pencil me-1"></i>
-                        Editar
+                    <a href="${buildEditUnitUrl(unit.item_parent_id || unit.parent_id || fallbackParentId, unit.db_id || unit.id)}" class="btn btn-sm btn-primary edit-unit-btn" title="Editar unidad completa">
+                        <i class="mdi mdi-pencil"></i>
+                    </a>
+                    <a href="${buildAssignUnitUrl(unit.item_parent_id || unit.parent_id || fallbackParentId, unit.db_id || unit.id)}" class="btn btn-sm btn-outline-secondary ms-1" title="Asignar unidad">
+                        <i class="mdi mdi-calendar"></i>
                     </a>
                 </td>
             `;
@@ -2320,9 +2354,11 @@ class InventoryCatalog {
             <td>-</td>
             <td><span class="badge badge-${(u.condicion || 'BUENO').toLowerCase()}">${u.condicion || 'BUENO'}</span></td>
             <td class="text-center">
-                <a href="/inventory/unidad/${u.dbId}" class="btn btn-sm btn-primary" title="Editar unidad completa">
-                    <i class="mdi mdi-pencil me-1"></i>
-                    Editar
+                <a href="${buildEditUnitUrl(parentId, u.dbId)}" class="btn btn-sm btn-primary" title="Editar unidad completa">
+                    <i class="mdi mdi-pencil"></i>
+                </a>
+                <a href="${buildAssignUnitUrl(parentId, u.dbId)}" class="btn btn-sm btn-outline-secondary ms-1" title="Asignar unidad">
+                    <i class="mdi mdi-calendar"></i>
                 </a>
             </td>
         `;

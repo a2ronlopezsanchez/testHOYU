@@ -1445,6 +1445,22 @@ class InventoryController extends Controller
 
         $toInsert = $unitIds->reject(fn ($id) => in_array((int) $id, $existing, true))->values();
 
+        $conflicting = EventAssignment::query()
+            ->whereIn('inventory_item_id', $toInsert)
+            ->where(function ($query) {
+                $query->whereNull('assignment_status')
+                    ->orWhereRaw("UPPER(COALESCE(assignment_status, '')) NOT IN (?, ?, ?)", ['DEVUELTO', 'CANCELADO', 'FINALIZADO']);
+            })
+            ->whereDate('assigned_from', '<=', $event->end_date ?? $event->start_date)
+            ->whereDate('assigned_until', '>=', $event->start_date)
+            ->pluck('inventory_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $toInsert = $toInsert->reject(fn ($id) => in_array((int) $id, $conflicting, true))->values();
+
         $created = 0;
         DB::beginTransaction();
         try {
@@ -1473,9 +1489,102 @@ class InventoryController extends Controller
             'message' => 'Asignación procesada.',
             'data' => [
                 'created_count' => $created,
-                'skipped_count' => count($existing),
+                'skipped_count' => count($existing) + count($conflicting),
+                'skipped_existing_count' => count($existing),
+                'skipped_conflict_count' => count($conflicting),
                 'total_requested' => $unitIds->count(),
-                'skipped_unit_ids' => $existing,
+                'skipped_unit_ids' => array_values(array_unique(array_merge($existing, $conflicting))),
+                'skipped_existing_unit_ids' => $existing,
+                'skipped_conflict_unit_ids' => $conflicting,
+            ],
+        ]);
+    }
+
+    /**
+     * Listar asignaciones activas de unidades para un ItemParent (opcionalmente por evento)
+     */
+    public function eventAssignmentsByParent(Request $request, $id): JsonResponse
+    {
+        $itemParent = ItemParent::with(['items' => function ($query) {
+            $query->where('is_active', true);
+        }])->findOrFail($id);
+
+        $eventId = (int) $request->query('event_id', 0);
+        $itemIds = $itemParent->items->pluck('id')->filter()->values();
+
+        if ($itemIds->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
+
+        $assignments = EventAssignment::query()
+            ->with(['event', 'item'])
+            ->whereIn('inventory_item_id', $itemIds)
+            ->where(function ($query) {
+                $query->whereNull('assignment_status')
+                    ->orWhereRaw("UPPER(COALESCE(assignment_status, '')) NOT IN (?, ?, ?)", ['DEVUELTO', 'CANCELADO', 'FINALIZADO']);
+            })
+            ->when($eventId > 0, function ($query) use ($eventId) {
+                $query->where('event_id', $eventId);
+            })
+            ->orderBy('assigned_from', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $today = now()->toDateString();
+        $data = $assignments->map(function ($assignment) use ($today) {
+            $eventStart = optional($assignment->event?->start_date)->toDateString();
+            $canUnassign = $eventStart ? ($eventStart > $today) : false;
+
+            return [
+                'assignment_id' => (int) $assignment->id,
+                'event_id' => (int) $assignment->event_id,
+                'event_code' => $assignment->event?->event_code,
+                'event_name' => $assignment->event?->name,
+                'event_start_date' => optional($assignment->event?->start_date)->format('Y-m-d'),
+                'event_end_date' => optional($assignment->event?->end_date)->format('Y-m-d'),
+                'unit_id' => (int) $assignment->inventory_item_id,
+                'unit_item_id' => $assignment->item?->item_id,
+                'unit_serial' => $assignment->item?->serial_number,
+                'assignment_status' => $assignment->assignment_status,
+                'assigned_from' => optional($assignment->assigned_from)->format('Y-m-d'),
+                'assigned_until' => optional($assignment->assigned_until)->format('Y-m-d'),
+                'can_unassign' => $canUnassign,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Cancelar (desasignar) una asignación de evento si aún no inicia el evento
+     */
+    public function cancelEventAssignment($assignmentId): JsonResponse
+    {
+        $assignment = EventAssignment::with('event')->findOrFail($assignmentId);
+        $eventStart = optional($assignment->event?->start_date)->toDateString();
+
+        if ($eventStart && $eventStart <= now()->toDateString()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede desasignar porque el evento ya inició o ya pasó.',
+            ], 422);
+        }
+
+        $deletedAssignmentId = (int) $assignment->id;
+        $assignment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Asignación eliminada correctamente.',
+            'data' => [
+                'assignment_id' => $deletedAssignmentId,
+                'deleted' => true,
             ],
         ]);
     }
@@ -1483,7 +1592,7 @@ class InventoryController extends Controller
     /**
      * Vista para asignar unidades a eventos
      */
-    public function asignarEventos($id)
+    public function asignarEventos(Request $request, $id)
     {
         $itemParent = ItemParent::with([
             'category',
@@ -1495,11 +1604,16 @@ class InventoryController extends Controller
             }
         ])->findOrFail($id);
 
+        $requestedUnitId = (int) $request->query('unit_id', 0);
         $inventoryItems = $itemParent->items;
+        if ($requestedUnitId > 0) {
+            $inventoryItems = $inventoryItems->where('id', $requestedUnitId)->values();
+        }
         $inventoryItemIds = $inventoryItems->pluck('id')->filter()->values();
 
         $totalMaintenanceRecords = 0;
         $latestMaintenanceRecord = null;
+        $allMaintenanceRecords = collect();
         if ($inventoryItemIds->isNotEmpty()) {
             $maintenanceQuery = MaintenanceRecord::query()->whereIn('inventory_item_id', $inventoryItemIds);
             $totalMaintenanceRecords = (clone $maintenanceQuery)->count();
@@ -1507,6 +1621,12 @@ class InventoryController extends Controller
                 ->orderByDesc('actual_date')
                 ->orderByDesc('created_at')
                 ->first(['id', 'inventory_item_id', 'actual_date', 'created_at']);
+            $allMaintenanceRecords = (clone $maintenanceQuery)
+                ->with(['item'])
+                ->orderByDesc('actual_date')
+                ->orderByDesc('scheduled_date')
+                ->orderByDesc('created_at')
+                ->get();
         }
 
         $upcomingEvents = Event::query()
@@ -1538,7 +1658,8 @@ class InventoryController extends Controller
             'isUnassignedItem',
             'unassignedParentId',
             'totalMaintenanceRecords',
-            'latestMaintenanceRecord'
+            'latestMaintenanceRecord',
+            'allMaintenanceRecords'
         ));
     }
 
@@ -1646,7 +1767,37 @@ class InventoryController extends Controller
         // Calcular disponibilidad actual
         $availability = $this->calculateRealAvailability($itemParent, now()->format('Y-m-d'));
 
-        return view('inventory.detalle', compact('itemParent', 'availability'));
+        // Valores por defecto para mantener compatibilidad con la vista de detalle
+        // cuando no se está consultando una unidad específica.
+        $inventoryItem = $itemParent->items->first();
+        $maintenanceRecords = collect();
+        $lastInspectionDate = 'Sin registros';
+        $nextInspectionDate = 'Sin programar';
+        $nextInspectionOverdue = false;
+        $hasOverdueMaintenance = false;
+        $overdueDays = null;
+        $usageRecords = collect();
+        $totalEvents = 0;
+        $totalHours = 0;
+        $totalMaintenances = 0;
+        $upcomingEvents = collect();
+
+        return view('inventory.detalle', compact(
+            'itemParent',
+            'availability',
+            'inventoryItem',
+            'maintenanceRecords',
+            'lastInspectionDate',
+            'nextInspectionDate',
+            'nextInspectionOverdue',
+            'hasOverdueMaintenance',
+            'overdueDays',
+            'usageRecords',
+            'totalEvents',
+            'totalHours',
+            'totalMaintenances',
+            'upcomingEvents'
+        ));
     }
 
     /**

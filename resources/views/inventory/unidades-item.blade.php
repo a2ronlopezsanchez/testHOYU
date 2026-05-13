@@ -67,6 +67,7 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/vista-unidades-item.css') }}" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
 <style>
   .event-select-row { cursor: pointer; }
 </style>
@@ -340,14 +341,10 @@
                       <button type="button" class="btn btn-icon btn-sm btn-outline-secondary view-history-btn" title="Ver historial" data-unit-id="{{ $unit->id }}" data-unit-label="{{ $unit->item_id ?: ('UNIDAD-' . $unit->id) }}">
                         <i class="mdi mdi-history"></i>
                       </button>
-                      <form method="POST" action="{{ route('inventory.unidad.dar-de-baja', ['id' => $unit->id]) }}" onsubmit="return confirm('¿Dar de baja esta unidad?');">
-                        @csrf
-                        <input type="hidden" name="decommission_reason" value="BAJA_MANUAL">
-                        <input type="hidden" name="decommission_comments" value="Baja solicitada desde listado de unidades">
-                        <button type="submit" class="btn btn-icon btn-sm btn-outline-danger" title="Eliminar unidad">
-                          <i class="mdi mdi-trash-can-outline"></i>
-                        </button>
-                      </form>
+                      <label class="switch mb-0" title="Activar / desactivar unidad">
+                        <input type="checkbox" class="switch-input toggle-active" data-id="{{ $unit->id }}" data-sku="{{ $unit->sku }}" {{ $unit->is_active ? 'checked' : '' }}>
+                        <span class="switch-toggle-slider"><span class="switch-on"></span><span class="switch-off"></span></span>
+                      </label>
                     </div>
                   </td>
                 </tr>
@@ -408,16 +405,16 @@
           <div class="d-flex justify-content-between mb-2"><small class="text-muted">En mantenimiento:</small><span class="fw-medium text-warning" id="sideMaintenanceCurrent">{{ $maintenanceUnits }}</span></div>
           <div class="d-flex justify-content-between mb-3"><small class="text-muted">Último registro:</small><span class="fw-medium" id="sideMaintenanceLast">{{ $lastMaintenanceDate ?: '—' }}</span></div>
           <hr class="my-2">
-          <a href="{{ $lastMaintenanceUnitId ? route('inventory.detalle.unidad', ['id' => $lastMaintenanceUnitId]) : route('inventory.detalle', ['id' => $itemParent->id]) }}" class="btn btn-sm btn-outline-secondary w-100">
+          <button type="button" class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#maintenanceRecordsModal">
             <i class="mdi mdi-history me-1"></i>Ver historial
-          </a>
+          </button>
         </div>
       </div>
 
       <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Próximos Eventos</h5>
-          <a href="{{ route('inventory.eventos.index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="viewAssignedEventsBtn">Ver todos</button>
         </div>
         <div class="card-body p-0">
           <ul class="list-group list-group-flush" id="sideUpcomingEvents">
@@ -590,10 +587,133 @@
   </div>
 </div>
 
+<!-- ══ MODAL: MANTENIMIENTOS DE TODAS LAS UNIDADES ══ -->
+<div class="modal fade" id="maintenanceRecordsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Mantenimientos de todas las unidades</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="p-3">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="maintenanceRecordsTable">
+            <thead class="table-light">
+              <tr>
+                <th>Unidad</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Programado</th>
+                <th>Realizado</th>
+                <th>Técnico</th>
+                <th>Costo total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse(($allMaintenanceRecords ?? collect()) as $record)
+                <tr>
+                  <td>
+                    <div class="fw-medium">{{ $record->item->item_id ?? ('UNIDAD-' . $record->inventory_item_id) }}</div>
+                    <small class="text-muted">{{ $record->item->serial_number ?? 'Sin serie' }}</small>
+                  </td>
+                  <td>{{ $record->maintenance_type ?? '—' }}</td>
+                  <td><span class="badge bg-label-secondary">{{ $record->maintenance_status ?? '—' }}</span></td>
+                  <td>{{ optional($record->scheduled_date)->format('d/m/Y') ?? '—' }}</td>
+                  <td>{{ optional($record->actual_date ?? $record->completion_date)->format('d/m/Y') ?? '—' }}</td>
+                  <td>{{ $record->technician_name ?? $record->vendor_name ?? '—' }}</td>
+                  <td>${{ number_format((float) ($record->total_cost ?? 0), 2) }}</td>
+                </tr>
+              @empty
+                {{-- Sin filas: DataTables mostrará el mensaje de tabla vacía --}}
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ÍTEMS ASIGNADOS A EVENTOS ══ -->
+<div class="modal fade" id="assignedEventsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ítems asignados a eventos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#assignedUpcomingTab" type="button" role="tab">Activos</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assignedPastTab" type="button" role="tab">Eventos pasados</button>
+          </li>
+        </ul>
+
+        <div class="tab-content pt-3">
+          <div class="tab-pane fade show active" id="assignedUpcomingTab" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="assignedUpcomingTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Unidad</th>
+                    <th>Evento</th>
+                    <th>Fechas</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="assignedEventsTableBodyUpcoming">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="assignedPastTab" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="assignedPastTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Unidad</th>
+                    <th>Evento</th>
+                    <th>Fechas</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="assignedEventsTableBodyPast">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 @endsection
 
 @section('script')
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const isUnassignedItem = @json($isUnassignedItem ?? false);
@@ -623,12 +743,16 @@ document.addEventListener('DOMContentLoaded', function () {
   const selectCatalogModalSubtitle = document.getElementById('selectCatalogModalSubtitle');
 
   const assignToEventBtn = document.getElementById('assignToEventBtn');
+  const viewAssignedEventsBtn = document.getElementById('viewAssignedEventsBtn');
   const eventModalEl = document.getElementById('eventCatalogModal');
   const eventSearchInput = document.getElementById('eventSearchInput');
   const clearEventSearch = document.getElementById('clearEventSearch');
   const eventMonthFilter = document.getElementById('eventMonthFilter');
   const eventResultCount = document.getElementById('eventResultCount');
   const eventTableBody = document.getElementById('eventCatalogTableBody');
+
+  const eventAssignmentsUrl = `{{ route('inventory.item.event-assignments', ['id' => $itemParent->id]) }}`;
+  const cancelAssignmentBaseUrl = `{{ url('/inventory/events/assignments') }}`;
 
 
   const uniqueSorted = (arr) => Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
@@ -642,15 +766,27 @@ document.addEventListener('DOMContentLoaded', function () {
   const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const parseDateSafe = (raw) => {
     if (!raw) return null;
+    const strRaw = String(raw);
+    const ymdMatch = strRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (ymdMatch) {
+      return new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
+    }
     let d = new Date(raw);
     if (!Number.isNaN(d.getTime())) return d;
-    d = new Date(String(raw).split(' ')[0] + 'T00:00:00');
+    d = new Date(strRaw.split(' ')[0] + 'T00:00:00');
     return Number.isNaN(d.getTime()) ? null : d;
   };
   const formatShortDate = (d) => {
     const date = parseDateSafe(d);
     if (!date) return '';
     return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+  };
+  const formatYmdLocal = (d = new Date()) => {
+    const date = parseDateSafe(d) || new Date(d);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   };
 
   let eventRowsCache = [];
@@ -982,6 +1118,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   let selectedEvent = null;
+  let currentEventAssignmentsMap = new Map();
 
   function collectUnitsForAssignment() {
     return Array.from(document.querySelectorAll('#unitsTableBody tr[data-unit-id]')).map((row) => ({
@@ -1009,7 +1146,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function openAssignUnitsModal(eventData) {
+  async function fetchEventAssignments(eventId = null) {
+    const url = new URL(eventAssignmentsUrl, window.location.origin);
+    if (eventId) url.searchParams.set('event_id', eventId);
+    const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'No se pudieron cargar asignaciones.');
+    return data.data || [];
+  }
+
+  async function openAssignUnitsModal(eventData) {
     selectedEvent = eventData;
     const assignModalEl = document.getElementById('assignUnitsModal');
     if (!assignModalEl || typeof bootstrap === 'undefined') return;
@@ -1025,15 +1171,23 @@ document.addEventListener('DOMContentLoaded', function () {
       infoBar.innerHTML = `<div class="d-flex align-items-center justify-content-between flex-wrap gap-2"><div><div class="fw-medium">${eventData.name || ''}</div><small class="text-muted">${formatShortDate(eventData.start_date)} • ${eventData.client_name || '—'}</small></div><small class="text-muted">${eventData.venue_address || eventData.venue_name || '—'}</small></div>`;
     }
 
+    const eventAssignments = await fetchEventAssignments(eventData.id);
+    currentEventAssignmentsMap = new Map(eventAssignments.map((a) => [String(a.unit_id), a]));
+
     const units = collectUnitsForAssignment();
     if (tbody) {
       tbody.innerHTML = units.map((u) => `
-        <tr>
-          <td><input class="form-check-input assign-unit-check" type="checkbox" value="${u.id}"></td>
+        <tr class="${currentEventAssignmentsMap.has(String(u.id)) ? 'table-secondary' : ''}">
+          <td>
+            ${currentEventAssignmentsMap.has(String(u.id))
+              ? '<i class="mdi mdi-check-circle text-secondary" title="Ya asignada a este evento"></i>'
+              : `<input class="form-check-input assign-unit-check" type="checkbox" value="${u.id}">`
+            }
+          </td>
           <td><div class="fw-medium">${u.itemId || '—'}</div><small class="text-muted d-block">${u.serial || '—'}</small><small class="text-muted d-block">${u.rfid || ''}</small></td>
           <td><span class="badge bg-label-secondary">${u.condition || '—'}</span></td>
           <td>${u.location || '—'}</td>
-          <td>${u.lastUse || '—'}</td>
+          <td>${u.lastUse || '—'}${currentEventAssignmentsMap.has(String(u.id)) ? '<small class="text-muted d-block">Ya asignada a este evento</small>' : ''}</td>
         </tr>
       `).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No hay unidades para asignar.</td></tr>';
     }
@@ -1059,53 +1213,184 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function submitEventAssignment() {
     const checks = Array.from(document.querySelectorAll('.assign-unit-check:checked'));
-    const unitIds = checks.map((c) => Number(c.value)).filter(Boolean);
-    if (!selectedEvent || !unitIds.length) return;
+    const newUnitIds = checks
+      .map((c) => Number(c.value))
+      .filter(Boolean);
+
+    if (!selectedEvent || !newUnitIds.length) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Sin unidades', 'Selecciona al menos una unidad disponible para asignar.', 'info');
+      }
+      return;
+    }
 
     try {
-      const res = await fetch('{{ route('inventory.events.assign') }}', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        },
-        body: JSON.stringify({
-          event_id: selectedEvent.id,
-          unit_ids: unitIds,
-        }),
-      });
+      let created = 0;
+      let skipped = 0;
+      let skippedExisting = 0;
+      let skippedConflict = 0;
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'No se pudo guardar la asignación.');
-      }
-
-      const created = data?.data?.created_count || 0;
-      const skipped = data?.data?.skipped_count || 0;
-      const allOk = skipped === 0;
-
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: allOk ? 'success' : 'info',
-          title: allOk ? 'Asignación completada' : 'Asignación parcial',
-          html: allOk
-            ? `Se agregaron ${created} unidad(es) correctamente.`
-            : `Se agregaron ${created} unidad(es).<br>${skipped} ya estaban asignadas a este evento.`,
-          confirmButtonText: 'Aceptar',
+      if (newUnitIds.length) {
+        const res = await fetch('{{ route('inventory.events.assign') }}', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          },
+          body: JSON.stringify({
+            event_id: selectedEvent.id,
+            unit_ids: newUnitIds,
+          }),
         });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo guardar la asignación.');
+        }
+
+        created = data?.data?.created_count || 0;
+        skipped = data?.data?.skipped_count || 0;
+        skippedExisting = data?.data?.skipped_existing_count || 0;
+        skippedConflict = data?.data?.skipped_conflict_count || 0;
       }
+
+      const allOk = skipped === 0;
 
       const assignModalEl = document.getElementById('assignUnitsModal');
       if (assignModalEl && typeof bootstrap !== 'undefined') {
         bootstrap.Modal.getOrCreateInstance(assignModalEl).hide();
       }
 
+      if (typeof Swal !== 'undefined') {
+        const details = [];
+        if (skippedExisting > 0) details.push(`${skippedExisting} ya estaban asignadas a este evento`);
+        if (skippedConflict > 0) details.push(`${skippedConflict} tienen conflicto de fecha con otro evento`);
+
+        await Swal.fire({
+          icon: allOk ? 'success' : 'info',
+          title: allOk ? 'Asignación completada' : 'Asignación parcial',
+          html: allOk
+            ? `Se agregaron ${created} unidad(es).`
+            : `Se agregaron ${created} unidad(es).<br>${details.join('.<br>')}.`,
+          confirmButtonText: 'Aceptar',
+        });
+      }
+
+      // Refrescar para actualizar tabla de unidades y recuadro de "Próximos Eventos"
+      window.location.reload();
+
     } catch (e) {
       if (typeof Swal !== 'undefined') {
         Swal.fire('Error', e.message || 'No se pudo guardar la asignación.', 'error');
       }
     }
+  }
+
+  function renderAssignedEventsRows(assignments) {
+    const tbodyUpcoming = document.getElementById('assignedEventsTableBodyUpcoming');
+    const tbodyPast = document.getElementById('assignedEventsTableBodyPast');
+    if (!tbodyUpcoming || !tbodyPast) return;
+
+    const todayStr = formatYmdLocal(new Date());
+    const upcoming = assignments.filter((a) => (a.event_start_date || '') >= todayStr);
+    const past = assignments.filter((a) => (a.event_start_date || '') < todayStr);
+
+    const renderRows = (rows, allowRemove) => rows.map((a) => `
+      <tr>
+        <td>
+          <div class="fw-medium">${a.unit_item_id || `UNIDAD-${a.unit_id}`}</div>
+          <small class="text-muted d-block">${a.unit_serial || 'Sin serie'}</small>
+        </td>
+        <td>
+          <div class="fw-medium">${a.event_name || 'Sin nombre'}</div>
+          <small class="text-muted d-block">${a.event_code || `EVT-${a.event_id}`}</small>
+        </td>
+        <td>
+          <div>${formatShortDate(a.event_start_date)}</div>
+          <small class="text-muted d-block">al ${formatShortDate(a.event_end_date)}</small>
+        </td>
+        <td><span class="badge bg-label-primary">${a.assignment_status || 'ASIGNADO'}</span></td>
+        <td class="text-center">
+          <button
+            class="btn btn-sm btn-outline-danger remove-assignment-btn"
+            data-assignment-id="${a.assignment_id}"
+            ${(allowRemove && a.can_unassign) ? '' : 'disabled'}
+            title="${(allowRemove && a.can_unassign) ? 'Quitar del evento' : 'Solo informativo'}">
+            <i class="mdi mdi-link-off"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    tbodyUpcoming.innerHTML = upcoming.length
+      ? renderRows(upcoming, true)
+      : '';
+
+    tbodyPast.innerHTML = past.length
+      ? renderRows(past, false)
+      : '';
+
+    initAssignedTablesDataTables();
+  }
+
+  function initAssignedTablesDataTables() {
+    if (!(window.jQuery && typeof window.jQuery.fn.DataTable === 'function')) return;
+
+    const commonOptions = {
+      destroy: true,
+      pageLength: 10,
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todos']],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+        emptyTable: 'Sin registros para este periodo.'
+      }
+    };
+
+    window.jQuery('#assignedUpcomingTable').DataTable({
+      ...commonOptions,
+      order: [[1, 'asc']]
+    });
+
+    window.jQuery('#assignedPastTable').DataTable({
+      ...commonOptions,
+      order: [[1, 'desc']]
+    });
+  }
+
+  async function openAssignedEventsModal() {
+    const modalEl = document.getElementById('assignedEventsModal');
+    const tbodyUpcoming = document.getElementById('assignedEventsTableBodyUpcoming');
+    const tbodyPast = document.getElementById('assignedEventsTableBodyPast');
+    if (!modalEl || !tbodyUpcoming || !tbodyPast || typeof bootstrap === 'undefined') return;
+
+    tbodyUpcoming.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td></tr>';
+    tbodyPast.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Cargando asignaciones…</td></tr>';
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    try {
+      const assignments = await fetchEventAssignments();
+      renderAssignedEventsRows(assignments);
+    } catch (error) {
+      const errRow = `<tr><td colspan="5" class="text-center py-4 text-danger">${error.message || 'No se pudieron cargar asignaciones.'}</td></tr>`;
+      tbodyUpcoming.innerHTML = errRow;
+      tbodyPast.innerHTML = errRow;
+    }
+  }
+
+  async function removeAssignment(assignmentId) {
+    const res = await fetch(`${cancelAssignmentBaseUrl}/${assignmentId}/cancel`, {
+      method: 'PATCH',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo quitar la asignación.');
+    return data;
   }
 
   function renderUnitsPagination(totalPages) {
@@ -1323,6 +1608,9 @@ document.addEventListener('DOMContentLoaded', function () {
   if (assignToEventBtn) {
     assignToEventBtn.addEventListener('click', openEventModal);
   }
+  if (viewAssignedEventsBtn) {
+    viewAssignedEventsBtn.addEventListener('click', openAssignedEventsModal);
+  }
 
   if (eventSearchInput) {
     eventSearchInput.addEventListener('input', renderEventRows);
@@ -1346,7 +1634,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const eventId = row.getAttribute('data-event-id');
     const ev = eventRowsCache.find((x) => String(x.id) === String(eventId));
     if (!ev) return;
-    openAssignUnitsModal(ev);
+    openAssignUnitsModal(ev).catch((error) => {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire('Error', error.message || 'No se pudo abrir la selección de unidades.', 'error');
+      }
+    });
   };
 
   if (eventTableBody) {
@@ -1360,6 +1652,44 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!row) return;
       e.preventDefault();
       openEventFromTarget(row);
+    });
+  }
+
+  const assignedEventsTableBodyUpcoming = document.getElementById('assignedEventsTableBodyUpcoming');
+  if (assignedEventsTableBodyUpcoming) {
+    assignedEventsTableBodyUpcoming.addEventListener('click', async function (e) {
+      const btn = e.target.closest('.remove-assignment-btn');
+      if (!btn || btn.disabled) return;
+      const assignmentId = btn.getAttribute('data-assignment-id');
+      if (!assignmentId) return;
+
+      try {
+        let confirm = true;
+        if (typeof Swal !== 'undefined') {
+          const result = await Swal.fire({
+            icon: 'warning',
+            title: '¿Quitar asignación?',
+            text: 'La unidad dejará de estar vinculada a este evento.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, quitar',
+            cancelButtonText: 'Cancelar',
+          });
+          confirm = !!result.isConfirmed;
+        }
+        if (!confirm) return;
+
+        await removeAssignment(assignmentId);
+        const assignments = await fetchEventAssignments();
+        renderAssignedEventsRows(assignments);
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Listo', 'Asignación removida correctamente.', 'success');
+        }
+      } catch (error) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Error', error.message || 'No se pudo quitar la asignación.', 'error');
+        }
+      }
     });
   }
 
@@ -1378,6 +1708,85 @@ document.addEventListener('DOMContentLoaded', function () {
       openEventModal();
     });
   }
+
+  if (window.jQuery && typeof window.jQuery.fn.DataTable === 'function') {
+    const maintenanceTbody = document.querySelector('#maintenanceRecordsTable tbody');
+    if (maintenanceTbody) {
+      const colspanRow = maintenanceTbody.querySelector('tr td[colspan]');
+      if (colspanRow) colspanRow.closest('tr')?.remove();
+    }
+
+    const table = window.jQuery('#maintenanceRecordsTable').DataTable({
+      pageLength: 10,
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Todos']],
+      order: [[3, 'desc']],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+        emptyTable: 'No hay mantenimientos registrados para este ítem.'
+      }
+    });
+
+    const maintenanceModalEl = document.getElementById('maintenanceRecordsModal');
+    if (maintenanceModalEl) {
+      maintenanceModalEl.addEventListener('shown.bs.modal', function () {
+        table.columns.adjust().draw(false);
+      });
+    }
+
+    const assignedModalEl = document.getElementById('assignedEventsModal');
+    if (assignedModalEl) {
+      assignedModalEl.addEventListener('shown.bs.modal', function () {
+        if (window.jQuery.fn.DataTable.isDataTable('#assignedUpcomingTable')) {
+          window.jQuery('#assignedUpcomingTable').DataTable().columns.adjust().draw(false);
+        }
+        if (window.jQuery.fn.DataTable.isDataTable('#assignedPastTable')) {
+          window.jQuery('#assignedPastTable').DataTable().columns.adjust().draw(false);
+        }
+      });
+    }
+  }
+
+  document.querySelectorAll('.toggle-active').forEach((toggle) => {
+    toggle.addEventListener('change', async function () {
+      const id = this.dataset.id;
+      const sku = this.dataset.sku || `ID ${id}`;
+      const isActive = this.checked;
+
+      try {
+        const response = await fetch(`/catalogo/${id}/toggle-active`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ is_active: isActive })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo actualizar el estado de la unidad.');
+        }
+
+        if (typeof Swal !== 'undefined') {
+          await Swal.fire({
+            icon: 'success',
+            title: isActive ? 'Unidad activada' : 'Unidad dada de baja',
+            text: `${sku}: estado actualizado correctamente.`,
+            timer: 1200,
+            showConfirmButton: false,
+          });
+        }
+
+        window.location.reload();
+      } catch (error) {
+        this.checked = !isActive;
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Error', error.message || 'No se pudo actualizar el estado.', 'error');
+        }
+      }
+    });
+  });
 
   applyFilters();
 });

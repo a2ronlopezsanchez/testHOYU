@@ -175,7 +175,7 @@
                   </a>
                 </li>
                 
-                <li class="menu-item
+                <li class="menu-item d-none
                 @if (trim($__env->yieldContent('subleve')) == "Almacen")
                   active 
                 @endif
