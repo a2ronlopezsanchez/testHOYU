@@ -54,6 +54,20 @@ let contactCounter = 0;
 let uploadedFiles = [];
 let flatpickrInstances = {};
 
+function formatDateForApi(dateValue) {
+    if (!dateValue) return null;
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
 // ===== CLASE PRINCIPAL =====
 class EventsManager {
     constructor() {
@@ -1371,9 +1385,57 @@ class EventsManager {
                 this.showAlert('Evento actualizado exitosamente.', 'success');
             }
         } else {
-            // Crear nuevo evento
-            eventsData.unshift(eventData);
-            this.showAlert('Evento creado exitosamente.', 'success');
+            const payload = {
+                name: eventData.name,
+                client_id: eventData.clientId || null,
+                venue_name: eventData.location || null,
+                start_date: formatDateForApi(eventData.startDate),
+                end_date: formatDateForApi(eventData.endDate),
+                event_start_time: eventData.schedule.eventStart || null,
+                event_end_time: eventData.schedule.eventEnd || null,
+                setup_start_time: eventData.schedule.setupStart || null,
+                teardown_end_time: eventData.schedule.setupEnd || null,
+                status: eventData.status,
+                description: eventData.notes.technical || null,
+                is_recurring: eventData.dateConfig === 'recurring',
+                notes: eventData.generalNotes || null,
+                general_notes: eventData.generalNotes || null,
+                advisor_notes: eventData.notes.access || null,
+                setup_notes: eventData.notes.setup || null,
+                additional_notes: eventData.notes.additional || null,
+                contacts: eventData.contacts.map((contact, index) => ({
+                    contact_type: contact.type,
+                    name: contact.name,
+                    email: contact.email || null,
+                    phone: contact.phone || null,
+                    notes: contact.notes || null,
+                    is_primary: index === 0
+                }))
+            };
+
+            fetch('/inventory/eventos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async (response) => {
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data?.message || 'No se pudo crear el evento.');
+                }
+                this.showAlert('Evento creado exitosamente.', 'success');
+                window.location.reload();
+            })
+            .catch((error) => {
+                this.showAlert(error.message || 'Ocurrió un error al crear el evento.', 'error');
+            });
+
+            return;
         }
         
         // Si es recurrente, mostrar modal de configuración
