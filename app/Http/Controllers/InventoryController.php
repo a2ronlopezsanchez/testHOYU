@@ -1696,8 +1696,28 @@ class InventoryController extends Controller
             'venue_address' => ['nullable', 'string', 'max:500'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'event_start_time' => ['nullable', 'date_format:H:i'],
+            'event_end_time' => ['nullable', 'date_format:H:i'],
+            'setup_start_date' => ['nullable', 'date'],
+            'setup_start_time' => ['nullable', 'date_format:H:i'],
+            'teardown_end_date' => ['nullable', 'date'],
+            'teardown_end_time' => ['nullable', 'date_format:H:i'],
             'status' => ['nullable', 'string', 'max:40'],
             'description' => ['nullable', 'string'],
+            'is_recurring' => ['nullable', 'boolean'],
+            'recurrence_rule' => ['nullable', 'array'],
+            'notes' => ['nullable', 'string'],
+            'general_notes' => ['nullable', 'string'],
+            'advisor_notes' => ['nullable', 'string'],
+            'setup_notes' => ['nullable', 'string'],
+            'additional_notes' => ['nullable', 'string'],
+            'contacts' => ['nullable', 'array'],
+            'contacts.*.contact_type' => ['nullable', 'string', 'max:50'],
+            'contacts.*.name' => ['required_with:contacts', 'string', 'max:150'],
+            'contacts.*.email' => ['nullable', 'email', 'max:150'],
+            'contacts.*.phone' => ['nullable', 'string', 'max:60'],
+            'contacts.*.notes' => ['nullable', 'string'],
+            'contacts.*.is_primary' => ['nullable', 'boolean'],
         ]);
 
         $client = !empty($validated['client_id'])
@@ -1729,7 +1749,7 @@ class InventoryController extends Controller
             $eventCode = 'EVT-' . strtoupper(Str::random(10));
         }
 
-        Event::create([
+        $event = Event::create([
             'event_code' => $eventCode,
             'name' => $validated['name'],
             'client_id' => $client?->id,
@@ -1741,10 +1761,36 @@ class InventoryController extends Controller
             'venue_address' => $validated['venue_address'] ?? null,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
+            'event_start_time' => $validated['event_start_time'] ?? null,
+            'event_end_time' => $validated['event_end_time'] ?? null,
+            'setup_start_date' => $validated['setup_start_date'] ?? null,
+            'setup_start_time' => $validated['setup_start_time'] ?? null,
+            'teardown_end_date' => $validated['teardown_end_date'] ?? null,
+            'teardown_end_time' => $validated['teardown_end_time'] ?? null,
             'status' => $validated['status'] ?? 'PLANIFICADO',
             'description' => $validated['description'] ?? null,
+            'is_recurring' => (bool) ($validated['is_recurring'] ?? false),
+            'recurrence_rule' => $validated['recurrence_rule'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'general_notes' => $validated['general_notes'] ?? null,
+            'advisor_notes' => $validated['advisor_notes'] ?? null,
+            'setup_notes' => $validated['setup_notes'] ?? null,
+            'additional_notes' => $validated['additional_notes'] ?? null,
             'created_by' => auth()->id(),
         ]);
+
+        if (!empty($validated['contacts'])) {
+            foreach ($validated['contacts'] as $contact) {
+                $event->contacts()->create([
+                    'contact_type' => $contact['contact_type'] ?? null,
+                    'name' => $contact['name'],
+                    'email' => $contact['email'] ?? null,
+                    'phone' => $contact['phone'] ?? null,
+                    'notes' => $contact['notes'] ?? null,
+                    'is_primary' => (bool) ($contact['is_primary'] ?? false),
+                ]);
+            }
+        }
 
         return redirect()->route('inventory.eventos.index')->with('success', 'Evento creado correctamente.');
     }

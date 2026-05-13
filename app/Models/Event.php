@@ -9,11 +9,11 @@ class Event extends Model
 {
     protected $fillable = [
         'event_code','name','description',
-        'start_date','end_date','setup_start_date','teardown_end_date',
+        'start_date','end_date','event_start_time','event_end_time','setup_start_date','setup_start_time','teardown_end_date','teardown_end_time',
         'venue_name','venue_address','venue_lat','venue_lng',
-        'event_type','priority','status',
+        'event_type','priority','status','is_recurring','recurrence_rule',
         'client_id','client_name','client_contact','client_phone','client_email',
-        'crew_size','notes','special_requirements','created_by',
+        'crew_size','notes','general_notes','advisor_notes','setup_notes','additional_notes','special_requirements','created_by',
     ];
 
     protected $casts = [
@@ -23,12 +23,19 @@ class Event extends Model
         'teardown_end_date' => 'date',
         'venue_lat'         => 'float',
         'venue_lng'         => 'float',
+        'is_recurring'      => 'boolean',
+        'recurrence_rule'   => 'array',
     ];
 
 
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function contacts()
+    {
+        return $this->hasMany(EventContact::class);
     }
 
     public function assignments()
