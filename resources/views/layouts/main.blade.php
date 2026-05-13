@@ -207,6 +207,30 @@
               </ul>
             </li>
 
+
+
+            <!-- Eventos -->
+            <li class="menu-item 
+              @if (trim($__env->yieldContent('leve')) == "Eventos")
+                  active open
+              @endif">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons mdi mdi-calendar-multiple"></i>
+                <div data-i18n="Eventos">Eventos</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item
+                @if (trim($__env->yieldContent('subleve')) == "Gestión de Eventos")
+                  active 
+                @endif
+                ">
+                  <a href="{{ route('inventory.eventos-inventario') }}" class="menu-link">
+                    <div data-i18n="Gestión de Eventos">Gestión de Eventos</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
             <!-- Clientes -->
             <li class="menu-item 
               @if (trim($__env->yieldContent('leve')) == "Clientes")
