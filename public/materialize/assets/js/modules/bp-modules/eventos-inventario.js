@@ -75,11 +75,10 @@ class EventsManager {
     }
 
     init() {
-        this.generateSampleEvents();
         this.setupEventListeners();
         this.initializeFlatpickr();
         this.loadClientsFromApi();
-        this.renderEvents();
+        this.loadEventsFromApi();
         this.updateStatistics();
         this.updatePagination();
     }
@@ -523,6 +522,33 @@ class EventsManager {
             minDate: 'today',
             locale: 'es'
         });
+    }
+
+
+    async loadEventsFromApi() {
+        try {
+            const response = await fetch('/inventory/eventos/data', {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) throw new Error('No se pudieron cargar los eventos.');
+            const data = await response.json();
+            eventsData = (data || []).map((event) => ({
+                ...event,
+                startDate: event.startDate ? new Date(event.startDate) : null,
+                endDate: event.endDate ? new Date(event.endDate) : null,
+                createdAt: event.createdAt ? new Date(event.createdAt) : new Date(),
+            }));
+            this.applyFilters();
+            this.updateStatistics();
+            this.updatePagination();
+        } catch (error) {
+            console.error(error);
+            this.showAlert('No se pudieron cargar eventos desde la base de datos.', 'warning');
+            eventsData = [];
+            this.applyFilters();
+            this.updateStatistics();
+            this.updatePagination();
+        }
     }
 
     async loadClientsFromApi() {

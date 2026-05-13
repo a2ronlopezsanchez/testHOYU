@@ -1796,6 +1796,57 @@ class InventoryController extends Controller
     }
 
 
+
+    public function eventosData(): JsonResponse
+    {
+        $events = Event::query()
+            ->with(['client'])
+            ->orderByDesc('start_date')
+            ->get()
+            ->map(function (Event $event) {
+                $clientName = $event->client?->trade_name
+                    ?: $event->client?->business_name
+                    ?: trim(implode(' ', array_filter([$event->client?->first_name, $event->client?->last_name, $event->client?->middle_name])))
+                    ?: $event->client_name;
+
+                return [
+                    'id' => (string) $event->id,
+                    'folio' => (string) $event->id,
+                    'cotizacion' => $event->event_code,
+                    'name' => $event->name,
+                    'clientId' => $event->client_id,
+                    'clientName' => $clientName,
+                    'type' => $event->event_type ?: 'OTRO',
+                    'location' => $event->venue_name ?: $event->venue_address,
+                    'dateConfig' => ($event->is_recurring ? 'recurring' : (($event->start_date && $event->end_date && $event->start_date->toDateString() !== $event->end_date->toDateString()) ? 'consecutive' : 'single')),
+                    'startDate' => optional($event->start_date)->toDateString(),
+                    'endDate' => optional($event->end_date)->toDateString(),
+                    'status' => $event->status ?: 'PLANIFICADO',
+                    'contacts' => [],
+                    'schedule' => [
+                        'eventStart' => $event->event_start_time,
+                        'eventEnd' => $event->event_end_time,
+                        'setupStart' => $event->setup_start_time,
+                        'setupEnd' => $event->teardown_end_time,
+                    ],
+                    'notes' => [
+                        'access' => $event->advisor_notes,
+                        'setup' => $event->setup_notes,
+                        'technical' => $event->description,
+                        'additional' => $event->additional_notes,
+                    ],
+                    'generalNotes' => $event->general_notes ?: $event->notes,
+                    'files' => [],
+                    'linkedEvents' => [],
+                    'createdAt' => optional($event->created_at)->toDateTimeString(),
+                    'createdBy' => 'Sistema',
+                ];
+            })
+            ->values();
+
+        return response()->json($events);
+    }
+
     public function eventClients(): JsonResponse
     {
         $clients = Client::query()
