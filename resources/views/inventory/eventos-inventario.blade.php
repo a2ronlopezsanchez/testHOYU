@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/sweetalert2/sweetalert2.css') }}" />
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}" />
 <link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/cards-statistics.css') }}" />
-<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/black-production-css/eventos-inventario.css') }}" />
+<link rel="stylesheet" href="{{ asset('/materialize/assets/vendor/css/pages/eventos-inventario.css') }}" />
 @endsection
 
 @section('content')
@@ -1370,7 +1370,7 @@
     </template>
 @endsection
 
-@section('js')
+@section('script')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 <script src="{{ asset('/materialize/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
