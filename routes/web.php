@@ -113,6 +113,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosIndex'])->name('eventos.index');
             Route::view('/eventos-inventario', 'inventory.eventos-inventario')->name('eventos-inventario');
             Route::post('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosStore'])->name('eventos.store');
+            Route::get('/clients', [App\Http\Controllers\InventoryController::class, 'eventClients'])->name('clients.index');
+            Route::post('/clients/quick', [App\Http\Controllers\InventoryController::class, 'quickStoreClient'])->name('clients.quick-store');
             Route::get('/unidad/{id}', [App\Http\Controllers\InventoryController::class, 'detalleUnidad'])->name('detalle.unidad');
             Route::patch('/unidad/{id}/notas', [App\Http\Controllers\InventoryController::class, 'actualizarNotas'])->name('unidad.notas');
             Route::post('/unidad/{id}/dar-de-baja', [App\Http\Controllers\InventoryController::class, 'darDeBaja'])->name('unidad.dar-de-baja');

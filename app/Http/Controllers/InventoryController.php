@@ -1795,6 +1795,66 @@ class InventoryController extends Controller
         return redirect()->route('inventory.eventos.index')->with('success', 'Evento creado correctamente.');
     }
 
+
+    public function eventClients(): JsonResponse
+    {
+        $clients = Client::query()
+            ->orderByRaw("COALESCE(NULLIF(trade_name, ''), NULLIF(business_name, ''), CONCAT_WS(' ', first_name, last_name, middle_name)) asc")
+            ->get()
+            ->map(function (Client $client) {
+                $name = $client->trade_name
+                    ?: $client->business_name
+                    ?: trim(implode(' ', array_filter([$client->first_name, $client->last_name, $client->middle_name])));
+
+                return [
+                    'id' => $client->id,
+                    'name' => $name ?: ('Cliente #' . $client->id),
+                    'type' => $client->client_type === 'Persona Física' ? 'PERSONA' : 'EMPRESA',
+                    'email' => null,
+                    'phone' => null,
+                ];
+            })
+            ->values();
+
+        return response()->json($clients);
+    }
+
+    public function quickStoreClient(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'client_type' => ['required', 'string', 'in:EMPRESA,PERSONA'],
+            'name' => ['required', 'string', 'max:200'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $rfc = 'PENDIENTE' . strtoupper(Str::random(4));
+        while (Client::where('rfc', $rfc)->exists()) {
+            $rfc = 'PENDIENTE' . strtoupper(Str::random(4));
+        }
+
+        $isPerson = $validated['client_type'] === 'PERSONA';
+
+        $client = Client::create([
+            'client_type' => $isPerson ? 'Persona Física' : 'Persona Moral',
+            'status' => 'Prospecto',
+            'business_name' => $isPerson ? null : $validated['name'],
+            'trade_name' => $validated['name'],
+            'first_name' => $isPerson ? $validated['name'] : null,
+            'last_name' => $isPerson ? 'PENDIENTE' : null,
+            'rfc' => $rfc,
+            'notes' => 'Cliente creado desde alta rápida de eventos.',
+        ]);
+
+        return response()->json([
+            'id' => $client->id,
+            'name' => $client->trade_name ?: $client->business_name ?: ('Cliente #' . $client->id),
+            'type' => $validated['client_type'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+        ], 201);
+    }
+
     /**
      * Vista detallada de un item
      */

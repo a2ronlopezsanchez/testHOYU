@@ -75,11 +75,10 @@ class EventsManager {
     }
 
     init() {
-        this.generateSampleClients();
         this.generateSampleEvents();
         this.setupEventListeners();
         this.initializeFlatpickr();
-        this.populateClientSelect();
+        this.loadClientsFromApi();
         this.renderEvents();
         this.updateStatistics();
         this.updatePagination();
@@ -524,6 +523,22 @@ class EventsManager {
             minDate: 'today',
             locale: 'es'
         });
+    }
+
+    async loadClientsFromApi() {
+        try {
+            const response = await fetch('/inventory/clients', {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) throw new Error('No se pudieron cargar los clientes.');
+            clientsData = await response.json();
+            this.populateClientSelect();
+        } catch (error) {
+            console.error(error);
+            this.showAlert('No se pudieron cargar clientes desde la base de datos.', 'warning');
+            clientsData = [];
+            this.populateClientSelect();
+        }
     }
 
     // ===== POPULAR SELECT DE CLIENTES =====
@@ -1667,26 +1682,42 @@ class EventsManager {
             form.reportValidity();
             return;
         }
-        
-        const newClient = {
-            id: this.generateClientId(),
-            type: document.getElementById('clientType').value,
+
+        const payload = {
+            client_type: document.getElementById('clientType').value,
             name: document.getElementById('clientName').value,
             email: document.getElementById('clientEmail').value,
             phone: document.getElementById('clientPhone').value
         };
-        
-        clientsData.push(newClient);
-        this.populateClientSelect();
-        
-        // Seleccionar el nuevo cliente
-        document.getElementById('eventClient').value = newClient.id;
-        
-        // Cerrar modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddClientModal'));
-        if (modal) modal.hide();
-        
-        this.showAlert('Cliente agregado exitosamente.', 'success');
+
+        fetch('/inventory/clients/quick', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data?.message || 'No se pudo crear el cliente.');
+            }
+
+            clientsData.push(data);
+            this.populateClientSelect();
+            document.getElementById('eventClient').value = data.id;
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddClientModal'));
+            if (modal) modal.hide();
+
+            this.showAlert('Cliente agregado exitosamente.', 'success');
+        })
+        .catch((error) => {
+            this.showAlert(error.message || 'Error al crear cliente rápido.', 'error');
+        });
     }
 
     generateClientId() {
