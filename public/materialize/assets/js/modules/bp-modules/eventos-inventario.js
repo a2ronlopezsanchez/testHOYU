@@ -64,6 +64,28 @@ function formatDateForApi(dateValue) {
     return `${y}-${m}-${day}`;
 }
 
+function normalizeTimeForApi(timeValue) {
+    if (!timeValue) return null;
+    const raw = String(timeValue).trim().toLowerCase();
+
+    const hhmm = raw.match(/^(\d{1,2}):(\d{2})$/);
+    if (hhmm) {
+        return `${hhmm[1].padStart(2, '0')}:${hhmm[2]}`;
+    }
+
+    const ampm = raw.match(/^(\d{1,2})[:.](\d{2})\s*([ap])\.?\s*m\.?$/);
+    if (ampm) {
+        let h = parseInt(ampm[1], 10);
+        const m = ampm[2];
+        const period = ampm[3];
+        if (period === 'p' && h < 12) h += 12;
+        if (period === 'a' && h === 12) h = 0;
+        return `${String(h).padStart(2, '0')}:${m}`;
+    }
+
+    return null;
+}
+
 function parseLocalDate(dateValue) {
     if (!dateValue) return null;
     if (dateValue instanceof Date) return dateValue;
@@ -1457,10 +1479,10 @@ class EventsManager {
             venue_name: eventData.location || null,
             start_date: formatDateForApi(eventData.startDate),
             end_date: formatDateForApi(eventData.endDate),
-            event_start_time: eventData.schedule.eventStart || null,
-            event_end_time: eventData.schedule.eventEnd || null,
-            setup_start_time: eventData.schedule.setupStart || null,
-            teardown_end_time: eventData.schedule.setupEnd || null,
+            event_start_time: normalizeTimeForApi(eventData.schedule.eventStart),
+            event_end_time: normalizeTimeForApi(eventData.schedule.eventEnd),
+            setup_start_time: normalizeTimeForApi(eventData.schedule.setupStart),
+            teardown_end_time: normalizeTimeForApi(eventData.schedule.setupEnd),
             status: eventData.status,
             event_type: eventData.type || 'OTRO',
             description: eventData.notes.technical || null,
