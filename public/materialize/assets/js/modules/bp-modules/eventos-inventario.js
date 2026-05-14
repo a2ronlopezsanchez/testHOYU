@@ -2171,37 +2171,50 @@ class EventsManager {
 
     saveQuickEditStatus() {
         if (!currentEventId) return;
-        
-        const event = eventsData.find(e => e.id === currentEventId);
+
+        const event = eventsData.find(e => String(e.id) === String(currentEventId));
         if (!event) return;
-        
+
         const newStatus = document.getElementById('quickEditStatus').value;
         const oldStatus = event.status;
-        
-        // Actualizar estado
-        event.status = newStatus;
-        
-        // Cerrar modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('quickEditStatusModal'));
-        if (modal) modal.hide();
-        
-        // Si venía del modal de detalles, actualizar ese modal también
-        if (this.fromDetailsModal) {
-            // Cerrar modal de detalles
-            const detailsModal = bootstrap.Modal.getInstance(document.getElementById('eventDetailsModal'));
-            if (detailsModal) detailsModal.hide();
-            
-            // Reabrir modal de detalles actualizado
-            setTimeout(() => {
-                this.viewEventDetails(currentEventId);
-            }, 300);
-        }
-        
-        // Actualizar vista
-        this.applyFilters();
-        this.updateStatistics();
-        
-        this.showAlert(`Estado actualizado de "${this.getStatusLabel(oldStatus)}" a "${this.getStatusLabel(newStatus)}"`, 'success');
+
+        fetch(`/inventory/eventos/${currentEventId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data?.message || 'No se pudo actualizar el estado del evento.');
+            }
+
+            event.status = data.status || newStatus;
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('quickEditStatusModal'));
+            if (modal) modal.hide();
+
+            if (this.fromDetailsModal) {
+                const detailsModal = bootstrap.Modal.getInstance(document.getElementById('eventDetailsModal'));
+                if (detailsModal) detailsModal.hide();
+                setTimeout(() => {
+                    this.viewEventDetails(currentEventId);
+                }, 300);
+            }
+
+            this.applyFilters();
+            this.updateStatistics();
+
+            this.showAlert(`Estado actualizado de "${this.getStatusLabel(oldStatus)}" a "${this.getStatusLabel(event.status)}"`, 'success');
+        })
+        .catch((error) => {
+            this.showAlert(error.message || 'Error al actualizar el estado del evento.', 'error');
+        });
     }
 
     // ===== EXPORTAR EVENTOS =====

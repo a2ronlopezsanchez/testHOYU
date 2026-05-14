@@ -281,9 +281,6 @@
                             <i class="mdi mdi-chevron-left"></i>
                           </a>
                         </li>
-                        <li class="page-item active">
-                          <a class="page-link" href="#">1</a>
-                        </li>
                         <li class="page-item">
                           <a class="page-link" href="#" id="eventsNextPage">
                             <i class="mdi mdi-chevron-right"></i>

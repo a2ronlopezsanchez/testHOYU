@@ -1797,6 +1797,23 @@ class InventoryController extends Controller
 
 
 
+
+    public function eventosUpdateStatus(Request $request, Event $event): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'max:40'],
+        ]);
+
+        $event->status = $validated['status'];
+        $event->save();
+
+        return response()->json([
+            'message' => 'Estado actualizado correctamente.',
+            'id' => (string) $event->id,
+            'status' => $event->status,
+        ]);
+    }
+
     public function eventosData(): JsonResponse
     {
         $events = Event::query()
