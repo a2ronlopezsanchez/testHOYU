@@ -1800,6 +1800,103 @@ class InventoryController extends Controller
 
 
 
+
+    public function eventosUpdate(Request $request, Event $event): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
+            'venue_name' => ['nullable', 'string', 'max:255'],
+            'venue_address' => ['nullable', 'string', 'max:500'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'event_start_time' => ['nullable', 'date_format:H:i'],
+            'event_end_time' => ['nullable', 'date_format:H:i'],
+            'setup_start_date' => ['nullable', 'date'],
+            'setup_start_time' => ['nullable', 'date_format:H:i'],
+            'teardown_end_date' => ['nullable', 'date'],
+            'teardown_end_time' => ['nullable', 'date_format:H:i'],
+            'status' => ['nullable', 'string', 'max:40'],
+            'event_type' => ['nullable', 'string', 'max:50'],
+            'description' => ['nullable', 'string'],
+            'is_recurring' => ['nullable', 'boolean'],
+            'recurrence_rule' => ['nullable', 'array'],
+            'notes' => ['nullable', 'string'],
+            'general_notes' => ['nullable', 'string'],
+            'advisor_notes' => ['nullable', 'string'],
+            'setup_notes' => ['nullable', 'string'],
+            'additional_notes' => ['nullable', 'string'],
+            'contacts' => ['nullable', 'array'],
+            'contacts.*.contact_type' => ['nullable', 'string', 'max:50'],
+            'contacts.*.name' => ['required_with:contacts', 'string', 'max:150'],
+            'contacts.*.email' => ['nullable', 'email', 'max:150'],
+            'contacts.*.phone' => ['nullable', 'string', 'max:60'],
+            'contacts.*.notes' => ['nullable', 'string'],
+            'contacts.*.is_primary' => ['nullable', 'boolean'],
+        ]);
+
+        $client = !empty($validated['client_id'])
+            ? Client::with(['contacts'])->find($validated['client_id'])
+            : null;
+
+        $primaryContact = $client?->contacts->firstWhere('contact_role', 'primary')
+            ?? $client?->contacts->firstWhere('is_primary', true);
+
+        $clientDisplayName = $client
+            ? ($client->trade_name
+                ?: $client->business_name
+                ?: trim(implode(' ', array_filter([$client->first_name, $client->last_name, $client->middle_name]))))
+            : null;
+
+        $event->update([
+            'name' => $validated['name'],
+            'client_id' => $client?->id,
+            'client_name' => $clientDisplayName,
+            'client_contact' => $primaryContact?->full_name,
+            'client_phone' => $primaryContact?->phone,
+            'client_email' => $primaryContact?->email,
+            'venue_name' => $validated['venue_name'] ?? null,
+            'venue_address' => $validated['venue_address'] ?? null,
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'event_start_time' => $validated['event_start_time'] ?? null,
+            'event_end_time' => $validated['event_end_time'] ?? null,
+            'setup_start_date' => $validated['setup_start_date'] ?? null,
+            'setup_start_time' => $validated['setup_start_time'] ?? null,
+            'teardown_end_date' => $validated['teardown_end_date'] ?? null,
+            'teardown_end_time' => $validated['teardown_end_time'] ?? null,
+            'status' => $validated['status'] ?? 'PLANIFICADO',
+            'event_type' => $validated['event_type'] ?? 'OTRO',
+            'description' => $validated['description'] ?? null,
+            'is_recurring' => (bool) ($validated['is_recurring'] ?? false),
+            'recurrence_rule' => $validated['recurrence_rule'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'general_notes' => $validated['general_notes'] ?? null,
+            'advisor_notes' => $validated['advisor_notes'] ?? null,
+            'setup_notes' => $validated['setup_notes'] ?? null,
+            'additional_notes' => $validated['additional_notes'] ?? null,
+        ]);
+
+        $event->contacts()->delete();
+        if (!empty($validated['contacts'])) {
+            foreach ($validated['contacts'] as $contact) {
+                $event->contacts()->create([
+                    'contact_type' => $contact['contact_type'] ?? null,
+                    'name' => $contact['name'],
+                    'email' => $contact['email'] ?? null,
+                    'phone' => $contact['phone'] ?? null,
+                    'notes' => $contact['notes'] ?? null,
+                    'is_primary' => (bool) ($contact['is_primary'] ?? false),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Evento actualizado correctamente.',
+            'id' => (string) $event->id,
+        ]);
+    }
+
     public function eventosUpdateStatus(Request $request, Event $event): JsonResponse
     {
         $validated = $request->validate([

@@ -1451,46 +1451,39 @@ class EventsManager {
             eventData.endDate = flatpickrInstances.eventDate.selectedDates[0];
         }
         
+        const payload = {
+            name: eventData.name,
+            client_id: eventData.clientId || null,
+            venue_name: eventData.location || null,
+            start_date: formatDateForApi(eventData.startDate),
+            end_date: formatDateForApi(eventData.endDate),
+            event_start_time: eventData.schedule.eventStart || null,
+            event_end_time: eventData.schedule.eventEnd || null,
+            setup_start_time: eventData.schedule.setupStart || null,
+            teardown_end_time: eventData.schedule.setupEnd || null,
+            status: eventData.status,
+            event_type: eventData.type || 'OTRO',
+            description: eventData.notes.technical || null,
+            is_recurring: eventData.dateConfig === 'recurring',
+            notes: eventData.generalNotes || null,
+            general_notes: eventData.generalNotes || null,
+            advisor_notes: eventData.notes.access || null,
+            setup_notes: eventData.notes.setup || null,
+            additional_notes: eventData.notes.additional || null,
+            contacts: eventData.contacts.map((contact, index) => ({
+                contact_type: contact.type,
+                name: contact.name,
+                email: contact.email || null,
+                phone: contact.phone || null,
+                notes: contact.notes || null,
+                is_primary: index === 0
+            }))
+        };
+
         // Guardar o actualizar
         if (currentEventId) {
-            // Actualizar evento existente
-            const index = eventsData.findIndex(e => e.id === currentEventId);
-            if (index !== -1) {
-                eventsData[index] = eventData;
-                this.showAlert('Evento actualizado exitosamente.', 'success');
-            }
-        } else {
-            const payload = {
-                name: eventData.name,
-                client_id: eventData.clientId || null,
-                venue_name: eventData.location || null,
-                start_date: formatDateForApi(eventData.startDate),
-                end_date: formatDateForApi(eventData.endDate),
-                event_start_time: eventData.schedule.eventStart || null,
-                event_end_time: eventData.schedule.eventEnd || null,
-                setup_start_time: eventData.schedule.setupStart || null,
-                teardown_end_time: eventData.schedule.setupEnd || null,
-                status: eventData.status,
-                event_type: eventData.type || 'OTRO',
-                description: eventData.notes.technical || null,
-                is_recurring: eventData.dateConfig === 'recurring',
-                notes: eventData.generalNotes || null,
-                general_notes: eventData.generalNotes || null,
-                advisor_notes: eventData.notes.access || null,
-                setup_notes: eventData.notes.setup || null,
-                additional_notes: eventData.notes.additional || null,
-                contacts: eventData.contacts.map((contact, index) => ({
-                    contact_type: contact.type,
-                    name: contact.name,
-                    email: contact.email || null,
-                    phone: contact.phone || null,
-                    notes: contact.notes || null,
-                    is_primary: index === 0
-                }))
-            };
-
-            fetch('/inventory/eventos', {
-                method: 'POST',
+            fetch(`/inventory/eventos/${currentEventId}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -1500,20 +1493,46 @@ class EventsManager {
                 body: JSON.stringify(payload)
             })
             .then(async (response) => {
+                const data = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                    const data = await response.json().catch(() => ({}));
-                    throw new Error(data?.message || 'No se pudo crear el evento.');
+                    throw new Error(data?.message || 'No se pudo actualizar el evento.');
                 }
-                this.showAlert('Evento creado exitosamente.', 'success');
-                window.location.reload();
+                this.showAlert('Evento actualizado exitosamente.', 'success');
+                this.loadEventsFromApi();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                if (modal) modal.hide();
             })
             .catch((error) => {
-                this.showAlert(error.message || 'Ocurrió un error al crear el evento.', 'error');
+                this.showAlert(error.message || 'Ocurrió un error al actualizar el evento.', 'error');
             });
 
             return;
         }
-        
+
+        fetch('/inventory/eventos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(async (response) => {
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data?.message || 'No se pudo crear el evento.');
+            }
+            this.showAlert('Evento creado exitosamente.', 'success');
+            window.location.reload();
+        })
+        .catch((error) => {
+            this.showAlert(error.message || 'Ocurrió un error al crear el evento.', 'error');
+        });
+
+        return;
+
         // Si es recurrente, mostrar modal de configuración
         if (eventData.dateConfig === 'recurring' && !currentEventId) {
             const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
