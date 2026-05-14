@@ -115,6 +115,7 @@ Route::middleware('auth')->group(function () {
             Route::view('/eventos-inventario', 'inventory.eventos-inventario')->name('eventos-inventario');
             Route::post('/eventos', [App\Http\Controllers\InventoryController::class, 'eventosStore'])->name('eventos.store');
             Route::patch('/eventos/{event}/status', [App\Http\Controllers\InventoryController::class, 'eventosUpdateStatus'])->name('eventos.update-status');
+            Route::put('/eventos/{event}', [App\Http\Controllers\InventoryController::class, 'eventosUpdate'])->name('eventos.update');
             Route::get('/clients', [App\Http\Controllers\InventoryController::class, 'eventClients'])->name('clients.index');
             Route::post('/clients/quick', [App\Http\Controllers\InventoryController::class, 'quickStoreClient'])->name('clients.quick-store');
             Route::get('/unidad/{id}', [App\Http\Controllers\InventoryController::class, 'detalleUnidad'])->name('detalle.unidad');
