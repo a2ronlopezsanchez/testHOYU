@@ -43,7 +43,7 @@ let clientsData = [];
 let currentPage = 1;
 let searchTerm = '';
 let activeFilters = {
-    statuses: ['COTIZADO', 'CONFIRMADO', 'EN_PROGRESO', 'COMPLETADO'],
+    statuses: ['PLANIFICADO', 'COTIZADO', 'CONFIRMADO', 'EN_PROGRESO', 'COMPLETADO'],
     type: '',
     dateRange: null,
     quickStatus: 'all'
@@ -534,6 +534,14 @@ class EventsManager {
             const data = await response.json();
             eventsData = (data || []).map((event) => ({
                 ...event,
+                name: event.name || 'Sin nombre',
+                folio: String(event.folio || ''),
+                cotizacion: String(event.cotizacion || ''),
+                location: event.location || 'Sin ubicación',
+                type: event.type || 'OTRO',
+                status: event.status || 'PLANIFICADO',
+                contacts: event.contacts || [],
+                linkedEvents: event.linkedEvents || [],
                 startDate: event.startDate ? new Date(event.startDate) : null,
                 endDate: event.endDate ? new Date(event.endDate) : null,
                 createdAt: event.createdAt ? new Date(event.createdAt) : new Date(),
@@ -684,7 +692,7 @@ class EventsManager {
         allBtn.classList.remove('btn-outline-secondary');
         
         // Reset filtros avanzados
-        activeFilters.statuses = ['COTIZADO', 'CONFIRMADO', 'EN_PROGRESO', 'COMPLETADO'];
+        activeFilters.statuses = ['PLANIFICADO', 'COTIZADO', 'CONFIRMADO', 'EN_PROGRESO', 'COMPLETADO'];
         activeFilters.type = '';
         activeFilters.dateRange = null;
         
@@ -744,12 +752,12 @@ class EventsManager {
         filteredEventsData = eventsData.filter(event => {
             // Filtro de búsqueda
             const matchesSearch = !searchTerm || 
-                event.name.toLowerCase().includes(searchTerm) ||
-                event.folio.toLowerCase().includes(searchTerm) ||
-                event.cotizacion.toLowerCase().includes(searchTerm) ||
-                this.getClientName(event.clientId).toLowerCase().includes(searchTerm) ||
-                event.location.toLowerCase().includes(searchTerm) ||
-                event.type.toLowerCase().includes(searchTerm);
+                String(event.name || '').toLowerCase().includes(searchTerm) ||
+                String(event.folio || '').toLowerCase().includes(searchTerm) ||
+                String(event.cotizacion || '').toLowerCase().includes(searchTerm) ||
+                String(this.getClientName(event.clientId) || '').toLowerCase().includes(searchTerm) ||
+                String(event.location || '').toLowerCase().includes(searchTerm) ||
+                String(event.type || '').toLowerCase().includes(searchTerm);
             
             // Filtro de estado rápido
             const matchesQuickStatus = activeFilters.quickStatus === 'all' || 
