@@ -64,6 +64,17 @@ function formatDateForApi(dateValue) {
     return `${y}-${m}-${day}`;
 }
 
+function parseLocalDate(dateValue) {
+    if (!dateValue) return null;
+    if (dateValue instanceof Date) return dateValue;
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        const [y, m, d] = dateValue.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+    const parsed = new Date(dateValue);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function getCsrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 }
@@ -542,8 +553,8 @@ class EventsManager {
                 status: event.status || 'PLANIFICADO',
                 contacts: event.contacts || [],
                 linkedEvents: event.linkedEvents || [],
-                startDate: event.startDate ? new Date(event.startDate) : null,
-                endDate: event.endDate ? new Date(event.endDate) : null,
+                startDate: parseLocalDate(event.startDate),
+                endDate: parseLocalDate(event.endDate),
                 createdAt: event.createdAt ? new Date(event.createdAt) : new Date(),
             }));
             this.applyFilters();
@@ -1041,19 +1052,33 @@ class EventsManager {
     }
 
     updatePagination() {
-        const totalPages = Math.ceil(filteredEventsData.length / CONFIG.itemsPerPage);
+        const totalPages = Math.max(1, Math.ceil(filteredEventsData.length / CONFIG.itemsPerPage));
         const startIndex = (currentPage - 1) * CONFIG.itemsPerPage;
         const endIndex = Math.min(startIndex + CONFIG.itemsPerPage, filteredEventsData.length);
-        
+
         document.getElementById('eventsShowingFrom').textContent = filteredEventsData.length > 0 ? startIndex + 1 : 0;
         document.getElementById('eventsShowingTo').textContent = endIndex;
         document.getElementById('eventsTotalItems').textContent = filteredEventsData.length;
-        
-        const prevBtn = document.getElementById('eventsPrevPage').parentElement;
-        const nextBtn = document.getElementById('eventsNextPage').parentElement;
-        
-        prevBtn.classList.toggle('disabled', currentPage <= 1);
-        nextBtn.classList.toggle('disabled', currentPage >= totalPages);
+
+        const pagination = document.getElementById('eventsPaginationControls');
+        const prevLi = document.getElementById('eventsPrevPage').parentElement;
+        const nextLi = document.getElementById('eventsNextPage').parentElement;
+
+        pagination.querySelectorAll('.events-page-number').forEach(el => el.remove());
+
+        for (let page = 1; page <= totalPages; page++) {
+            const li = document.createElement('li');
+            li.className = `page-item events-page-number ${page === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${page}</a>`;
+            li.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.changePage(page);
+            });
+            nextLi.before(li);
+        }
+
+        prevLi.classList.toggle('disabled', currentPage <= 1);
+        nextLi.classList.toggle('disabled', currentPage >= totalPages);
     }
 
     updateEventsCount() {
@@ -2345,8 +2370,9 @@ class EventsManager {
     }
 
     formatEventDate(event) {
-        const start = new Date(event.startDate);
-        const end = new Date(event.endDate);
+        const start = parseLocalDate(event.startDate);
+        const end = parseLocalDate(event.endDate);
+        if (!start || !end) return 'N/A';
         
         if (event.dateConfig === 'single' || start.toDateString() === end.toDateString()) {
             return this.formatDate(start);
@@ -2357,7 +2383,8 @@ class EventsManager {
 
     formatDate(date) {
         if (!date) return 'N/A';
-        const d = new Date(date);
+        const d = parseLocalDate(date);
+        if (!d) return 'N/A';
         return d.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'long',
@@ -2367,7 +2394,8 @@ class EventsManager {
 
     formatDateTime(date) {
         if (!date) return 'N/A';
-        const d = new Date(date);
+        const d = parseLocalDate(date);
+        if (!d) return 'N/A';
         return d.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'long',
