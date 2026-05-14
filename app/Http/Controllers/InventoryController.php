@@ -1703,6 +1703,7 @@ class InventoryController extends Controller
             'teardown_end_date' => ['nullable', 'date'],
             'teardown_end_time' => ['nullable', 'date_format:H:i'],
             'status' => ['nullable', 'string', 'max:40'],
+            'event_type' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
             'is_recurring' => ['nullable', 'boolean'],
             'recurrence_rule' => ['nullable', 'array'],
@@ -1768,6 +1769,7 @@ class InventoryController extends Controller
             'teardown_end_date' => $validated['teardown_end_date'] ?? null,
             'teardown_end_time' => $validated['teardown_end_time'] ?? null,
             'status' => $validated['status'] ?? 'PLANIFICADO',
+            'event_type' => $validated['event_type'] ?? 'OTRO',
             'description' => $validated['description'] ?? null,
             'is_recurring' => (bool) ($validated['is_recurring'] ?? false),
             'recurrence_rule' => $validated['recurrence_rule'] ?? null,
@@ -1817,7 +1819,7 @@ class InventoryController extends Controller
     public function eventosData(): JsonResponse
     {
         $events = Event::query()
-            ->with(['client'])
+            ->with(['client', 'creator'])
             ->orderByDesc('start_date')
             ->get()
             ->map(function (Event $event) {
@@ -1856,7 +1858,7 @@ class InventoryController extends Controller
                     'files' => [],
                     'linkedEvents' => [],
                     'createdAt' => optional($event->created_at)->toDateTimeString(),
-                    'createdBy' => 'Sistema',
+                    'createdBy' => $event->creator?->name ?: 'Sistema',
                 ];
             })
             ->values();

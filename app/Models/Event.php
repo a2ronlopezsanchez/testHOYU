@@ -33,6 +33,11 @@ class Event extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function contacts()
     {
         return $this->hasMany(EventContact::class);

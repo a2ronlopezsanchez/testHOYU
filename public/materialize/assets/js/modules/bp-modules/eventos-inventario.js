@@ -1471,6 +1471,7 @@ class EventsManager {
                 setup_start_time: eventData.schedule.setupStart || null,
                 teardown_end_time: eventData.schedule.setupEnd || null,
                 status: eventData.status,
+                event_type: eventData.type || 'OTRO',
                 description: eventData.notes.technical || null,
                 is_recurring: eventData.dateConfig === 'recurring',
                 notes: eventData.generalNotes || null,
