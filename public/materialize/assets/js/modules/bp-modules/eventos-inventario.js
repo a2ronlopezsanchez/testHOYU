@@ -43,7 +43,7 @@ let clientsData = [];
 let currentPage = 1;
 let searchTerm = '';
 let activeFilters = {
-    statuses: ['PLANIFICADO', 'COTIZADO', 'CONFIRMADO', 'EN_PROGRESO', 'COMPLETADO'],
+    statuses: [],
     type: '',
     dateRange: null,
     quickStatus: 'all'
@@ -692,7 +692,7 @@ class EventsManager {
         allBtn.classList.remove('btn-outline-secondary');
         
         // Reset filtros avanzados
-        activeFilters.statuses = ['PLANIFICADO', 'COTIZADO', 'CONFIRMADO', 'EN_PROGRESO', 'COMPLETADO'];
+        activeFilters.statuses = [];
         activeFilters.type = '';
         activeFilters.dateRange = null;
         
@@ -764,8 +764,9 @@ class EventsManager {
                 event.status === activeFilters.quickStatus;
             
             // Filtro de estados avanzados
-            const matchesStatus = activeFilters.statuses.length === 0 || 
-                activeFilters.statuses.includes(event.status);
+            const matchesStatus = activeFilters.quickStatus === 'all'
+                ? true
+                : (activeFilters.statuses.length === 0 || activeFilters.statuses.includes(event.status));
             
             // Filtro de tipo
             const matchesType = !activeFilters.type || event.type === activeFilters.type;
