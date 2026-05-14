@@ -1819,7 +1819,7 @@ class InventoryController extends Controller
     public function eventosData(): JsonResponse
     {
         $events = Event::query()
-            ->with(['client', 'creator'])
+            ->with(['client', 'creator', 'contacts'])
             ->orderByDesc('start_date')
             ->get()
             ->map(function (Event $event) {
@@ -1841,7 +1841,16 @@ class InventoryController extends Controller
                     'startDate' => optional($event->start_date)->toDateString(),
                     'endDate' => optional($event->end_date)->toDateString(),
                     'status' => $event->status ?: 'PLANIFICADO',
-                    'contacts' => [],
+                    'contacts' => $event->contacts->map(function ($contact) {
+                        return [
+                            'type' => $contact->contact_type,
+                            'name' => $contact->name,
+                            'email' => $contact->email,
+                            'phone' => $contact->phone,
+                            'notes' => $contact->notes,
+                            'is_primary' => (bool) $contact->is_primary,
+                        ];
+                    })->values()->all(),
                     'schedule' => [
                         'eventStart' => $event->event_start_time,
                         'eventEnd' => $event->event_end_time,
