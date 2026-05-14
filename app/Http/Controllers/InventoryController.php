@@ -1927,7 +1927,7 @@ class InventoryController extends Controller
 
                 return [
                     'id' => (string) $event->id,
-                    'folio' => (string) $event->id,
+                    'folio' => str_pad((string) $event->id, 6, '0', STR_PAD_LEFT),
                     'cotizacion' => $event->event_code,
                     'name' => $event->name,
                     'clientId' => $event->client_id,
