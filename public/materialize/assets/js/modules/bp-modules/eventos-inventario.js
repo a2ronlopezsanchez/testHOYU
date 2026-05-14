@@ -66,21 +66,39 @@ function formatDateForApi(dateValue) {
 
 function normalizeTimeForApi(timeValue) {
     if (!timeValue) return null;
-    const raw = String(timeValue).trim().toLowerCase();
 
-    const hhmm = raw.match(/^(\d{1,2}):(\d{2})$/);
-    if (hhmm) {
-        return `${hhmm[1].padStart(2, '0')}:${hhmm[2]}`;
+    const rawOriginal = String(timeValue).trim();
+    const raw = rawOriginal
+        .toLowerCase()
+        .replace(/ | /g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    // Formato directo HH:mm
+    const direct = raw.match(/^(\d{1,2}):(\d{2})$/);
+    if (direct) {
+        const h = String(Math.min(23, parseInt(direct[1], 10))).padStart(2, '0');
+        return `${h}:${direct[2]}`;
     }
 
-    const ampm = raw.match(/^(\d{1,2})[:.](\d{2})\s*([ap])\.?\s*m\.?$/);
-    if (ampm) {
-        let h = parseInt(ampm[1], 10);
-        const m = ampm[2];
-        const period = ampm[3];
+    // Formatos con a. m. / p. m. o am/pm
+    const ampmMatch = raw.match(/^(\d{1,2})[:.](\d{2}).*?([ap])\s*\.?\s*m\.?$/);
+    if (ampmMatch) {
+        let h = parseInt(ampmMatch[1], 10);
+        const m = ampmMatch[2];
+        const period = ampmMatch[3];
+
         if (period === 'p' && h < 12) h += 12;
         if (period === 'a' && h === 12) h = 0;
+
         return `${String(h).padStart(2, '0')}:${m}`;
+    }
+
+    // Último intento: encontrar HH:mm dentro del texto
+    const embedded = raw.match(/(\d{1,2}):(\d{2})/);
+    if (embedded) {
+        const h = String(Math.min(23, parseInt(embedded[1], 10))).padStart(2, '0');
+        return `${h}:${embedded[2]}`;
     }
 
     return null;
