@@ -1678,7 +1678,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!confirm) return;
 
+        const row = btn.closest('tr');
         await removeAssignment(assignmentId);
+
+        if (row && window.jQuery && typeof window.jQuery.fn.DataTable === 'function') {
+          const dt = window.jQuery('#assignedUpcomingTable').DataTable();
+          dt.row(row).remove().draw(false);
+        } else if (row) {
+          row.remove();
+        }
+
         const assignments = await fetchEventAssignments();
         renderAssignedEventsRows(assignments);
 
