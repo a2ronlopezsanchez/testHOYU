@@ -232,6 +232,7 @@ class InventoryCatalog {
                 onChange: (selectedDates, dateStr) => {
                     if (selectedDates.length > 0) {
                         currentDate = selectedDates[0];
+                        this.clearAvailabilityCache();
                         this.updateDateDisplay();
                         this.renderTable();
                         
@@ -1352,7 +1353,8 @@ class InventoryCatalog {
     async createCalendarView(item) {
         const today = new Date();
         const startDate = new Date(today);
-        startDate.setDate(today.getDate() - 14); // 2 semanas atrás
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - 14); // 2 semanas atrás
         
         let calendarHTML = `
             <div class="calendar-header">
@@ -1374,7 +1376,8 @@ class InventoryCatalog {
         
         // Calcular cuántas semanas necesitamos mostrar
         const endDate = new Date(today);
-        endDate.setDate(today.getDate() + 14); // 2 semanas adelante
+        endDate.setHours(23, 59, 59, 999);
+        endDate.setDate(endDate.getDate() + 14); // 2 semanas adelante
         
         const totalDays = Math.ceil((endDate - firstDay) / (1000 * 60 * 60 * 24)) + 7; // +7 para asegurar cobertura completa
         const weeksToShow = Math.ceil(totalDays / 7);
@@ -1426,6 +1429,7 @@ class InventoryCatalog {
         
         for (const calendarDay of calendarDays) {
             const dayDate = this.parseLocalDate(calendarDay.dataset.date);
+            dayDate.setHours(12, 0, 0, 0);
             
             // Solo procesar días en el rango válido
             if (dayDate < startDate || dayDate > endDate) continue;
@@ -2054,7 +2058,8 @@ class InventoryCatalog {
     async createModalCalendarView(item) {
         const today = new Date();
         const startDate = new Date(today);
-        startDate.setDate(today.getDate() - 14); // 2 semanas atrás
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - 14); // 2 semanas atrás
         
         let calendarHTML = `
             <div class="calendar-header">
@@ -2076,7 +2081,8 @@ class InventoryCatalog {
         
         // Calcular cuántas semanas necesitamos mostrar
         const endDate = new Date(today);
-        endDate.setDate(today.getDate() + 14); // 2 semanas adelante
+        endDate.setHours(23, 59, 59, 999);
+        endDate.setDate(endDate.getDate() + 14); // 2 semanas adelante
         
         const totalDays = Math.ceil((endDate - firstDay) / (1000 * 60 * 60 * 24)) + 7;
         const weeksToShow = Math.ceil(totalDays / 7);
@@ -2129,6 +2135,7 @@ class InventoryCatalog {
         
         for (const calendarDay of calendarDays) {
             const dayDate = this.parseLocalDate(calendarDay.dataset.date);
+            dayDate.setHours(12, 0, 0, 0);
             
             // Solo procesar días en el rango válido
             if (dayDate < startDate || dayDate > endDate) continue;
