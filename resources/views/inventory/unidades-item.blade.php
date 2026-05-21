@@ -1306,7 +1306,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="fw-medium">${a.event_name || 'Sin nombre'}</div>
           <small class="text-muted d-block">${a.event_code || `EVT-${a.event_id}`}</small>
         </td>
-        <td>
+        <td data-order="${a.event_start_date || ''}">
           <div>${formatShortDate(a.event_start_date)}</div>
           <small class="text-muted d-block">al ${formatShortDate(a.event_end_date)}</small>
         </td>
