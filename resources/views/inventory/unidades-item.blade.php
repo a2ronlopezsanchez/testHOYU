@@ -1349,12 +1349,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.jQuery('#assignedUpcomingTable').DataTable({
       ...commonOptions,
-      order: [[1, 'asc']]
+      order: [[2, 'asc']]
     });
 
     window.jQuery('#assignedPastTable').DataTable({
       ...commonOptions,
-      order: [[1, 'desc']]
+      order: [[2, 'desc']]
     });
   }
 
