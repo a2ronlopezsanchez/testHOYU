@@ -1306,7 +1306,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="fw-medium">${a.event_name || 'Sin nombre'}</div>
           <small class="text-muted d-block">${a.event_code || `EVT-${a.event_id}`}</small>
         </td>
-        <td>
+        <td data-order="${a.event_start_date || ''}">
           <div>${formatShortDate(a.event_start_date)}</div>
           <small class="text-muted d-block">al ${formatShortDate(a.event_end_date)}</small>
         </td>
@@ -1349,12 +1349,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.jQuery('#assignedUpcomingTable').DataTable({
       ...commonOptions,
-      order: [[1, 'asc']]
+      order: [[2, 'asc']]
     });
 
     window.jQuery('#assignedPastTable').DataTable({
       ...commonOptions,
-      order: [[1, 'desc']]
+      order: [[2, 'desc']]
     });
   }
 
@@ -1678,7 +1678,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!confirm) return;
 
+        const row = btn.closest('tr');
         await removeAssignment(assignmentId);
+
+        if (row && window.jQuery && typeof window.jQuery.fn.DataTable === 'function') {
+          const dt = window.jQuery('#assignedUpcomingTable').DataTable();
+          dt.row(row).remove().draw(false);
+        } else if (row) {
+          row.remove();
+        }
+
         const assignments = await fetchEventAssignments();
         renderAssignedEventsRows(assignments);
 
