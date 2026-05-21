@@ -1351,8 +1351,10 @@ class InventoryCatalog {
     }
 
     async createCalendarView(item) {
+        const anchorDate = new Date(currentDate);
+        anchorDate.setHours(12, 0, 0, 0);
         const today = new Date();
-        const startDate = new Date(today);
+        const startDate = new Date(anchorDate);
         startDate.setHours(0, 0, 0, 0);
         startDate.setDate(startDate.getDate() - 14); // 2 semanas atrás
         
@@ -1375,7 +1377,7 @@ class InventoryCatalog {
         firstDay.setDate(firstDay.getDate() - dayOfWeek); // Retroceder al domingo anterior
         
         // Calcular cuántas semanas necesitamos mostrar
-        const endDate = new Date(today);
+        const endDate = new Date(anchorDate);
         endDate.setHours(23, 59, 59, 999);
         endDate.setDate(endDate.getDate() + 14); // 2 semanas adelante
         
@@ -2056,8 +2058,10 @@ class InventoryCatalog {
         }
     }
     async createModalCalendarView(item) {
+        const anchorDate = new Date(currentDate);
+        anchorDate.setHours(12, 0, 0, 0);
         const today = new Date();
-        const startDate = new Date(today);
+        const startDate = new Date(anchorDate);
         startDate.setHours(0, 0, 0, 0);
         startDate.setDate(startDate.getDate() - 14); // 2 semanas atrás
         
@@ -2080,7 +2084,7 @@ class InventoryCatalog {
         firstDay.setDate(firstDay.getDate() - dayOfWeek); // Retroceder al domingo anterior
         
         // Calcular cuántas semanas necesitamos mostrar
-        const endDate = new Date(today);
+        const endDate = new Date(anchorDate);
         endDate.setHours(23, 59, 59, 999);
         endDate.setDate(endDate.getDate() + 14); // 2 semanas adelante
         
